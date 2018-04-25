@@ -1,0 +1,8 @@
+; What is EditorConfig? http://editorconfig.org/
+
+root = true
+
+; use tabs identation for all files
+[*]
+indent_style = tab
+insert_final_newline = true
