@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
+using LinqToDB.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -17,14 +18,57 @@ namespace LinqToDB.EntityFrameworkCore
 	using Metadata;
 
 	[PublicAPI]
-	public static class Linq2DbTools
+	public static partial class LinqToDbForEfTools
 	{
-		private static ILinq2DbTools _implementation;
+		private static Lazy<bool> _intialized = new Lazy<bool>(InitializeInternal);
+
+		/// <summary>
+		/// Initializes internal LinqToDb callbacks
+		/// </summary>
+		public static void Initialize()
+		{
+			var _ = _intialized.Value;
+		}
+
+		private static bool InitializeInternal()
+		{
+			var prev = LinqExtensions.ProcessInputQueryable;
+
+			var instantiator = MemberHelper.MethodOf(() => Internals.CreateExpressionQueryInstance<int>(null, null))
+				.GetGenericMethodDefinition();
+
+			LinqExtensions.ProcessInputQueryable = queryable =>
+			{
+				// our Provider nothing to do
+				if (queryable.Provider is IQueryProviderAsync)
+					return queryable;
+
+				var context = Implementation.GetCurrentContext(queryable);
+				if (context == null)
+					throw new Exception("Can not evaluate current context from query");
+
+				var dc = CreateLinqToDbConnection(context);
+				var newExpression = TransformExpression(queryable.Expression, dc);
+
+				var result = (IQueryable) instantiator.MakeGenericMethod(queryable.ElementType)
+					.Invoke(null, new object[] { dc, newExpression });
+
+				if (prev != null)
+					result = prev(result);
+
+				return result;
+			};
+
+			return true;
+		}
+
+
+		private static ILinqToDbForEfTools _implementation;
 
 		/// <summary>
 		/// Allows changing Linq2DbTools behaviour
 		/// </summary>
-		public static ILinq2DbTools Implementation
+		public static ILinqToDbForEfTools Implementation
 		{
 			get => _implementation;
 			set
@@ -39,9 +83,10 @@ namespace LinqToDB.EntityFrameworkCore
 
 		private static Lazy<IMetadataReader> _defaultMeadataReader;
 
-	    static Linq2DbTools()
+	    static LinqToDbForEfTools()
 	    {
-			Implementation = new Linq2DbToolsImplDefault();
+			Implementation = new LinqToDbForForEfToolsImplDefault();
+			Initialize();
 	    }
 
 		public static IMetadataReader GetMetadataReader([JetBrains.Annotations.CanBeNull] IModel model)
@@ -140,6 +185,21 @@ namespace LinqToDB.EntityFrameworkCore
 			return dc;
 	    }
 
+	  //  public static DataContext CreateLinqToDbContext(this DbContext context)
+	  //  {
+		 //   if (context == null) throw new ArgumentNullException(nameof(context));
+
+		 //   var info = GetEfProviderInfo(context);
+
+			//var dc = new DataContext(GetDataProvider(info), context.Database.GetDbConnection());
+
+		 //   var mappingSchema = GetMappingSchema(context.Model);
+			//if (mappingSchema != null)
+			//	dc.AddMappingSchema(mappingSchema);
+
+			//return dc;
+	  //  }
+
 	    public static DataConnection CreateLinq2DbConnectionDetached([JetBrains.Annotations.NotNull] this DbContext context)
 	    {
 		    if (context == null) throw new ArgumentNullException(nameof(context));
@@ -209,8 +269,28 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="query"></param>
 		/// <param name="dc"></param>
 		/// <returns></returns>
-		public static IQueryable<T> ToLinqToDb<T>(this IQueryable<T> query, IDataContext dc)
+		public static IQueryable<T> ToLinqToDbQuery<T>(this IQueryable<T> query, IDataContext dc)
 	    {
+		    var newExpression = TransformExpression(query.Expression, dc);
+
+		    return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
+	    }
+
+		/// <summary>
+		/// Converts Entity Framework's query to LinqToDb realisation. 
+		/// In this case we do not worry out about connection releasing. It should be done on EF Context side.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="query"></param>
+		/// <param name="dc"></param>
+		/// <returns></returns>
+		public static IQueryable<T> ToLinqToDbQuery<T>(this IQueryable<T> query)
+		{
+			var context = Implementation.GetCurrentContext(query);
+			if (context == null)
+				throw new Exception("Can not evaluate current context from query");
+
+			var dc = CreateLinqToDbConnection(context);
 		    var newExpression = TransformExpression(query.Expression, dc);
 
 		    return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);

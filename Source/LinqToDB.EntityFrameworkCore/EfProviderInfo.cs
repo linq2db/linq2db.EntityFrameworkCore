@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace LinqToDB.EntityFrameworkCore

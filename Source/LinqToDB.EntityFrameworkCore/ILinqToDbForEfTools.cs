@@ -10,7 +10,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 
-	public interface ILinq2DbTools
+	public interface ILinqToDbForEfTools
 	{
 		/// <summary>
 		/// Detects Linq2Db provider based on EintityFramework information. 

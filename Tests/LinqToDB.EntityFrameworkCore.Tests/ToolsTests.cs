@@ -17,6 +17,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 
 	    static ToolsTests()
 	    {
+			LinqToDbForEfTools.Initialize();
+
 			DataConnection.TurnTraceSwitchOn();
 		    DataConnection.WriteTraceLine = (s, s1) => Console.WriteLine(s, s1);
 
@@ -41,7 +43,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 	    public void Test()
 	    {
 		    using (var ctx = CreateAdventureWorksContext())
-		    using (var db = Linq2DbTools.CreateLinqToDbConnection(ctx))
+		    using (var db = LinqToDbForEfTools.CreateLinqToDbConnection(ctx))
 		    {
 			    var items = db.GetTable<SalesOrderDetail>().LoadWith(d => d.SalesOrder).ToList();
 		    }
@@ -79,7 +81,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			    using (var db = ctx.CreateLinqToDbConnection())
 			    {
 				    var items1 = ViewProductAndDescription(ctx)
-					    .ToLinqToDb(db)
+					    .ToLinqToDbQuery(db)
 					    .Where(pd => pd.Description.StartsWith("a"))
 					    .ToArray();
 
@@ -90,11 +92,11 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 				    ViewProductAndDescription(ctx)
 					    .Where(pd => pd.Description.StartsWith("a"))
 					    .Where(p => p.Name == "a")
-					    .ToLinqToDb(db)
+					    .ToLinqToDbQuery(db)
 					    .Delete();
 
 				    ctx.Products.Where(p => p.Name == "a")
-					    .ToLinqToDb(db)
+					    .ToLinqToDbQuery(db)
 					    .Delete();
 
 					transaction.Rollback();
@@ -109,7 +111,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		    using (var db = ctx.CreateLinqToDbConnection())
 		    {
 			    var query = ViewProductAndDescription(ctx)
-				    .ToLinqToDb(db)
+				    .ToLinqToDbQuery(db)
 				    .Where(pd => pd.Description.StartsWith("a"));
 
 
@@ -120,7 +122,35 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 	    }
 
 
+	    [Test]
+	    public void TestContextRetrieving()
+	    {
+		    using (var ctx = CreateAdventureWorksContext())
+		    {
+			    var query = ViewProductAndDescription(ctx)
+				    .ToLinqToDbQuery()
+				    .Where(pd => pd.Description.StartsWith("a"));
+
+
+			    var items = query.ToArray();
+
+			    query.Where(p => p.Name == "a").Delete();
+		    }
+	    }
+
 		[Test]
+	    public void TestCallback()
+	    {
+		    using (var ctx = CreateAdventureWorksContext())
+		    {
+			    var query = ViewProductAndDescription(ctx)
+				    .Where(pd => pd.Description.StartsWith("a"));
+
+			    query.Where(p => p.Name == "a").Delete();
+		    }
+	    }
+
+	    [Test]
 	    public void TestCreateFromOptions()
 	    {
 		    using (var db = _options.CreateLinqToDbConnection())

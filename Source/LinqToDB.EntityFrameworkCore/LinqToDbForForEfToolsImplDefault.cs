@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -16,7 +18,9 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 
-	public class Linq2DbToolsImplDefault : ILinq2DbTools
+	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
+	[PublicAPI]
+	public class LinqToDbForForEfToolsImplDefault : ILinqToDbForEfTools
 	{
 		/// <summary>
 		/// Detects Linq2Db provider based on EintityFramework information. 
@@ -111,9 +115,16 @@ namespace LinqToDB.EntityFrameworkCore
 			var compiler = (QueryCompiler) compilerField.GetValue(query.Provider);
 
 			var queryContextFactoryField = compiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance);
-			var queryContextFactory = (RelationalQueryContextFactory) queryContextFactoryField.GetValue(compiler);	    
 
+			if (queryContextFactoryField == null)
+				throw new Exception($"Can not find private field '{compiler.GetType()}._queryContextFactory' in current EFCore Version");
+
+			var queryContextFactory  = (RelationalQueryContextFactory) queryContextFactoryField.GetValue(compiler);	    
 			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
+
+			if (queryContextFactoryField == null)
+				throw new Exception($"Can not find private property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version");
+
 			var dependencies = (QueryContextDependencies) dependenciesProperty.GetValue(queryContextFactory);
 
 			return dependencies.CurrentDbContext?.Context;
