@@ -10,64 +10,67 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 
+	/// <summary>
+	/// Interface for EF.Core - LINQ To DB integration bridge.
+	/// </summary>
 	public interface ILinqToDbForEfTools
 	{
 		/// <summary>
-		/// Detects Linq2Db provider based on EintityFramework information. 
+		/// Returns LINQ To DB provider, based on provider data from EF.Core.
 		/// </summary>
-		/// <param name="providerInfo"></param>
-		/// <returns></returns>
+		/// <param name="providerInfo">Provider information, extracted from EF.Core.</param>
+		/// <returns>LINQ TO DB provider instance.</returns>
 		IDataProvider GetDataProvider(EfProviderInfo providerInfo);
 
 		/// <summary>
-		/// Creates IMetadataReader implementation. 
+		/// Creates metadata provider for specified EF.Core data model.
 		/// </summary>
-		/// <param name="model"></param>
-		/// <returns>IMetadataReader implemantetion. Can be null.</returns>
+		/// <param name="model">EF.Core data model.</param>
+		/// <returns>LINQ To DB metadata provider for specified EF.Core model. Can return <c>null</c>.</returns>
 		IMetadataReader CreateMetadataReader(IModel model);
 
 		/// <summary>
-		/// Returns prepared MappingSchema.
+		/// Creates mapping schema using provided EF.Core data model and metadata provider.
 		/// </summary>
-		/// <param name="model"></param>
-		/// <param name="metadataReader"></param>
-		/// <returns>Mapping schema for Model</returns>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
+		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader);
 
 		/// <summary>
-		/// Implementation of retrieving options from DbContext
+		/// Returns EF.Core <see cref="DbContextOptions"/> for specific <see cref="DbContext"/> instance.
 		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
+		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
+		/// <returns><see cref="DbContextOptions"/> instance.</returns>
 		DbContextOptions GetContextOptions(DbContext context);
 
 		/// <summary>
-		/// Realisation for IQueryable expression transformation
+		/// Transforms EF.Core expression tree to LINQ To DB expression.
 		/// </summary>
-		/// <param name="expression"></param>
-		/// <param name="dc"></param>
-		/// <returns>Transformed expression</returns>
+		/// <param name="expression">EF.Core expression tree.</param>
+		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
+		/// <returns>Transformed expression.</returns>
 		Expression TransformExpression(Expression expression, IDataContext dc);
 
 		/// <summary>
-		/// Returns DBContext from IQueryable
+		/// Extracts <see cref="DbContext"/> instance from <see cref="IQueryable"/> object.
 		/// </summary>
-		/// <param name="query"></param>
-		/// <returns></returns>
+		/// <param name="query">EF.Core query.</param>
+		/// <returns>Current <see cref="DbContext"/> instance.</returns>
 		DbContext GetCurrentContext(IQueryable query);
 
 		/// <summary>
-		/// Returns connection string or connection from options
+		/// Extracts EF.Core connection information object from <see cref="DbContextOptions"/>.
 		/// </summary>
-		/// <param name="options"></param>
-		/// <returns>Connection string</returns>
+		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <returns>EF.Core connection data.</returns>
 		EfConnectionInfo ExtractConnectionInfo(DbContextOptions options);
 
 		/// <summary>
-		/// Returns Entity model from options
+		/// Extracts EF.Core data model instance from <see cref="DbContextOptions"/>.
 		/// </summary>
-		/// <param name="options"></param>
-		/// <returns>Connection string</returns>
+		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <returns>EF.Core data model instance.</returns>
 		IModel ExtractModel(DbContextOptions options);
 	}
 }

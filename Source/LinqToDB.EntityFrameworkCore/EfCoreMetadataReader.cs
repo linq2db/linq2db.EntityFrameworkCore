@@ -12,6 +12,9 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 
+	/// <summary>
+	/// LINQ To DB metadata reader for EF.Core model.
+	/// </summary>
 	class EfCoreMetadataReader : IMetadataReader
 	{
 		private readonly IModel _model;
@@ -29,7 +32,7 @@ namespace LinqToDB.EntityFrameworkCore
 				if (typeof(T) == typeof(TableAttribute))
 				{
 					var relational = et.Relational();
-					return new[] { (T) (Attribute) new TableAttribute(relational.TableName) { Schema = relational.Schema } };
+					return new[] { (T)(Attribute)new TableAttribute(relational.TableName) { Schema = relational.Schema } };
 				}
 			}
 
@@ -37,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				var tableAttribute = type.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.TableAttribute>(inherit);
 				if (tableAttribute != null)
-					return new[] { (T) (Attribute) new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema } };
+					return new[] { (T)(Attribute)new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema } };
 			}
 
 			return Array.Empty<T>();
@@ -68,7 +71,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 				var columnAttributes = memberInfo.GetCustomAttributes<System.ComponentModel.DataAnnotations.Schema.ColumnAttribute>(inherit);
 
-				return columnAttributes.Select(c => (T) (Attribute) new ColumnAttribute
+				return columnAttributes.Select(c => (T)(Attribute)new ColumnAttribute
 				{
 					Name = c.Name,
 					DbType = c.TypeName,
@@ -111,7 +114,7 @@ namespace LinqToDB.EntityFrameworkCore
 						}
 					}
 
-					return associations.Select(a => (T) (Attribute) a).ToArray();
+					return associations.Select(a => (T)(Attribute)a).ToArray();
 				}
 			}
 

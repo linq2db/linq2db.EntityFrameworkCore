@@ -17,13 +17,16 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 
+	/// <summary>
+	/// EF.Core to LINQ To DB integration.
+	/// </summary>
 	[PublicAPI]
 	public static partial class LinqToDbForEfTools
 	{
 		private static Lazy<bool> _intialized = new Lazy<bool>(InitializeInternal);
 
 		/// <summary>
-		/// Initializes internal LinqToDb callbacks
+		/// Initializes integration of LINQ To DB with EF.Core.
 		/// </summary>
 		public static void Initialize()
 		{
@@ -45,12 +48,12 @@ namespace LinqToDB.EntityFrameworkCore
 
 				var context = Implementation.GetCurrentContext(queryable);
 				if (context == null)
-					throw new Exception("Can not evaluate current context from query");
+					throw new InvalidOperationException("Can not extract current context from query");
 
 				var dc = CreateLinqToDbConnection(context);
 				var newExpression = TransformExpression(queryable.Expression, dc);
 
-				var result = (IQueryable) instantiator.MakeGenericMethod(queryable.ElementType)
+				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
 					.Invoke(null, new object[] { dc, newExpression });
 
 				if (prev != null)
@@ -66,14 +69,14 @@ namespace LinqToDB.EntityFrameworkCore
 		private static ILinqToDbForEfTools _implementation;
 
 		/// <summary>
-		/// Allows changing Linq2DbTools behaviour
+		/// Gets or sets EF.Core to LINQ To DB integration bridge implementation.
 		/// </summary>
 		public static ILinqToDbForEfTools Implementation
 		{
 			get => _implementation;
 			set
 			{
-				_implementation = value ?? throw new ArgumentNullException(nameof(value)); 
+				_implementation = value ?? throw new ArgumentNullException(nameof(value));
 				_metadataReaders.Clear();
 				_defaultMeadataReader = new Lazy<IMetadataReader>(() => Implementation.CreateMetadataReader(null));
 			}
@@ -83,12 +86,18 @@ namespace LinqToDB.EntityFrameworkCore
 
 		private static Lazy<IMetadataReader> _defaultMeadataReader;
 
-	    static LinqToDbForEfTools()
-	    {
+		static LinqToDbForEfTools()
+		{
 			Implementation = new LinqToDbForForEfToolsImplDefault();
 			Initialize();
-	    }
+		}
 
+		/// <summary>
+		/// Creates or return existing metadata provider for provided EF.Core data model. If model is null, empty metadata
+		/// provider will be returned.
+		/// </summary>
+		/// <param name="model">EF.Core data model instance. Could be <c>null</c>.</param>
+		/// <returns>LINQ To DB metadata provider.</returns>
 		public static IMetadataReader GetMetadataReader([JetBrains.Annotations.CanBeNull] IModel model)
 		{
 			if (model == null)
@@ -97,77 +106,121 @@ namespace LinqToDB.EntityFrameworkCore
 			return _metadataReaders.GetOrAdd(model, m => Implementation.CreateMetadataReader(model));
 		}
 
+		/// <summary>
+		/// Returns EF.Core <see cref="DbContextOptions"/> for specific <see cref="DbContext"/> instance.
+		/// </summary>
+		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
+		/// <returns><see cref="DbContextOptions"/> instance.</returns>
 		public static DbContextOptions GetContextOptions(DbContext context)
 		{
 			return Implementation.GetContextOptions(context);
 		}
 
+		/// <summary>
+		/// Returns EF.Core database provider information for specific <see cref="DbContext"/> instance.
+		/// </summary>
+		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
+		/// <returns>EF.Core provider information.</returns>
 		public static EfProviderInfo GetEfProviderInfo(DbContext context)
-	    {
-		    var info = new EfProviderInfo
-		    {
+		{
+			var info = new EfProviderInfo
+			{
 				Connection = context.Database.GetDbConnection(),
 				Context = context,
 				Options = GetContextOptions(context)
-		    };
+			};
 
-		    return info;
-	    }
+			return info;
+		}
 
+		/// <summary>
+		/// Returns EF.Core database provider information for specific <see cref="DbConnection"/> instance.
+		/// </summary>
+		/// <param name="connection">EF.Core <see cref="DbConnection"/> instance.</param>
+		/// <returns>EF.Core provider information.</returns>
 		public static EfProviderInfo GetEfProviderInfo(DbConnection connection)
-	    {
-		    var info = new EfProviderInfo
-		    {
+		{
+			var info = new EfProviderInfo
+			{
 				Connection = connection,
 				Context = null,
 				Options = null
-		    };
+			};
 
-		    return info;
-	    }
+			return info;
+		}
 
+		/// <summary>
+		/// Returns EF.Core database provider information for specific <see cref="DbContextOptions"/> instance.
+		/// </summary>
+		/// <param name="options">EF.Core <see cref="DbContextOptions"/> instance.</param>
+		/// <returns>EF.Core provider information.</returns>
 		public static EfProviderInfo GetEfProviderInfo(DbContextOptions options)
-	    {
-		    var info = new EfProviderInfo
-		    {
+		{
+			var info = new EfProviderInfo
+			{
 				Connection = null,
 				Context = null,
 				Options = options
-		    };
+			};
 
-		    return info;
-	    }
+			return info;
+		}
 
+		/// <summary>
+		/// Returns LINQ To DB provider, based on provider data from EF.Core.
+		/// </summary>
+		/// <param name="info">EF.Core provider information.</param>
+		/// <returns>LINQ TO DB provider instance.</returns>
 		public static IDataProvider GetDataProvider(EfProviderInfo info)
-	    {
-		    var provider = Implementation.GetDataProvider(info);
+		{
+			var provider = Implementation.GetDataProvider(info);
 
-		    if (provider == null)
-				throw new Exception("Can not detect provider from Entity Framework or provider not supported");
+			if (provider == null)
+				throw new Exception("Can not detect requested provider or provider not supported");
 
 			return provider;
-	    }
+		}
 
+		/// <summary>
+		/// Creates mapping schema using provided EF.Core data model.
+		/// </summary>
+		/// <param name="model">EF.Core data model.</param>
+		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		public static MappingSchema GetMappingSchema(IModel model)
-	    {
-		    return Implementation.GetMappingSchema(model, GetMetadataReader(model));
-	    }
+		{
+			return Implementation.GetMappingSchema(model, GetMetadataReader(model));
+		}
 
+		/// <summary>
+		/// Transforms EF.Core expression tree to LINQ To DB expression.
+		/// </summary>
+		/// <param name="expression">EF.Core expression tree.</param>
+		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
+		/// <returns>Transformed expression.</returns>
 		public static Expression TransformExpression(Expression expression, IDataContext dc)
 		{
 			return Implementation.TransformExpression(expression, dc);
 		}
 
-	    public static DataConnection CreateLinqToDbConnection(this DbContext context,
-		    IDbContextTransaction transaction = null)
-	    {
-		    if (context == null) throw new ArgumentNullException(nameof(context));
+		/// <summary>
+		/// Creates LINQ To DB <see cref="DataConnection"/> instance, attached to provided
+		/// EF.Core <see cref="DbContext"/> instance connection and transaction.
+		/// </summary>
+		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
+		/// <param name="transaction">Optional transaction instance, to which created connection should be attached.
+		/// If not specified, will use current <see cref="DbContext"/> transaction if it available.</param>
+		/// <returns>LINQ To DB <see cref="DataConnection"/> instance.</returns>
+		public static DataConnection CreateLinqToDbConnection(this DbContext context,
+			IDbContextTransaction transaction = null)
+		{
+			if (context == null) throw new ArgumentNullException(nameof(context));
 
-		    var info = GetEfProviderInfo(context);
+			var info = GetEfProviderInfo(context);
 
-		    DataConnection dc = null;
+			DataConnection dc = null;
 
-		    transaction = transaction ?? context.Database.CurrentTransaction;
+			transaction = transaction ?? context.Database.CurrentTransaction;
 
 			if (transaction != null)
 			{
@@ -178,45 +231,56 @@ namespace LinqToDB.EntityFrameworkCore
 			if (dc == null)
 				dc = new DataConnection(GetDataProvider(info), context.Database.GetDbConnection());
 
-		    var mappingSchema = GetMappingSchema(context.Model);
+			var mappingSchema = GetMappingSchema(context.Model);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
 			return dc;
-	    }
+		}
 
-	  //  public static DataContext CreateLinqToDbContext(this DbContext context)
-	  //  {
-		 //   if (context == null) throw new ArgumentNullException(nameof(context));
+		//  public static DataContext CreateLinqToDbContext(this DbContext context)
+		//  {
+		//   if (context == null) throw new ArgumentNullException(nameof(context));
 
-		 //   var info = GetEfProviderInfo(context);
+		//   var info = GetEfProviderInfo(context);
 
-			//var dc = new DataContext(GetDataProvider(info), context.Database.GetDbConnection());
+		//var dc = new DataContext(GetDataProvider(info), context.Database.GetDbConnection());
 
-		 //   var mappingSchema = GetMappingSchema(context.Model);
-			//if (mappingSchema != null)
-			//	dc.AddMappingSchema(mappingSchema);
+		//   var mappingSchema = GetMappingSchema(context.Model);
+		//if (mappingSchema != null)
+		//	dc.AddMappingSchema(mappingSchema);
 
-			//return dc;
-	  //  }
+		//return dc;
+		//  }
 
-	    public static DataConnection CreateLinq2DbConnectionDetached([JetBrains.Annotations.NotNull] this DbContext context)
-	    {
-		    if (context == null) throw new ArgumentNullException(nameof(context));
+		/// <summary>
+		/// Creates LINQ To DB <see cref="DataConnection"/> instance that creates new database connection using connection
+		/// information from EF.Core <see cref="DbContext"/> instance.
+		/// </summary>
+		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
+		/// <returns>LINQ To DB <see cref="DataConnection"/> instance.</returns>
+		public static DataConnection CreateLinq2DbConnectionDetached([JetBrains.Annotations.NotNull] this DbContext context)
+		{
+			if (context == null) throw new ArgumentNullException(nameof(context));
 
-		    var info = GetEfProviderInfo(context);
-		    var connectionInfo = GetConnectionInfo(info);
+			var info = GetEfProviderInfo(context);
+			var connectionInfo = GetConnectionInfo(info);
 			var dataProvider = GetDataProvider(info);
 
 			var dc = new DataConnection(dataProvider, connectionInfo.ConnectionString);
 
-		    var mappingSchema = GetMappingSchema(GetModel(GetContextOptions(context)));
+			var mappingSchema = GetMappingSchema(GetModel(GetContextOptions(context)));
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
 			return dc;
-	    }
+		}
 
+		/// <summary>
+		/// Extracts database connection information from EF.Core provider data.
+		/// </summary>
+		/// <param name="info">EF.Core database provider data.</param>
+		/// <returns>Database connection information.</returns>
 		public static EfConnectionInfo GetConnectionInfo(EfProviderInfo info)
 		{
 			var connection = info.Connection;
@@ -234,11 +298,22 @@ namespace LinqToDB.EntityFrameworkCore
 			};
 		}
 
+		/// <summary>
+		/// Extracts EF.Core data model instance from <see cref="DbContextOptions"/>.
+		/// </summary>
+		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <returns>EF.Core data model instance.</returns>
 		public static IModel GetModel(DbContextOptions options)
 		{
 			return Implementation.ExtractModel(options);
 		}
 
+		/// <summary>
+		/// Creates new LINQ To DB <see cref="DataConnection"/> instance using connectivity information from
+		/// EF.Core <see cref="DbContextOptions"/> instance.
+		/// </summary>
+		/// <param name="options">EF.Core <see cref="DbContextOptions"/> instance.</param>
+		/// <returns>New LINQ To DB <see cref="DataConnection"/> instance.</returns>
 		public static DataConnection CreateLinqToDbConnection(this DbContextOptions options)
 		{
 			var info = GetEfProviderInfo(options);
@@ -253,7 +328,7 @@ namespace LinqToDB.EntityFrameworkCore
 				dc = new DataConnection(dataProvider, connectionInfo.ConnectionString);
 
 			if (dc == null)
-				throw new Exception("Can not extract connection info from DbContextOptions");
+				throw new Exception($"Can not extract connection information from {nameof(DbContextOptions)}");
 
 			var mappingSchema = GetMappingSchema(GetModel(options));
 			if (mappingSchema != null)
@@ -263,27 +338,25 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Converts Entity Framework's query to LinqToDb realisation.
+		/// Converts EF.Core's query to LINQ To DB query and attach it to provided LINQ To DB <see cref="IDataContext"/>.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="query"></param>
-		/// <param name="dc"></param>
-		/// <returns></returns>
+		/// <typeparam name="T">Entity type.</typeparam>
+		/// <param name="query">EF.Core query.</param>
+		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> to use with provided query.</param>
+		/// <returns>LINQ To DB query, attached to provided <see cref="IDataContext"/>.</returns>
 		public static IQueryable<T> ToLinqToDbQuery<T>(this IQueryable<T> query, IDataContext dc)
-	    {
-		    var newExpression = TransformExpression(query.Expression, dc);
+		{
+			var newExpression = TransformExpression(query.Expression, dc);
 
-		    return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
-	    }
+			return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
+		}
 
 		/// <summary>
-		/// Converts Entity Framework's query to LinqToDb realisation. 
-		/// In this case we do not worry out about connection releasing. It should be done on EF Context side.
+		/// Converts EF.Core's query to LINQ To DB query and attach it to current EF.Core connection.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="query"></param>
-		/// <param name="dc"></param>
-		/// <returns></returns>
+		/// <typeparam name="T">Entity type.</typeparam>
+		/// <param name="query">EF.Core query.</param>
+		/// <returns>LINQ To DB query, attached to current EF.Core connection.</returns>
 		public static IQueryable<T> ToLinqToDbQuery<T>(this IQueryable<T> query)
 		{
 			var context = Implementation.GetCurrentContext(query);
@@ -291,14 +364,19 @@ namespace LinqToDB.EntityFrameworkCore
 				throw new Exception("Can not evaluate current context from query");
 
 			var dc = CreateLinqToDbConnection(context);
-		    var newExpression = TransformExpression(query.Expression, dc);
+			var newExpression = TransformExpression(query.Expression, dc);
 
-		    return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
-	    }
+			return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
+		}
 
-	    public static DbContext GetCurrentContext(IQueryable query)
-	    {
-		    return Implementation.GetCurrentContext(query);
-	    }
-    }
+		/// <summary>
+		/// Extracts <see cref="DbContext"/> instance from <see cref="IQueryable"/> object.
+		/// </summary>
+		/// <param name="query">EF.Core query.</param>
+		/// <returns>Current <see cref="DbContext"/> instance.</returns>
+		public static DbContext GetCurrentContext(IQueryable query)
+		{
+			return Implementation.GetCurrentContext(query);
+		}
+	}
 }

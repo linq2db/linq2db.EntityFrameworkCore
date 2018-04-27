@@ -19,15 +19,18 @@ namespace LinqToDB.EntityFrameworkCore
 	using Metadata;
 
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
+	/// <summary>
+	/// Default EF.Core - LINQ To DB integration bridge implementation.
+	/// </summary>
 	[PublicAPI]
 	public class LinqToDbForForEfToolsImplDefault : ILinqToDbForEfTools
 	{
 		/// <summary>
-		/// Detects Linq2Db provider based on EintityFramework information. 
-		/// Should be overriden if you have experienced problem in detecting specific provider. 
+		/// Returns LINQ To DB provider, based on provider data from EF.Core.
+		/// Could be overriden if you have issues with default detection mechanisms.
 		/// </summary>
-		/// <param name="providerInfo"></param>
-		/// <returns></returns>
+		/// <param name="providerInfo">Provider information, extracted from EF.Core.</param>
+		/// <returns>LINQ TO DB provider instance.</returns>
 		public virtual IDataProvider GetDataProvider(EfProviderInfo providerInfo)
 		{
 			//TODO:
@@ -35,21 +38,22 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Creates IMetadataReader implementation. Can be overriden to specify own MetadaData reader
+		/// Creates metadata provider for specified EF.Core data model. Default implementation use
+		/// <see cref="EfCoreMetadataReader"/> metadata provider.
 		/// </summary>
-		/// <param name="model"></param>
-		/// <returns>IMetadataReader implemantetion. Can be null.</returns>
+		/// <param name="model">EF.Core data model.</param>
+		/// <returns>LINQ To DB metadata provider for specified EF.Core model. Can return <c>null</c>.</returns>
 		public virtual IMetadataReader CreateMetadataReader(IModel model)
 		{
 			return new EfCoreMetadataReader(model);
 		}
 
 		/// <summary>
-		/// Default implemntation of creation mapping schema for model.
+		/// Creates mapping schema using provided EF.Core data model and metadata provider.
 		/// </summary>
-		/// <param name="model"></param>
-		/// <param name="metadataReader"></param>
-		/// <returns>Mapping schema for Model</returns>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
+		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader)
 		{
 			var reader = CreateMetadataReader(model);
@@ -58,29 +62,30 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var schema = new MappingSchema();
 			schema.AddMetadataReader(reader);
+			// TODO: add provided reader to schema
 			return schema;
 		}
 
 		/// <summary>
-		/// Default implementation of retrieving options from DbContext
+		/// Returns EF.Core <see cref="DbContextOptions"/> for specific <see cref="DbContext"/> instance.
 		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
+		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
+		/// <returns><see cref="DbContextOptions"/> instance.</returns>
 		public virtual DbContextOptions GetContextOptions(DbContext context)
 		{
 			return null;
 		}
 
-		public static readonly MethodInfo GetTableMethodInfo =
+		private static readonly MethodInfo GetTableMethodInfo =
 			MemberHelper.MethodOf<IDataContext>(dc => dc.GetTable<object>()).GetGenericMethodDefinition();
 
-
 		/// <summary>
-		/// Default realisation for IQueryable expression transformation
+		/// Transforms EF.Core expression tree to LINQ To DB expression.
+		/// Method replaces EF.Core <see cref="EntityQueryable{TResult}"/> instances with LINQ To DB <see cref="DataExtensions.GetTable{T}(IDataContext)"/> calls.
 		/// </summary>
-		/// <param name="expression"></param>
-		/// <param name="dc"></param>
-		/// <returns>Transformed expression</returns>
+		/// <param name="expression">EF.Core expression tree.</param>
+		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
+		/// <returns>Transformed expression.</returns>
 		public virtual Expression TransformExpression(Expression expression, IDataContext dc)
 		{
 			var newExpression =
@@ -89,18 +94,18 @@ namespace LinqToDB.EntityFrameworkCore
 					switch (e.NodeType)
 					{
 						case ExpressionType.Constant:
-						{
-							if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type))
 							{
-								var newExpr = Expression.Call(null,
-									GetTableMethodInfo.MakeGenericMethod(e.Type.GenericTypeArguments),
-									Expression.Constant(dc)
-								);
-								return newExpr;
-							}
+								if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type))
+								{
+									var newExpr = Expression.Call(null,
+										GetTableMethodInfo.MakeGenericMethod(e.Type.GenericTypeArguments),
+										Expression.Constant(dc)
+									);
+									return newExpr;
+								}
 
-							break;
-						}
+								break;
+							}
 					}
 
 					return e;
@@ -109,42 +114,60 @@ namespace LinqToDB.EntityFrameworkCore
 			return newExpression;
 		}
 
+		/// <summary>
+		/// Extracts <see cref="DbContext"/> instance from <see cref="IQueryable"/> object.
+		/// Due to unavailability of integration API in EF.Core this method use reflection and could broke after EF.Core update.
+		/// </summary>
+		/// <param name="query">EF.Core query.</param>
+		/// <returns>Current <see cref="DbContext"/> instance.</returns>
 		public virtual DbContext GetCurrentContext(IQueryable query)
 		{
-			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance);
-			var compiler = (QueryCompiler) compilerField.GetValue(query.Provider);
+			var compilerField = typeof(EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance);
+			if (compilerField == null)
+				throw new Exception($"Can not find private field '{typeof(EntityQueryProvider).GetType()}._queryCompiler' in EntityFrameworkCore assembly");
+
+			var compiler = (QueryCompiler)compilerField.GetValue(query.Provider);
 
 			var queryContextFactoryField = compiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance);
 
 			if (queryContextFactoryField == null)
-				throw new Exception($"Can not find private field '{compiler.GetType()}._queryContextFactory' in current EFCore Version");
+				throw new Exception($"Can not find private field '{compiler.GetType()}._queryContextFactory' in EntityFrameworkCore assembly");
 
-			var queryContextFactory  = (RelationalQueryContextFactory) queryContextFactoryField.GetValue(compiler);	    
+			var queryContextFactory = (RelationalQueryContextFactory)queryContextFactoryField.GetValue(compiler);
 			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
 
 			if (queryContextFactoryField == null)
-				throw new Exception($"Can not find private property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version");
+				throw new Exception($"Can not find private property '{nameof(RelationalQueryContextFactory)}.Dependencies' in EntityFrameworkCore assembly");
 
-			var dependencies = (QueryContextDependencies) dependenciesProperty.GetValue(queryContextFactory);
+			var dependencies = (QueryContextDependencies)dependenciesProperty.GetValue(queryContextFactory);
 
 			return dependencies.CurrentDbContext?.Context;
 		}
 
+		/// <summary>
+		/// Extracts EF.Core connection information object from <see cref="DbContextOptions"/>.
+		/// </summary>
+		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <returns>EF.Core connection data.</returns>
 		public virtual EfConnectionInfo ExtractConnectionInfo(DbContextOptions options)
 		{
 			var relational = options.Extensions.OfType<RelationalOptionsExtension>().FirstOrDefault();
-			return new  EfConnectionInfo
+			return new EfConnectionInfo
 			{
 				ConnectionString = relational?.ConnectionString,
 				Connection = relational?.Connection
 			};
 		}
 
+		/// <summary>
+		/// Extracts EF.Core data model instance from <see cref="DbContextOptions"/>.
+		/// </summary>
+		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <returns>EF.Core data model instance.</returns>
 		public virtual IModel ExtractModel(DbContextOptions options)
 		{
 			var coreOptions = options.Extensions.OfType<CoreOptionsExtension>().FirstOrDefault();
 			return coreOptions?.Model;
 		}
-
 	}
 }

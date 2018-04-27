@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using LinqToDB.Linq;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 
 namespace LinqToDB.EntityFrameworkCore
 {
 	using Data;
 
+	/// <summary>
+	/// EF.Core <see cref="DbContext"/> extensions to call LINQ To DB functionality.
+	/// </summary>
 	public static partial class LinqToDbForEfTools
 	{
 		#region BulkCopy
@@ -73,7 +74,7 @@ namespace LinqToDB.EntityFrameworkCore
 		#region Value Insertable
 
 		/// <summary>
-		/// Starts insert operation LINQ query definition.
+		/// Starts LINQ query definition for insert operation.
 		/// </summary>
 		/// <typeparam name="T">Target table mapping class.</typeparam>
 		/// <param name="context">Database context.</param>
@@ -84,7 +85,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public static IValueInsertable<T> Into<T>([NotNull] this DbContext context, [NotNull] ITable<T> target)
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
-			if (target  == null) throw new ArgumentNullException(nameof(target));
+			if (target == null)  throw new ArgumentNullException(nameof(target));
 
 			return context.CreateLinqToDbConnection().Into(target);
 		}
