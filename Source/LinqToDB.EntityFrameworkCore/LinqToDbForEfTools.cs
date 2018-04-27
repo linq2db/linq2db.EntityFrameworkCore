@@ -32,12 +32,12 @@ namespace LinqToDB.EntityFrameworkCore
 
 		private static bool InitializeInternal()
 		{
-			var prev = LinqExtensions.ProcessInputQueryable;
+			var prev = LinqExtensions.ProcessSourceQueryable;
 
 			var instantiator = MemberHelper.MethodOf(() => Internals.CreateExpressionQueryInstance<int>(null, null))
 				.GetGenericMethodDefinition();
 
-			LinqExtensions.ProcessInputQueryable = queryable =>
+			LinqExtensions.ProcessSourceQueryable = queryable =>
 			{
 				// our Provider nothing to do
 				if (queryable.Provider is IQueryProviderAsync)
