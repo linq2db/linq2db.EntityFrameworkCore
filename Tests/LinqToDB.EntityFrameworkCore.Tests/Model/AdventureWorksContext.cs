@@ -1,6 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using LinqToDB.EntityFrameworkCore.Tests.Model;
+using NUnit.Framework.Internal;
+
 namespace Microsoft.EntityFrameworkCore.SqlAzure.Model
 {
     public class AdventureWorksContext : DbContext
@@ -266,6 +269,9 @@ namespace Microsoft.EntityFrameworkCore.SqlAzure.Model
                     });
 
             modelBuilder.HasSequence<int>("SalesOrderNumber", "SalesLT");
+
+	        modelBuilder.HasDbFunction(() => TestFunctions.GetDate()).HasSchema("").HasName("GETDATE");
+	        modelBuilder.HasDbFunction(() => TestFunctions.Len(null)).HasSchema("").HasName("LEN");
         }
 
         public virtual DbSet<Address> Addresses { get; set; }
