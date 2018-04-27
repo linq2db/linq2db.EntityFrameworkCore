@@ -11,6 +11,7 @@ namespace LinqToDB.EntityFrameworkCore
 {
 	using Mapping;
 	using Metadata;
+	using Extensions;
 
 	class EfCoreMetadataReader : IMetadataReader
 	{
@@ -112,6 +113,32 @@ namespace LinqToDB.EntityFrameworkCore
 					}
 
 					return associations.Select(a => (T) (Attribute) a).ToArray();
+				}
+			}
+
+			if (typeof(T) == typeof(Sql.ExpressionAttribute))
+			{
+				if (memberInfo.IsMethodEx())
+				{
+					var method = (MethodInfo) memberInfo;
+
+					var func = _model?.Relational().DbFunctions.FirstOrDefault(f => f.MethodInfo == method);
+					if (func != null)
+						return new T[]
+						{
+							(T) (Attribute) new Sql.FunctionAttribute
+							{
+								Name = func.FunctionName,
+								ServerSideOnly = true
+							}
+						};
+
+					var functionAttributes = memberInfo.GetCustomAttributes<DbFunctionAttribute>(inherit);
+					return functionAttributes.Select(f => (T) (Attribute) new Sql.FunctionAttribute
+					{
+						Name = f.FunctionName,
+						ServerSideOnly = true,
+					}).ToArray();
 				}
 			}
 
