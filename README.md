@@ -10,11 +10,75 @@ As it is an early preview, first you will need:
 
 In your code you need to initialize integration using following call:
 ```cs
-LinqToDbForEfTools.Initialize();
+LinqToDBForEFTools.Initialize();
 ```
 
 After that you can just call DbContext and IQueryable extension methods, provided by `LINQ To DB`.
 
+There are many missed in EF extensions for CRUD Operations ([watch our video](https://www.youtube.com/watch?v=m--oX73EGeQ)):
+```cs
+ctx.BulkCopy(new BulkCopyOptions {...}, items);
+query.Insert(ctx.Products.ToLinqToDBtable(), s => new Product { Name = s.Name ... });
+query.Update(ctx.Products.ToLinqToDBtable(), prev => new Product { Name = "U_" + prev.Name ... });
+query.Delete();
+```
+Some extensions requires `ITable<T>` interface, so we have provided a way how to transform `DbSet<T>` to `ITable<T>` - `ToLinqToDBtable()` extension method. 
+
+Interface `ITable<T>` has several extensions that may be useful for complex databases and custom queries:
+```cs
+table = table.TableName("NewTableName");     // change table name in query
+table = table.DatabaseName("OtherDatabase"); // change database name, useful for cross database queries.
+table = table.OwnerName("OtherOwner");       // change owner.
+```
+
+It is not required to work directly with `LINQ To DB` `DataConnection` class but there is the several ways to do that. `LINQ To DB` will try to reuse your configuration and select appropriate Data Provider:
+```cs
+// uing DbContext
+using (var dc = ctx.CreateLinqToDbConnection())
+{
+   // linq queries using linq2db extensions
+}
+
+// using DbContextOptions
+using (var dc = options.CreateLinqToDbConnection())
+{
+   // linq queries using linq2db extensions
+}
+```
+You can use all `LINQ To DB` extension functions in your EF linq queries, but ensure you have called `ToLinqToDB()` function before materializing objects for synchronous methods.
+
+Since EF Core have defined it's own asynchronous methods, we have to duplicate them to avoid collisions. 
+Async methods have the same name but tith `LinqToDB` suffix. For example `ToListAsyncLinqToDB()`, `SumAsyncLinqToDB()`, ect.
+```cs
+using (var ctx = CreateAdventureWorksContext())
+{
+	var productsWithModelCount =
+		from p in ctx.Products
+		select new
+		{
+			// Window Function
+			Count = Sql.Ext.Count().Over().PartitionBy(p.ProductModelID).ToValue(),
+			Product = p
+		};
+
+	var neededRecords =
+		from p in productsWithModelCount
+		where p.Count.Between(2, 4) // LINQ To DB extension
+		select new
+		{
+			p.Product.Name,
+			p.Product.Color,
+			p.Product.Size
+		};
+
+	// ensure we have replaced EF context
+	var items1 = neededRecords.ToLinqToDB().ToArray();       
+	
+	// we have to call our method to avoid naming collisions
+	var items2 = await neededRecords.ToArrayAsyncLinqToDB(); 
+}
+
+```
 Also check [existing tests](https://github.com/linq2db/linq2db.EntityFrameworkCore/blob/master/Tests/LinqToDB.EntityFrameworkCore.Tests/ToolsTests.cs) in test project for some examples.
 
 # Why should I want to use it?
