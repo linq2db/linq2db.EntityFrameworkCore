@@ -18,8 +18,8 @@ After that you can just call DbContext and IQueryable extension methods, provide
 There are many missed in EF extensions for CRUD Operations ([watch our video](https://www.youtube.com/watch?v=m--oX73EGeQ)):
 ```cs
 ctx.BulkCopy(new BulkCopyOptions {...}, items);
-query.Insert(ctx.Products.ToLinqToDBtable(), s => new Product { Name = s.Name ... });
-query.Update(ctx.Products.ToLinqToDBtable(), prev => new Product { Name = "U_" + prev.Name ... });
+query.Insert(ctx.Products.ToLinqToDBTable(), s => new Product { Name = s.Name ... });
+query.Update(ctx.Products.ToLinqToDBTable(), prev => new Product { Name = "U_" + prev.Name ... })
 query.Delete();
 ```
 Some extensions requires `ITable<T>` interface, so we have provided a way how to transform `DbSet<T>` to `ITable<T>` - `ToLinqToDBtable()` extension method. 
