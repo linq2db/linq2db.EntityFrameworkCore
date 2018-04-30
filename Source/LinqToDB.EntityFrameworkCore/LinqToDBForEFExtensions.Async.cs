@@ -28,6 +28,11 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken        token = default(CancellationToken))
 			=> AsyncExtensions.ToListAsync(source.ToLinqToDB(), token);
 
+		public static Task<TSource[]> ToArrayAsyncLinqToDB<TSource>(
+			this IQueryable<TSource> source, 
+			CancellationToken        token = default(CancellationToken))
+			=> AsyncExtensions.ToArrayAsync(source.ToLinqToDB(), token);
+
 		public static Task<Dictionary<TKey, TSource>> ToDictionaryAsyncLinqToDB<TSource, TKey>(
 			this IQueryable<TSource> source,
 			Func<TSource, TKey>      keySelector, 

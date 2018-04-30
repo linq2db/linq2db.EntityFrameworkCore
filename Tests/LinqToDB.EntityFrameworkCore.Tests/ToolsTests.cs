@@ -110,11 +110,41 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 					ModifiedDate = s.ModifiedDate,
 				});
 
+				itemsToInsert.Update(prev => new Product { Name = "U_" + prev.Name });
 				var duplicatedRecords = itemsToInsert.Where(p => p.Name.StartsWith("Doubled - "));
 
 				// delete duplicates !!
 				duplicatedRecords.Delete();
 			}
+		}
+
+		[Test]
+		public void DemoTest()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var productsWithModelCount =
+					from p in ctx.Products
+					select new
+					{
+						Count = Sql.Ext.Count().Over().PartitionBy(p.ProductModelID).ToValue(),
+						Product = p
+					};
+
+				var neededrecords =
+					from p in productsWithModelCount
+					where p.Count.Between(2, 4)
+					select new
+					{
+						p.Product.Name,
+						p.Product.Color,
+						p.Product.Size
+					};
+
+				var items1 = neededrecords.ToLinqToDB().ToArray();
+				var items2 = neededrecords.ToArrayAsyncLinqToDB().Result;
+			}
+			
 		}
 
 		[Test]
