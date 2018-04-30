@@ -4,7 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using LinqToDB.Expressions;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -16,6 +16,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Linq;
 	using Mapping;
 	using Metadata;
+	using Expressions;
 
 	/// <summary>
 	/// EF.Core to LINQ To DB integration.
@@ -295,21 +296,6 @@ namespace LinqToDB.EntityFrameworkCore
 			return dc;
 		}
 
-		//  public static DataContext CreateLinqToDbContext(this DbContext context)
-		//  {
-		//   if (context == null) throw new ArgumentNullException(nameof(context));
-
-		//   var info = GetEfProviderInfo(context);
-
-		//var dc = new DataContext(GetDataProvider(info), context.Database.GetDbConnection());
-
-		//   var mappingSchema = GetMappingSchema(context.Model);
-		//if (mappingSchema != null)
-		//	dc.AddMappingSchema(mappingSchema);
-
-		//return dc;
-		//  }
-
 		/// <summary>
 		/// Creates LINQ To DB <see cref="DataConnection"/> instance that creates new database connection using connection
 		/// information from EF.Core <see cref="DbContext"/> instance.
@@ -401,7 +387,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="query">EF.Core query.</param>
 		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> to use with provided query.</param>
 		/// <returns>LINQ To DB query, attached to provided <see cref="IDataContext"/>.</returns>
-		public static IQueryable<T> ToLinqToDb<T>(this IQueryable<T> query, IDataContext dc)
+		public static IQueryable<T> ToLinqToDB<T>(this IQueryable<T> query, IDataContext dc)
 		{
 			var newExpression = TransformExpression(query.Expression, dc);
 
@@ -414,8 +400,13 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <typeparam name="T">Entity type.</typeparam>
 		/// <param name="query">EF.Core query.</param>
 		/// <returns>LINQ To DB query, attached to current EF.Core connection.</returns>
-		public static IQueryable<T> ToLinqToDb<T>(this IQueryable<T> query)
+		public static IQueryable<T> ToLinqToDB<T>(this IQueryable<T> query)
 		{
+			if (query.Provider is IQueryProviderAsync)
+			{
+				return query;
+			}
+
 			var context = Implementation.GetCurrentContext(query);
 			if (context == null)
 				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");

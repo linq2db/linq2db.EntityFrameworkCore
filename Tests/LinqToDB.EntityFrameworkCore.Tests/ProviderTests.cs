@@ -1,9 +1,9 @@
 ﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlAzure.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using NUnit.Framework;
-using Microsoft.EntityFrameworkCore;
 
 namespace LinqToDB.EntityFrameworkCore.Tests
 {
@@ -39,7 +39,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<AdventureWorksContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseNpgsql("Server=DBHost;Port=5433;Database=TestData;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
+			optionsBuilder.UseNpgsql(
+				"Server=DBHost;Port=5433;Database=TestData;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
 			optionsBuilder.UseLoggerFactory(new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) }));
 
 			var connection1 = optionsBuilder.Options.CreateLinqToDbConnection();
@@ -48,9 +49,9 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			using (var context = new AdventureWorksContext(optionsBuilder.Options))
 			{
 				var connection2 = optionsBuilder.Options.CreateLinqToDbConnection();
-			StringAssert.StartsWith(ProviderName.PostgreSQL, connection2.DataProvider.Name);
+				StringAssert.StartsWith(ProviderName.PostgreSQL, connection2.DataProvider.Name);
 
-				var query = context.Customers.Where(c => c.CompanyName != "A").ToLinqToDb().ToArray();
+				var query = context.Customers.Where(c => c.CompanyName != "A").ToLinqToDB().ToArray();
 			}
 		}
 	}

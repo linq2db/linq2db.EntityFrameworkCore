@@ -136,7 +136,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			using (var ctx = CreateAdventureWorksContext())
 			{
 				var query = ViewProductAndDescription(ctx)
-					.ToLinqToDb()
+					.ToLinqToDB()
 					.Where(pd => pd.Description.StartsWith("a"));
 
 
@@ -168,7 +168,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 					};
 
 				var items1 = query.ToArray();
-				var items2 = query.ToLinqToDb().ToArray();
+				var items2 = query.ToLinqToDB().ToArray();
 			}
 		}
 
@@ -181,7 +181,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 				using (var db = ctx.CreateLinqToDbConnection())
 				{
 					var items1 = ViewProductAndDescription(ctx)
-						.ToLinqToDb(db)
+						.ToLinqToDB(db)
 						.Where(pd => pd.Description.StartsWith("a"))
 						.ToArray();
 
@@ -192,18 +192,18 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 					ViewProductAndDescription(ctx)
 						.Where(pd => pd.Description.StartsWith("a"))
 						.Where(p => p.Name == "a")
-						.ToLinqToDb(db)
+						.ToLinqToDB(db)
 						.Delete();
 
 
 
 					var test1 = ctx.Products.Where(p => p.Name.StartsWith("a")).MaxAsync(p => p.StandardCost).Result;
-					var test2 = ctx.Products.Where(p => p.Name.StartsWith("a")).ToLinqToDb().MaxAsync(p => p.StandardCost).Result;
+					var test2 = ctx.Products.Where(p => p.Name.StartsWith("a")).ToLinqToDB().MaxAsync(p => p.StandardCost).Result;
 
 					Assert.AreEqual(test1, test2);
 
 					ctx.Products.Where(p => p.Name == "a")
-						.ToLinqToDb(db)
+						.ToLinqToDB(db)
 						.Delete();
 
 					transaction.Rollback();
@@ -218,7 +218,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			using (var db = ctx.CreateLinqToDbConnection())
 			{
 				var query = ViewProductAndDescription(ctx)
-					.ToLinqToDb(db)
+					.ToLinqToDB(db)
 					.Where(pd => pd.Description.StartsWith("a"));
 
 				var items = query.ToArray();
