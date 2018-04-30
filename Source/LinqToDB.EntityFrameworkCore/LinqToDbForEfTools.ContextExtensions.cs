@@ -8,10 +8,7 @@ namespace LinqToDB.EntityFrameworkCore
 {
 	using Data;
 
-	/// <summary>
-	/// EF.Core <see cref="DbContext"/> extensions to call LINQ To DB functionality.
-	/// </summary>
-	public static partial class LinqToDbForEfTools
+	public static partial class LinqToDBForEFTools
 	{
 		#region BulkCopy
 

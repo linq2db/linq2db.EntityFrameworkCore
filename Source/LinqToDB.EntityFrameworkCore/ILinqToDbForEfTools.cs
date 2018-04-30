@@ -10,17 +10,14 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 
-	/// <summary>
-	/// Interface for EF.Core - LINQ To DB integration bridge.
-	/// </summary>
-	public interface ILinqToDbForEfTools
+	public interface ILinqToDBForEFTools
 	{
 		/// <summary>
 		/// Returns LINQ To DB provider, based on provider data from EF.Core.
 		/// </summary>
-		/// <param name="providerInfo">Provider information, extracted from EF.Core.</param>
-		/// <returns>LINQ TO DB provider instance.</returns>
-		IDataProvider GetDataProvider(EfProviderInfo providerInfo);
+		/// <param name="providerInfo"></param>
+		/// <returns></returns>
+		IDataProvider GetDataProvider(EFProviderInfo providerInfo);
 
 		/// <summary>
 		/// Creates metadata provider for specified EF.Core data model.
@@ -62,9 +59,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Extracts EF.Core connection information object from <see cref="DbContextOptions"/>.
 		/// </summary>
-		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
-		/// <returns>EF.Core connection data.</returns>
-		EfConnectionInfo ExtractConnectionInfo(DbContextOptions options);
+		/// <param name="options"></param>
+		/// <returns>Connection string</returns>
+		EFConnectionInfo ExtractConnectionInfo(DbContextOptions options);
 
 		/// <summary>
 		/// Extracts EF.Core data model instance from <see cref="DbContextOptions"/>.

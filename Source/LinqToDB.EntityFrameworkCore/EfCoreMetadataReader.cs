@@ -11,16 +11,13 @@ namespace LinqToDB.EntityFrameworkCore
 {
 	using Mapping;
 	using Metadata;
-	using Extensions;
+	using LinqToDB.Extensions;
 
-	/// <summary>
-	/// LINQ To DB metadata reader for EF.Core model.
-	/// </summary>
-	class EfCoreMetadataReader : IMetadataReader
+	class EFCoreMetadataReader : IMetadataReader
 	{
 		private readonly IModel _model;
 
-		public EfCoreMetadataReader(IModel model)
+		public EFCoreMetadataReader(IModel model)
 		{
 			_model = model;
 		}
@@ -49,6 +46,25 @@ namespace LinqToDB.EntityFrameworkCore
 
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
+			if (typeof(T) == typeof(PrimaryKeyAttribute))
+			{
+				var et = _model?.FindEntityType(type);
+				if (et != null)
+				{
+					var props = et.GetProperties();
+					var prop = props.FirstOrDefault(p => p.GetIdentifyingMemberInfo() == memberInfo);
+					if (prop != null)
+					{
+						if (prop.IsPrimaryKey())
+						{
+							return new T[]{(T)(Attribute) new PrimaryKeyAttribute()};
+						}
+					}
+				}
+
+				return Array.Empty<T>();
+			}
+
 			if (typeof(T) == typeof(ColumnAttribute))
 			{
 				var et = _model?.FindEntityType(type);

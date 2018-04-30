@@ -4,14 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LinqToDB.EntityFrameworkCore
 {
-	/// <summary>
-	/// Required integration information about underlying database provider, extracted from EF.Core.
-	/// </summary>
-	public class EfProviderInfo
+	public class EFProviderInfo
 	{
-		// TODO: docs
-		public string ServerVersion { get; set; }
-
 		/// <summary>
 		/// Gets or sets database connection instance.
 		/// </summary>

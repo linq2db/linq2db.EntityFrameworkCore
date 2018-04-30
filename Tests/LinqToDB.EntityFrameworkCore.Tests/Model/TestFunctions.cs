@@ -8,7 +8,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests.Model
 		[DbFunction]
 		public static DateTime GetDate()
 		{
-			return DateTime.Now;
+			throw new NotImplementedException();
 		}
 
 		[DbFunction]
