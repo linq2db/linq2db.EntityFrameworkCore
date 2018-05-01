@@ -1,0 +1,38 @@
+﻿<Project>
+	<PropertyGroup>
+		<Version>1.0.0</Version>
+		<PackageVersion>1.0.0</PackageVersion>
+
+		<Description>Allows to execute Linq to DB (linq2db) queries on Entity Framework Core DbContext.</Description>
+		<Title>Linq to DB (linq2db) extensions for on Entity Framework Core</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
+		<Authors>Igor Tkachev, Ilya Chudin, Svyatoslav Danyliv, Dmitry Lukashenko</Authors>
+		<Product>Linq to DB</Product>
+		<Company>linq2db.net</Company>
+		<Copyright>2002-2018 linq2db.net</Copyright>
+		<RepositoryUrl>https://github.com/linq2db/linq2db.EntityFrameworkCore</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+
+		<AppDesignerFolder>Properties</AppDesignerFolder>
+		<LangVersion>latest</LangVersion>
+		<WarningLevel>4</WarningLevel>
+		<ErrorReport>prompt</ErrorReport>
+		<NoWarn>1701;1702;1705;1591</NoWarn>
+
+		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<SignAssembly>True</SignAssembly>
+		<PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+		<AssemblyOriginatorKeyFile Condition="Exists('..\Build\linq2db.snk')">..\Build\linq2db.snk</AssemblyOriginatorKeyFile>
+		<AssemblyOriginatorKeyFile Condition="Exists('..\..\Build\linq2db.snk')">..\..\Build\linq2db.snk</AssemblyOriginatorKeyFile>
+		<DelaySign>False</DelaySign>
+
+		<GenerateAssemblyTitleAttribute>true</GenerateAssemblyTitleAttribute>
+		<GenerateAssemblyDescriptionAttribute>true</GenerateAssemblyDescriptionAttribute>
+		<GenerateAssemblyProductAttribute>true</GenerateAssemblyProductAttribute>
+		<GenerateAssemblyCopyrightAttribute>true</GenerateAssemblyCopyrightAttribute>
+		<GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
+		<GenerateAssemblyFileVersionAttribute>true</GenerateAssemblyFileVersionAttribute>
+		<GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
+	</PropertyGroup>
+</Project>

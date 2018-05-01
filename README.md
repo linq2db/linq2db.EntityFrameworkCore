@@ -2,11 +2,21 @@
 
 `linq2db.EntityFrameworkCore` is an integration of `LINQ To DB` with existing EntityFrameworkCore projects. It was inspired by [this issue](https://github.com/aspnet/EntityFrameworkCore/issues/11657) in EF.Core repository.
 
+## Build status
+
+* [![Latest](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore)
+* [![Master](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x/branch/master?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore/branch/master)
+
+## Feeds
+
+* NuGet [![NuGet](https://img.shields.io/nuget/vpre/linq2db.EntityFrameworkCore.svg)](https://www.nuget.org/packages?q=linq2db)
+* MyGet [![MyGet](https://img.shields.io/myget/linq2db/vpre/linq2db.EntityFrameworkCore.svg)](https://www.myget.org/gallery/linq2db)
+  * V2 `https://www.myget.org/F/linq2db/api/v2`
+  * V3 `https://www.myget.org/F/linq2db/api/v3/index.json`
+
 # How to use
 
-As it is an early preview, first you will need:
-- latest build of `LINQ To DB` from [MyGet](https://www.myget.org/feed/linq2db/package/nuget/linq2db) or build it from [source code](https://github.com/linq2db/linq2db)
-- download and build `linq2db.EntityFrameworkCore` from this repository
+As it is an early preview, and for now you should install from MyGet, later we'll publisg stable version on NuGet.
 
 In your code you need to initialize integration using following call:
 ```cs
