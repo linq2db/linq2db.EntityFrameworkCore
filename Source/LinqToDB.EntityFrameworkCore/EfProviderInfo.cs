@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LinqToDB.EntityFrameworkCore
 {
+	/// <summary>
+	/// Required integration information about underlying database provider, extracted from EF.Core.
+	/// </summary>
 	public class EFProviderInfo
 	{
 		/// <summary>

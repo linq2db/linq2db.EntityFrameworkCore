@@ -1,41 +1,43 @@
-﻿using System;
-using System.Data.Common;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using LinqToDB.DataProvider.SqlCe;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using System;
+using System.Data.Common;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace LinqToDB.EntityFrameworkCore
 {
-	using Expressions;
 	using DataProvider;
-	using DataProvider.SqlServer;
-	using Mapping;
-	using Metadata;
-
 	using DataProvider.DB2;
 	using DataProvider.Firebird;
 	using DataProvider.MySql;
 	using DataProvider.Oracle;
 	using DataProvider.PostgreSQL;
 	using DataProvider.SQLite;
+	using DataProvider.SqlServer;
+	using Expressions;
+	using Mapping;
+	using Metadata;
 
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
+	/// <summary>
+	/// Default EF.Core - LINQ To DB integration bridge implementation.
+	/// </summary>
 	[PublicAPI]
-	public partial class LinqToDBForEFToolsImplDefault : ILinqToDBForEFTools
+	public class LinqToDBForEFToolsImplDefault : ILinqToDBForEFTools
 	{
 		/// <summary>
-		/// Detects Linq2Db provider based on EintityFramework information. 
-		/// Should be overriden if you have experienced problem in detecting specific provider. 
+		/// Returns LINQ To DB provider, based on provider data from EF.Core.
+		/// Could be overriden if you have issues with default detection mechanisms.
 		/// </summary>
-		/// <param name="providerInfo"></param>
-		/// <returns></returns>
+		/// <param name="providerInfo">Provider information, extracted from EF.Core.</param>
+		/// <returns>LINQ TO DB provider instance.</returns>
 		public virtual IDataProvider GetDataProvider(EFProviderInfo providerInfo)
 		{
 			var info = GetLinqToDbProviderInfo(providerInfo);
@@ -134,11 +136,9 @@ namespace LinqToDB.EntityFrameworkCore
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.Firebird };
 
 				case "IBM.EntityFrameworkCore":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.DB2 };
 				case "IBM.EntityFrameworkCore-lnx":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW };
 				case "IBM.EntityFrameworkCore-osx":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.DB2zOS };
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW };
 				case "Devart.Data.Oracle.EFCore":
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.OracleManaged };
 				case "EntityFrameworkCore.Jet":
@@ -151,7 +151,6 @@ namespace LinqToDB.EntityFrameworkCore
 
 			return null;
 		}
-
 
 		protected virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(DbConnection connection)
 		{
@@ -227,21 +226,22 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Creates IMetadataReader implementation. Can be overriden to specify own MetadaData reader
+		/// Creates metadata provider for specified EF.Core data model. Default implementation uses
+		/// <see cref="EFCoreMetadataReader"/> metadata provider.
 		/// </summary>
-		/// <param name="model"></param>
-		/// <returns>IMetadataReader implemantetion. Can be null.</returns>
+		/// <param name="model">EF.Core data model.</param>
+		/// <returns>LINQ To DB metadata provider for specified EF.Core model.</returns>
 		public virtual IMetadataReader CreateMetadataReader(IModel model)
 		{
 			return new EFCoreMetadataReader(model);
 		}
 
 		/// <summary>
-		/// Default implemntation of creation mapping schema for model.
+		/// Creates mapping schema using provided EF.Core data model and metadata provider.
 		/// </summary>
-		/// <param name="model"></param>
-		/// <param name="metadataReader"></param>
-		/// <returns>Mapping schema for Model</returns>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
+		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader)
 		{
 			var schema = new MappingSchema();
@@ -251,26 +251,27 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Default implementation of retrieving options from DbContext
+		/// Returns EF.Core <see cref="DbContextOptions"/> for specific <see cref="DbContext"/> instance.
 		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
+		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
+		/// <returns><see cref="DbContextOptions"/> instance.</returns>
 		public virtual DbContextOptions GetContextOptions(DbContext context)
 		{
 			return null;
 		}
 
-		public static readonly MethodInfo GetTableMethodInfo =
+		private static readonly MethodInfo GetTableMethodInfo =
 			MemberHelper.MethodOf<IDataContext>(dc => dc.GetTable<object>()).GetGenericMethodDefinition();
 
-
 		/// <summary>
-		/// Default realisation for IQueryable expression transformation
+		/// Transforms EF.Core expression tree to LINQ To DB expression.
+		/// Method replaces EF.Core <see cref="EntityQueryable{TResult}"/> instances with LINQ To DB
+		/// <see cref="DataExtensions.GetTable{T}(IDataContext)"/> calls.
 		/// </summary>
-		/// <param name="expression"></param>
-		/// <param name="dc"></param>
-		/// <returns>Transformed expression</returns>
-		public virtual Expression TransformExpression(Expression expression, IDataContext dc)
+		/// <param name="expression">EF.Core expression tree.</param>
+		/// <param name="dataContext">LINQ To DB <see cref="IDataContext"/> instance.</param>
+		/// <returns>Transformed expression.</returns>
+		public virtual Expression TransformExpression(Expression expression, IDataContext dataContext)
 		{
 			var newExpression =
 				expression.Transform(e =>
@@ -283,7 +284,7 @@ namespace LinqToDB.EntityFrameworkCore
 							{
 								var newExpr = Expression.Call(null,
 									GetTableMethodInfo.MakeGenericMethod(e.Type.GenericTypeArguments),
-									Expression.Constant(dc)
+									Expression.Constant(dataContext)
 								);
 								return newExpr;
 							}
@@ -298,6 +299,12 @@ namespace LinqToDB.EntityFrameworkCore
 			return newExpression;
 		}
 
+		/// <summary>
+		/// Extracts <see cref="DbContext"/> instance from <see cref="IQueryable"/> object.
+		/// Due to unavailability of integration API in EF.Core this method use reflection and could became broken after EF.Core update.
+		/// </summary>
+		/// <param name="query">EF.Core query.</param>
+		/// <returns>Current <see cref="DbContext"/> instance.</returns>
 		public virtual DbContext GetCurrentContext(IQueryable query)
 		{
 			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -319,6 +326,11 @@ namespace LinqToDB.EntityFrameworkCore
 			return dependencies.CurrentDbContext?.Context;
 		}
 
+		/// <summary>
+		/// Extracts EF.Core connection information object from <see cref="DbContextOptions"/>.
+		/// </summary>
+		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <returns>EF.Core connection data.</returns>
 		public virtual EFConnectionInfo ExtractConnectionInfo(DbContextOptions options)
 		{
 			var relational = options.Extensions.OfType<RelationalOptionsExtension>().FirstOrDefault();
@@ -329,6 +341,11 @@ namespace LinqToDB.EntityFrameworkCore
 			};
 		}
 
+		/// <summary>
+		/// Extracts EF.Core data model instance from <see cref="DbContextOptions"/>.
+		/// </summary>
+		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <returns>EF.Core data model instance.</returns>
 		public virtual IModel ExtractModel(DbContextOptions options)
 		{
 			var coreOptions = options.Extensions.OfType<CoreOptionsExtension>().FirstOrDefault();
@@ -336,12 +353,12 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Default version for SQL Server
+		/// Gets or sets default provider version for SQL Server. Set to <see cref="SqlServerVersion.v2008"/> dialect.
 		/// </summary>
 		public static SqlServerVersion SqlServerDefaultVersion { get; set; } = SqlServerVersion.v2008;
 
 		/// <summary>
-		/// Default version for PostgreSQL server
+		/// Gets or sets default provider version for SQL Server. Set to <see cref="PostgreSQLVersion.v93"/> dialect.
 		/// </summary>
 		public static PostgreSQLVersion PotgreSqlDefaultVersion { get; set; } = PostgreSQLVersion.v93;
 

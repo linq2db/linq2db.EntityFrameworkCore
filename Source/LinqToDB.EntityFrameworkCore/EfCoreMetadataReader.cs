@@ -13,7 +13,10 @@ namespace LinqToDB.EntityFrameworkCore
 	using Metadata;
 	using LinqToDB.Extensions;
 
-	class EFCoreMetadataReader : IMetadataReader
+	/// <summary>
+	/// LINQ To DB metadata reader for EF.Core model.
+	/// </summary>
+	internal class EFCoreMetadataReader : IMetadataReader
 	{
 		private readonly IModel _model;
 

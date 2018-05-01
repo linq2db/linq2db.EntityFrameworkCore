@@ -2,6 +2,9 @@
 
 namespace LinqToDB.EntityFrameworkCore
 {
+	/// <summary>
+	/// Contains database connectivity information, extracted from EF.Core.
+	/// </summary>
 	public class EFConnectionInfo
 	{
 		/// <summary>

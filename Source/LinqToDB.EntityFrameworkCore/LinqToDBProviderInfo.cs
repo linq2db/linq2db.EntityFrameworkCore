@@ -1,16 +1,29 @@
 ﻿namespace LinqToDB.EntityFrameworkCore
 {
+	/// <summary>
+	/// Stores LINQ To DB database provider information.
+	/// </summary>
 	public class LinqToDBProviderInfo
 	{
-		public string Version { get; set; }
-		public string ProviderName{ get; set; }
+		// ??? not used
+		public string Version      { get; set; }
 
-		public void Merge(LinqToDBProviderInfo provInfo)
+		/// <summary>
+		/// Gets or sets LINQ To DB provider name.
+		/// <see cref="LinqToDB.ProviderName"/> for available providers.
+		/// </summary>
+		public string ProviderName { get; set; }
+
+		/// <summary>
+		/// Replaces <c>null</c> values in current instance with values from parameter.
+		/// </summary>
+		/// <param name="providerInfo">Provider information to merge into current object.</param>
+		public void Merge(LinqToDBProviderInfo providerInfo)
 		{
-			if (provInfo != null)
+			if (providerInfo != null)
 			{
-				Version = Version ?? provInfo.Version;
-				ProviderName = ProviderName ?? provInfo.ProviderName;
+				Version = Version ?? providerInfo.Version;
+				ProviderName = ProviderName ?? providerInfo.ProviderName;
 			}
 		}
 	}

@@ -8,27 +8,30 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LinqToDB.EntityFrameworkCore
 {
+	/// <summary>
+	/// LINQ To DB async extensions adapter to call EF.Core functionality instead of default implementation.
+	/// </summary>
 	public class LinqToDBExtensionsAdapter : IExtensionsAdapter
 	{
 		public Task ForEachAsync<TSource>(
-			IQueryable<TSource> source, 
-			Action<TSource>     action, 
+			IQueryable<TSource> source,
+			Action<TSource>     action,
 			CancellationToken   token)
 			=> EntityFrameworkQueryableExtensions.ForEachAsync(source, action, token);
 
 		public Task<List<TSource>> ToListAsync<TSource>(
-			IQueryable<TSource> source, 
+			IQueryable<TSource> source,
 			CancellationToken   token)
 			=> EntityFrameworkQueryableExtensions.ToListAsync(source, token);
 
 		public Task<TSource[]> ToArrayAsync<TSource>(
-			IQueryable<TSource> source, 
+			IQueryable<TSource> source,
 			CancellationToken   token)
 			=> EntityFrameworkQueryableExtensions.ToArrayAsync(source, token);
 
 		public Task<Dictionary<TKey, TSource>> ToDictionaryAsync<TSource, TKey>(
 			IQueryable<TSource> source,
-			Func<TSource, TKey> keySelector, 
+			Func<TSource, TKey> keySelector,
 			CancellationToken   token)
 			=> EntityFrameworkQueryableExtensions.ToDictionaryAsync(source, keySelector, token);
 
@@ -60,7 +63,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.FirstAsync(source, token);
 
 		public Task<TSource> FirstAsync<TSource>(
-			IQueryable<TSource>            source, 
+			IQueryable<TSource>            source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token)
 			=> EntityFrameworkQueryableExtensions.FirstAsync(source, predicate, token);
@@ -71,7 +74,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(source, token);
 
 		public Task<TSource> FirstOrDefaultAsync<TSource>(
-			IQueryable<TSource>            source, 
+			IQueryable<TSource>            source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token)
 			=> EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(source, predicate, token);
@@ -82,7 +85,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.SingleAsync(source, token);
 
 		public Task<TSource> SingleAsync<TSource>(
-			IQueryable<TSource>            source, 
+			IQueryable<TSource>            source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token)
 			=> EntityFrameworkQueryableExtensions.SingleAsync(source, predicate, token);
@@ -93,13 +96,13 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(source, token);
 
 		public Task<TSource> SingleOrDefaultAsync<TSource>(
-			IQueryable<TSource>            source, 
+			IQueryable<TSource>            source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token)
 			=> EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(source, predicate, token);
 
 		public Task<bool> ContainsAsync<TSource>(
-			IQueryable<TSource> source, 
+			IQueryable<TSource> source,
 			TSource             item,
 			CancellationToken   token)
 			=> EntityFrameworkQueryableExtensions.ContainsAsync(source, item, token);
@@ -110,13 +113,13 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.AnyAsync(source, token);
 
 		public Task<bool> AnyAsync<TSource>(
-			IQueryable<TSource>            source, 
+			IQueryable<TSource>            source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token)
 			=> EntityFrameworkQueryableExtensions.AnyAsync(source, predicate, token);
 
 		public Task<bool> AllAsync<TSource>(
-			IQueryable<TSource>            source, 
+			IQueryable<TSource>            source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token)
 			=> EntityFrameworkQueryableExtensions.AllAsync(source, predicate, token);
@@ -127,7 +130,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.CountAsync(source, token);
 
 		public Task<int> CountAsync<TSource>(
-			IQueryable<TSource>            source, 
+			IQueryable<TSource>            source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token)
 			=> EntityFrameworkQueryableExtensions.CountAsync(source, predicate, token);
@@ -138,7 +141,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.LongCountAsync(source, token);
 
 		public Task<long> LongCountAsync<TSource>(
-			IQueryable<TSource>            source, 
+			IQueryable<TSource>            source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token)
 			=> EntityFrameworkQueryableExtensions.LongCountAsync(source, predicate, token);
@@ -149,7 +152,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.MinAsync(source, token);
 
 		public Task<TResult> MinAsync<TSource,TResult>(
-			IQueryable<TSource>               source, 
+			IQueryable<TSource>               source,
 			Expression<Func<TSource,TResult>> selector,
 			CancellationToken                 token)
 			=> EntityFrameworkQueryableExtensions.MinAsync(source, selector, token);
@@ -160,7 +163,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.MaxAsync(source, token);
 
 		public Task<TResult> MaxAsync<TSource,TResult>(
-			IQueryable<TSource>               source, 
+			IQueryable<TSource>               source,
 			Expression<Func<TSource,TResult>> selector,
 			CancellationToken                 token)
 			=> EntityFrameworkQueryableExtensions.MaxAsync(source, selector, token);

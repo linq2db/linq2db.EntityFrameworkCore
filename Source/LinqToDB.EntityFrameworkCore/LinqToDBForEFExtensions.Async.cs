@@ -8,37 +8,75 @@ using JetBrains.Annotations;
 
 namespace LinqToDB.EntityFrameworkCore
 {
-
 	// ReSharper disable InvokeAsExtensionMethod
-
-	/// <summary>
-	/// Resolves extension conflicts between LinqToDB and EF
-	/// </summary>
 	[PublicAPI]
 	public static partial class LinqToDBForEFExtensions
 	{
+		/// <summary>
+		/// Asynchronously apply provided action to each element in source sequence.
+		/// Sequence elements processed sequentially.
+		/// </summary>
+		/// <typeparam name="TSource">Source sequence element type.</typeparam>
+		/// <param name="source">Source sequence.</param>
+		/// <param name="action">Action to apply to each sequence element.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>Asynchronous operation completion task.</returns>
 		public static Task ForEachAsyncLinqToDB<TSource>(
-			this IQueryable<TSource> source, 
-			Action<TSource>          action, 
+			this IQueryable<TSource> source,
+			Action<TSource>          action,
 			CancellationToken        token = default(CancellationToken))
 			=> AsyncExtensions.ForEachAsync(source.ToLinqToDB(), action, token);
 
+		/// <summary>
+		/// Asynchronously loads data from query to a list.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>List with query results.</returns>
 		public static Task<List<TSource>> ToListAsyncLinqToDB<TSource>(
-			this IQueryable<TSource> source, 
+			this IQueryable<TSource> source,
 			CancellationToken        token = default(CancellationToken))
 			=> AsyncExtensions.ToListAsync(source.ToLinqToDB(), token);
 
+		/// <summary>
+		/// Asynchronously loads data from query to an array.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>Array with query results.</returns>
 		public static Task<TSource[]> ToArrayAsyncLinqToDB<TSource>(
-			this IQueryable<TSource> source, 
+			this IQueryable<TSource> source,
 			CancellationToken        token = default(CancellationToken))
 			=> AsyncExtensions.ToArrayAsync(source.ToLinqToDB(), token);
 
+		/// <summary>
+		/// Asynchronously loads data from query to a dictionary.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <typeparam name="TKey">Dictionary key type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="keySelector">Source element key selector.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>Dictionary with query results.</returns>
 		public static Task<Dictionary<TKey, TSource>> ToDictionaryAsyncLinqToDB<TSource, TKey>(
 			this IQueryable<TSource> source,
-			Func<TSource, TKey>      keySelector, 
+			Func<TSource, TKey>      keySelector,
 			CancellationToken        token = default(CancellationToken))
 			=> AsyncExtensions.ToDictionaryAsync(source.ToLinqToDB(), keySelector, token);
 
+		/// <summary>
+		/// Asynchronously loads data from query to a dictionary.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <typeparam name="TKey">Dictionary key type.</typeparam>
+		/// <typeparam name="TElement">Dictionary element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="keySelector">Source element key selector.</param>
+		/// <param name="elementSelector">Dictionary element selector.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>Dictionary with query results.</returns>
 		public static Task<Dictionary<TKey,TElement>> ToDictionaryAsyncLinqToDB<TSource,TKey,TElement>(
 			this IQueryable<TSource>      source,
 			Func<TSource,TKey>            keySelector,
@@ -46,6 +84,18 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken             token = default(CancellationToken))
 			=> AsyncExtensions.ToDictionaryAsync(source.ToLinqToDB(), keySelector, elementSelector, token);
 
+		/// <summary>
+		/// Asynchronously loads data from query to a dictionary.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <typeparam name="TKey">Dictionary key type.</typeparam>
+		/// <typeparam name="TElement">Dictionary element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="keySelector">Source element key selector.</param>
+		/// <param name="elementSelector">Dictionary element selector.</param>
+		/// <param name="comparer">Dictionary key comparer.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>Dictionary with query results.</returns>
 		public static Task<Dictionary<TKey,TElement>> ToDictionaryAsyncLinqToDB<TSource,TKey,TElement>(
 			this IQueryable<TSource>      source,
 			Func<TSource,TKey>            keySelector,
@@ -54,52 +104,122 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken             token = default(CancellationToken))
 			=> AsyncExtensions.ToDictionaryAsync(source.ToLinqToDB(), keySelector, elementSelector, comparer, token);
 
+		/// <summary>
+		/// Asynchronously loads first record from query.
+		/// Throws exception, if query doesn't return any records.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>First record from query results.</returns>
 		public static Task<TSource> FirstAsyncLinqToDB<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default(CancellationToken))
 			=> AsyncExtensions.FirstAsync(source.ToLinqToDB(), token);
 
+		/// <summary>
+		/// Asynchronously loads first record from query, filtered using provided predicate.
+		/// Throws exception, if query doesn't return any records.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="predicate">Query filter predicate.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>First record from query results.</returns>
 		public static Task<TSource> FirstAsyncLinqToDB<TSource>(
-			this IQueryable<TSource>       source, 
+			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default(CancellationToken))
 			=> AsyncExtensions.FirstAsync(source.ToLinqToDB(), predicate, token);
 
+		/// <summary>
+		/// Asynchronously loads first record from query.
+		/// Returns <c>default(TSource)</c>, if query doesn't return any records.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>First record from query results or <c>default(TSource)</c> for empty resultset.</returns>
 		public static Task<TSource> FirstOrDefaultAsyncLinqToDB<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default(CancellationToken))
 			=> AsyncExtensions.FirstOrDefaultAsync(source.ToLinqToDB(), token);
 
+		/// <summary>
+		/// Asynchronously loads first record from query, filtered using provided predicate.
+		/// Returns <c>default(TSource)</c>, if query doesn't return any records.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="predicate">Query filter predicate.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>First record from query results or <c>default(TSource)</c> for empty resultset.</returns>
 		public static Task<TSource> FirstOrDefaultAsyncLinqToDB<TSource>(
-			this IQueryable<TSource>       source, 
+			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default(CancellationToken))
 			=> AsyncExtensions.FirstOrDefaultAsync(source.ToLinqToDB(), predicate, token);
 
+		/// <summary>
+		/// Asynchronously loads first record from query.
+		/// Throws exception, if query doesn't return exactly one record.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>First record from query results.</returns>
 		public static Task<TSource> SingleAsyncLinqToDB<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default(CancellationToken))
 			=> AsyncExtensions.SingleAsync(source.ToLinqToDB(), token);
 
+		/// <summary>
+		/// Asynchronously loads first record from query, filtered using provided predicate.
+		/// Throws exception, if query doesn't return exactly one record.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="predicate">Query filter predicate.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>First record from query results.</returns>
 		public static Task<TSource> SingleAsyncLinqToDB<TSource>(
-			this IQueryable<TSource>       source, 
+			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default(CancellationToken))
 			=> AsyncExtensions.SingleAsync(source.ToLinqToDB(), predicate, token);
 
+		/// <summary>
+		/// Asynchronously loads first record from query.
+		/// Returns <c>default(TSource)</c>, if query doesn't return any records.
+		/// Throws exception, if query returns more than one record.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>First record from query results or <c>default(TSource)</c> for empty resultset.</returns>
 		public static Task<TSource> SingleOrDefaultAsyncLinqToDB<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default(CancellationToken))
 			=> AsyncExtensions.SingleOrDefaultAsync(source.ToLinqToDB(), token);
 
+		/// <summary>
+		/// Asynchronously loads first record from query, filtered using provided predicate.
+		/// Returns <c>default(TSource)</c>, if query doesn't return any records.
+		/// Throws exception, if query returns more than one record.
+		/// </summary>
+		/// <typeparam name="TSource">Query element type.</typeparam>
+		/// <param name="source">Source query.</param>
+		/// <param name="predicate">Query filter predicate.</param>
+		/// <param name="token">Optional asynchronous operation cancellation token.</param>
+		/// <returns>First record from query results or <c>default(TSource)</c> for empty resultset.</returns>
 		public static Task<TSource> SingleOrDefaultAsyncLinqToDB<TSource>(
-			this IQueryable<TSource>       source, 
+			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default(CancellationToken))
 			=> AsyncExtensions.SingleOrDefaultAsync(source.ToLinqToDB(), predicate, token);
 
 		public static Task<bool> ContainsAsyncLinqToDB<TSource>(
-			this IQueryable<TSource> source, 
+			this IQueryable<TSource> source,
 			TSource                  item,
 			CancellationToken        token = default(CancellationToken))
 			=> AsyncExtensions.ContainsAsync(source.ToLinqToDB(), item, token);
@@ -110,13 +230,13 @@ namespace LinqToDB.EntityFrameworkCore
 			=> AsyncExtensions.AnyAsync(source.ToLinqToDB(), token);
 
 		public static Task<bool> AnyAsyncLinqToDB<TSource>(
-			this IQueryable<TSource>       source, 
+			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default(CancellationToken))
 			=> AsyncExtensions.AnyAsync(source.ToLinqToDB(), predicate, token);
 
 		public static Task<bool> AllAsyncLinqToDB<TSource>(
-			this IQueryable<TSource>       source, 
+			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default(CancellationToken))
 			=> AsyncExtensions.AllAsync(source.ToLinqToDB(), predicate, token);
@@ -127,7 +247,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> AsyncExtensions.CountAsync(source.ToLinqToDB(), token);
 
 		public static Task<int> CountAsyncLinqToDB<TSource>(
-			this IQueryable<TSource>       source, 
+			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default(CancellationToken))
 			=> AsyncExtensions.CountAsync(source.ToLinqToDB(), predicate, token);
@@ -138,7 +258,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> AsyncExtensions.LongCountAsync(source.ToLinqToDB(), token);
 
 		public static Task<long> LongCountAsyncLinqToDB<TSource>(
-			this IQueryable<TSource>       source, 
+			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default(CancellationToken))
 			=> AsyncExtensions.LongCountAsync(source.ToLinqToDB(), predicate, token);
@@ -149,7 +269,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> AsyncExtensions.MinAsync(source.ToLinqToDB(), token);
 
 		public static Task<TResult> MinAsyncLinqToDB<TSource,TResult>(
-			this IQueryable<TSource>         source, 
+			this IQueryable<TSource>         source,
 			Expression<Func<TSource,TResult>> selector,
 			CancellationToken                 token = default(CancellationToken))
 			=> AsyncExtensions.MinAsync(source.ToLinqToDB(), selector, token);
@@ -160,7 +280,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> AsyncExtensions.MaxAsync(source.ToLinqToDB(), token);
 
 		public static Task<TResult> MaxAsyncLinqToDB<TSource,TResult>(
-			this IQueryable<TSource>          source, 
+			this IQueryable<TSource>          source,
 			Expression<Func<TSource,TResult>> selector,
 			CancellationToken                 token = default(CancellationToken))
 			=> AsyncExtensions.MaxAsync(source.ToLinqToDB(), selector, token);
