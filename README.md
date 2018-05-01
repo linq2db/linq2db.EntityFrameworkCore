@@ -4,8 +4,8 @@
 
 ## Build status
 
-* [![Latest](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore)
-* [![Master](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x/branch/master?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore/branch/master)
+* Latest: [![Latest](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore)
+* Master: [![Master](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x/branch/master?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore/branch/master)
 
 ## Feeds
 
@@ -19,6 +19,7 @@
 As it is an early preview, and for now you should install from MyGet, later we'll publisg stable version on NuGet.
 
 In your code you need to initialize integration using following call:
+
 ```cs
 LinqToDBForEFTools.Initialize();
 ```
@@ -26,15 +27,18 @@ LinqToDBForEFTools.Initialize();
 After that you can just call DbContext and IQueryable extension methods, provided by `LINQ To DB`.
 
 There are many extensions for CRUD Operations missing in vanilla EF ([watch our video](https://www.youtube.com/watch?v=m--oX73EGeQ)):
+
 ```cs
 ctx.BulkCopy(new BulkCopyOptions {...}, items);
 query.Insert(ctx.Products.ToLinqToDBTable(), s => new Product { Name = s.Name ... });
 query.Update(ctx.Products.ToLinqToDBTable(), prev => new Product { Name = "U_" + prev.Name ... })
 query.Delete();
 ```
+
 Some extensions require LINQ To DB `ITable<T>` interface, which could be acquired from  `DbSet<T>` using `ToLinqToDBTable()` extension method. 
 
 For `ITable<T>` interface LINQ To DB provides several extensions that may be useful for complex databases and custom queries:
+
 ```cs
 table = table.TableName("NewTableName");     // change table name in query
 table = table.DatabaseName("OtherDatabase"); // change database name, useful for cross database queries.
@@ -42,6 +46,7 @@ table = table.OwnerName("OtherOwner");       // change owner.
 ```
 
 It is not required to work directly with `LINQ To DB` `DataConnection` class but there are several ways to do that. `LINQ To DB` will try to reuse your configuration and select appropriate data provider:
+
 ```cs
 // uing DbContext
 using (var dc = ctx.CreateLinqToDbConnection())
@@ -55,10 +60,12 @@ using (var dc = options.CreateLinqToDbConnection())
    // linq queries using linq2db extensions
 }
 ```
+
 You can use all `LINQ To DB` extension functions in your EF linq queries. Just ensure you have called `ToLinqToDB()` function before materializing objects for synchronous methods.
 
 Since EF Core have defined it's own asynchronous methods, we have to duplicate them to avoid naming collisions. 
 Async methods have the same name but tith `LinqToDB` suffix. E.g. `ToListAsyncLinqToDB()`, `SumAsyncLinqToDB()`, ect.
+
 ```cs
 using (var ctx = CreateAdventureWorksContext())
 {
@@ -87,13 +94,14 @@ using (var ctx = CreateAdventureWorksContext())
 	// we have to call our method to avoid naming collisions
 	var items2 = await neededRecords.ToArrayAsyncLinqToDB(); 
 }
-
 ```
+
 Also check [existing tests](https://github.com/linq2db/linq2db.EntityFrameworkCore/blob/master/Tests/LinqToDB.EntityFrameworkCore.Tests/ToolsTests.cs) in test project for some examples.
 
 # Why should I want to use it?
 
 There are many reasons. Some of them:
+
 - you want to use advanced SQL functionality, not supported or poorly supported by EntityFrameworkCore like BulkCopy support, SQL MERGE operations, convinient DML (Insert/Delete/Update) operations and many-many-many other features LINQ To DB provides, but you need change tracking functionality that EntityFramework provides.
 - you want to migrate to LINQ To DB, but need to do it step-by-step.
 - just because LINQ To DB is cool.
@@ -101,6 +109,7 @@ There are many reasons. Some of them:
 # Current status
 
 Right now it is an early preview. Below is a list of providers, that should work right now:
+
 - SQL Server
 - MySQL (including Devart and Pomelo providers)
 - PostgreSQL (Both npgsql and Devart providers)
