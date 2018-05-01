@@ -1,6 +1,6 @@
 # linq2db.EntityFrameworkCore
 
-`linq2db.EntityFrameworkCore` is an integration of LINQ To DB with existing EntityFrameworkCore projects. It was inspired by [this issue](https://github.com/aspnet/EntityFrameworkCore/issues/11657) in EF.Core repository.
+`linq2db.EntityFrameworkCore` is an integration of `LINQ To DB` with existing EntityFrameworkCore projects. It was inspired by [this issue](https://github.com/aspnet/EntityFrameworkCore/issues/11657) in EF.Core repository.
 
 # How to use
 
@@ -15,23 +15,23 @@ LinqToDBForEFTools.Initialize();
 
 After that you can just call DbContext and IQueryable extension methods, provided by `LINQ To DB`.
 
-There are many missed in EF extensions for CRUD Operations ([watch our video](https://www.youtube.com/watch?v=m--oX73EGeQ)):
+There are many extensions for CRUD Operations missing in vanilla EF ([watch our video](https://www.youtube.com/watch?v=m--oX73EGeQ)):
 ```cs
 ctx.BulkCopy(new BulkCopyOptions {...}, items);
 query.Insert(ctx.Products.ToLinqToDBTable(), s => new Product { Name = s.Name ... });
 query.Update(ctx.Products.ToLinqToDBTable(), prev => new Product { Name = "U_" + prev.Name ... })
 query.Delete();
 ```
-Some extensions requires `ITable<T>` interface, so we have provided a way how to transform `DbSet<T>` to `ITable<T>` - `ToLinqToDBtable()` extension method. 
+Some extensions require LINQ To DB `ITable<T>` interface, which could be acquired from  `DbSet<T>` using `ToLinqToDBTable()` extension method. 
 
-Interface `ITable<T>` has several extensions that may be useful for complex databases and custom queries:
+For `ITable<T>` interface LINQ To DB provides several extensions that may be useful for complex databases and custom queries:
 ```cs
 table = table.TableName("NewTableName");     // change table name in query
 table = table.DatabaseName("OtherDatabase"); // change database name, useful for cross database queries.
 table = table.OwnerName("OtherOwner");       // change owner.
 ```
 
-It is not required to work directly with `LINQ To DB` `DataConnection` class but there are the several ways to do that. `LINQ To DB` will try to reuse your configuration and select appropriate Data Provider:
+It is not required to work directly with `LINQ To DB` `DataConnection` class but there are several ways to do that. `LINQ To DB` will try to reuse your configuration and select appropriate data provider:
 ```cs
 // uing DbContext
 using (var dc = ctx.CreateLinqToDbConnection())
@@ -45,10 +45,10 @@ using (var dc = options.CreateLinqToDbConnection())
    // linq queries using linq2db extensions
 }
 ```
-You can use all `LINQ To DB` extension functions in your EF linq queries, but ensure you have called `ToLinqToDB()` function before materializing objects for synchronous methods.
+You can use all `LINQ To DB` extension functions in your EF linq queries. Just ensure you have called `ToLinqToDB()` function before materializing objects for synchronous methods.
 
-Since EF Core have defined it's own asynchronous methods, we have to duplicate them to avoid collisions. 
-Async methods have the same name but tith `LinqToDB` suffix. For example `ToListAsyncLinqToDB()`, `SumAsyncLinqToDB()`, ect.
+Since EF Core have defined it's own asynchronous methods, we have to duplicate them to avoid naming collisions. 
+Async methods have the same name but tith `LinqToDB` suffix. E.g. `ToListAsyncLinqToDB()`, `SumAsyncLinqToDB()`, ect.
 ```cs
 using (var ctx = CreateAdventureWorksContext())
 {
