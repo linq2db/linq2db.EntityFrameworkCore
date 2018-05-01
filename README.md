@@ -31,7 +31,7 @@ table = table.DatabaseName("OtherDatabase"); // change database name, useful for
 table = table.OwnerName("OtherOwner");       // change owner.
 ```
 
-It is not required to work directly with `LINQ To DB` `DataConnection` class but there is the several ways to do that. `LINQ To DB` will try to reuse your configuration and select appropriate Data Provider:
+It is not required to work directly with `LINQ To DB` `DataConnection` class but there are the several ways to do that. `LINQ To DB` will try to reuse your configuration and select appropriate Data Provider:
 ```cs
 // uing DbContext
 using (var dc = ctx.CreateLinqToDbConnection())
