@@ -90,7 +90,16 @@ There are many reasons. Some of them:
 
 # Current status
 
-Right now it is an early preview that supports only SQL Server provider. More providers support is coming soon.
+Right now it is an early preview. Below is a list of providers, that should work right now:
+- SQL Server
+- MySQL (including Devart and Pomelo providers)
+- PostgreSQL (Both npgsql and Devart providers)
+- SQLite (including Devart provider)
+- Firebird
+- DB2 LUW
+- Oracle
+- Access JET provider
+- SQL Server CE
 
 # Help! It doesn't work!
 
