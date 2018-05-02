@@ -99,7 +99,7 @@ namespace LinqToDB.EntityFrameworkCore
 						return new DB2DataProvider(ProviderName.DB2, DB2Version.LUW);
 					case ProviderName.DB2zOS:
 						return new DB2DataProvider(ProviderName.DB2, DB2Version.zOS);
-					case ProviderName.OracleManaged:
+					case ProviderName.Oracle:
 						return new OracleDataProvider();
 					case ProviderName.SqlCe:
 						return new SqlCeDataProvider();
@@ -146,7 +146,7 @@ namespace LinqToDB.EntityFrameworkCore
 				case "IBM.EntityFrameworkCore-osx":
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW };
 				case "Devart.Data.Oracle.EFCore":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.OracleManaged };
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.Oracle };
 				case "EntityFrameworkCore.Jet":
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.Access };
 
@@ -167,7 +167,19 @@ namespace LinqToDB.EntityFrameworkCore
 					case "MySqlConnection":
 						return new LinqToDBProviderInfo { ProviderName = ProviderName.MySql };
 					case "NpgsqlConnection":
+					case "PgSqlConnection":
 						return new LinqToDBProviderInfo { ProviderName = ProviderName.PostgreSQL };
+					case "FbConnection":
+						return new LinqToDBProviderInfo { ProviderName = ProviderName.Firebird };
+					case "DB2Connection":
+						return new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW };
+					case "OracleConnection":
+						return new LinqToDBProviderInfo { ProviderName = ProviderName.Oracle };
+					case "SqliteConnection":
+					case "SQLiteConnection":
+						return new LinqToDBProviderInfo { ProviderName = ProviderName.SQLite };
+					case "JetConnection":
+						return new LinqToDBProviderInfo { ProviderName = ProviderName.Access };
 			}
 
 			return null;
@@ -178,11 +190,26 @@ namespace LinqToDB.EntityFrameworkCore
 			switch (extensions.GetType().Name)
 			{
 				case "MySqlOptionsExtension":
+				case "MySQLOptionsExtension":
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.MySql };
 				case "NpgsqlOptionsExtension":
+				case "PgSqlOptionsExtension":
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.PostgreSQL };
 				case "SqlServerOptionsExtension":
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.SqlServer };
+				case "SqliteOptionsExtension":
+				case "SQLiteOptionsExtension":
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.SQLite };
+				case "SqlCeOptionsExtension":
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.SqlCe };
+				case "FbOptionsExtension":
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.Firebird };
+				case "Db2OptionsExtension":
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW };
+				case "OracleOptionsExtension":
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.Oracle };
+				case "JetOptionsExtension":
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.Access };
 			}
 
 			return null;
