@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Linq;
 using LinqToDB.Data;
+using LinqToDB.Expressions;
+using LinqToDB.Mapping;
+using NUnit.Framework;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlAzure.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.Tests
 {
@@ -80,8 +83,6 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
-				var items = ctx.CustomerAddresses.ToListAsyncLinqToDB().Result;
-
 				// all items that have more than 2 products with the same ProductModel
 				IQueryable<Product> itemsToInsert = from p in ctx.Products
 					group p by new { p.ProductModel }
@@ -274,6 +275,87 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 					};
 
 				var items = query.ToLinqToDB().ToArray();
+			}
+		}
+
+		[Test]
+		public void TestDemo2()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query =
+					from p in ctx.Products
+					from op in ctx.Products.LeftJoin(op => op.ProductID != p.ProductID && op.Name == p.Name)
+					where Sql.ToNullable(op.ProductID) == null
+					select p;
+
+				query = query.ToLinqToDB();
+
+				var str = query.ToString();
+
+				var items = query.ToArray();
+			}
+		}
+
+		[Test]
+		public void TestCompositeKey()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model);
+				
+				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(CustomerAddress),
+					MemberHelper.MemberOf<CustomerAddress>(c => c.CustomerID));
+
+				Assert.NotNull(customerPk);
+				Assert.AreEqual(true, customerPk.IsPrimaryKey);
+				Assert.AreEqual(0, customerPk.PrimaryKeyOrder);
+				
+				var addressPk = ms.GetAttribute<ColumnAttribute>(typeof(CustomerAddress),
+					MemberHelper.MemberOf<CustomerAddress>(c => c.AddressID));
+
+				Assert.NotNull(addressPk);
+				Assert.AreEqual(true, addressPk.IsPrimaryKey);
+				Assert.AreEqual(1, addressPk.PrimaryKeyOrder);
+			}
+		}
+
+		[Test]
+		public void TestAssociations()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model);
+				
+				var associationCustomer = ms.GetAttribute<AssociationAttribute>(typeof(CustomerAddress),
+					MemberHelper.MemberOf<CustomerAddress>(c => c.Customer));
+
+				Assert.NotNull(associationCustomer);
+				Assert.AreEqual("CustomerID", associationCustomer.ThisKey);
+				Assert.AreEqual("CustomerID", associationCustomer.OtherKey);
+				
+				var associationAddress = ms.GetAttribute<AssociationAttribute>(typeof(CustomerAddress),
+					MemberHelper.MemberOf<CustomerAddress>(c => c.Address));
+
+				Assert.NotNull(associationAddress);
+				Assert.AreEqual("AddressID", associationAddress.ThisKey);
+				Assert.AreEqual("AddressID", associationAddress.OtherKey);
+			}
+		}
+
+
+		[Test]
+		public void TestIdentityColumn()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model);
+				
+				var identity = ms.GetAttribute<ColumnAttribute>(typeof(SalesOrderDetail),
+					MemberHelper.MemberOf<SalesOrderDetail>(c => c.SalesOrderDetailID));
+
+				Assert.NotNull(identity);
+				Assert.AreEqual(true, identity.IsIdentity);
 			}
 		}
 

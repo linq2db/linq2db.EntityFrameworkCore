@@ -1,18 +1,22 @@
-﻿using JetBrains.Annotations;
-using LinqToDB.DataProvider.SqlCe;
+﻿using System;
+using System.Data.Common;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using JetBrains.Annotations;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using System;
-using System.Data.Common;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 
 namespace LinqToDB.EntityFrameworkCore
 {
+	using Expressions;
+	using Mapping;
+	using Metadata;
+
 	using DataProvider;
 	using DataProvider.DB2;
 	using DataProvider.Firebird;
@@ -21,9 +25,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using DataProvider.PostgreSQL;
 	using DataProvider.SQLite;
 	using DataProvider.SqlServer;
-	using Expressions;
-	using Mapping;
-	using Metadata;
+	using DataProvider.SqlCe;
 
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	/// <summary>

@@ -124,7 +124,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
 		/// <returns>EF.Core provider information.</returns>
-		public static EFProviderInfo GetEfProviderInfo(DbContext context)
+		public static EFProviderInfo GetEFProviderInfo(DbContext context)
 		{
 			var info = new EFProviderInfo
 			{
@@ -141,7 +141,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="connection">EF.Core <see cref="DbConnection"/> instance.</param>
 		/// <returns>EF.Core provider information.</returns>
-		public static EFProviderInfo GetEfProviderInfo(DbConnection connection)
+		public static EFProviderInfo GetEFProviderInfo(DbConnection connection)
 		{
 			var info = new EFProviderInfo
 			{
@@ -158,7 +158,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options">EF.Core <see cref="DbContextOptions"/> instance.</param>
 		/// <returns>EF.Core provider information.</returns>
-		public static EFProviderInfo GetEfProviderInfo(DbContextOptions options)
+		public static EFProviderInfo GetEFProviderInfo(DbContextOptions options)
 		{
 			var info = new EFProviderInfo
 			{
@@ -219,7 +219,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			var info = GetEfProviderInfo(context);
+			var info = GetEFProviderInfo(context);
 
 			DataConnection dc = null;
 
@@ -258,7 +258,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			var info = GetEfProviderInfo(context);
+			var info = GetEFProviderInfo(context);
 
 			DataConnection dc = null;
 
@@ -306,7 +306,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			var info = GetEfProviderInfo(context);
+			var info = GetEFProviderInfo(context);
 			var connectionInfo = GetConnectionInfo(info);
 			var dataProvider = GetDataProvider(info);
 
@@ -359,7 +359,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>New LINQ To DB <see cref="DataConnection"/> instance.</returns>
 		public static DataConnection CreateLinqToDbConnection(this DbContextOptions options)
 		{
-			var info = GetEfProviderInfo(options);
+			var info = GetEFProviderInfo(options);
 
 			DataConnection dc = null;
 

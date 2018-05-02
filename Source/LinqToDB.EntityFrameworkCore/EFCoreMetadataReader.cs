@@ -11,7 +11,7 @@ namespace LinqToDB.EntityFrameworkCore
 {
 	using Mapping;
 	using Metadata;
-	using LinqToDB.Extensions;
+	using Extensions;
 
 	/// <summary>
 	/// LINQ To DB metadata reader for EF.Core model.
@@ -49,25 +49,6 @@ namespace LinqToDB.EntityFrameworkCore
 
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
-			if (typeof(T) == typeof(PrimaryKeyAttribute))
-			{
-				var et = _model?.FindEntityType(type);
-				if (et != null)
-				{
-					var props = et.GetProperties();
-					var prop = props.FirstOrDefault(p => p.GetIdentifyingMemberInfo() == memberInfo);
-					if (prop != null)
-					{
-						if (prop.IsPrimaryKey())
-						{
-							return new T[]{(T)(Attribute) new PrimaryKeyAttribute()};
-						}
-					}
-				}
-
-				return Array.Empty<T>();
-			}
-
 			if (typeof(T) == typeof(ColumnAttribute))
 			{
 				var et = _model?.FindEntityType(type);
@@ -77,6 +58,15 @@ namespace LinqToDB.EntityFrameworkCore
 					var prop = props.FirstOrDefault(p => p.GetIdentifyingMemberInfo() == memberInfo);
 					if (prop != null)
 					{
+						var isPrimaryKey = prop.IsPrimaryKey();
+						var primaryKeyOrder = 0;
+						if (isPrimaryKey)
+						{
+							var pk = prop.GetContainingPrimaryKey();
+							primaryKeyOrder = pk.Properties.Select((p, i) => new { p, index = i })
+								                  .FirstOrDefault(v => v.p.GetIdentifyingMemberInfo() == memberInfo)?.index ?? 0;
+						}
+
 						var relational = prop.Relational();
 
 						return new T[]{(T)(Attribute) new ColumnAttribute
@@ -84,7 +74,10 @@ namespace LinqToDB.EntityFrameworkCore
 							Name = relational.ColumnName,
 							Length = prop.GetMaxLength() ?? 0,
 							CanBeNull = prop.IsNullable,
-							DbType = relational.ColumnType
+							DbType = relational.ColumnType,
+							IsPrimaryKey = isPrimaryKey,
+							PrimaryKeyOrder = primaryKeyOrder,
+							IsIdentity = prop.ValueGenerated == ValueGenerated.OnAdd,
 						}};
 					}
 				}
