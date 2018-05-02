@@ -32,8 +32,21 @@ There are many extensions for CRUD Operations missing in vanilla EF ([watch our 
 
 ```cs
 ctx.BulkCopy(new BulkCopyOptions {...}, items);
+
+// retrieve products that do not have duplicates by Name
+var query =
+	from p in ctx.Products
+	from op in ctx.Products.LeftJoin(op => op.ProductID != p.ProductID && op.Name == p.Name)
+	where Sql.ToNullable(op.ProductID) == null
+	select p;
+
+// insert these records into the same or other table
 query.Insert(ctx.Products.ToLinqToDBTable(), s => new Product { Name = s.Name ... });
+
+// update these records, with changing name based on previous value
 query.Update(ctx.Products.ToLinqToDBTable(), prev => new Product { Name = "U_" + prev.Name ... });
+
+// delete records that matched by query
 query.Delete();
 ```
 
