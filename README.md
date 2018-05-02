@@ -4,8 +4,11 @@
 
 ## Build status
 
-* Latest: [![Latest](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore)
-* Master: [![Master](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x/branch/master?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore/branch/master)
+--------------------
+| |Appveyor|
+-----|-------
+|master|[![Master](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x/branch/master?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore/branch/master)
+|latest|[![Latest](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore)
 
 ## Feeds
 
