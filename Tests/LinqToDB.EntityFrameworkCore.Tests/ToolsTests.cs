@@ -138,7 +138,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 					{
 						p.Product.Name,
 						p.Product.Color,
-						p.Product.Size
+						p.Product.Size,
+						PhotoFileName = Sql.Property<string>(p.Product, "ThumbnailPhotoFileName")
 					};
 
 				var items1 = neededrecords.ToLinqToDB().ToArray();
@@ -256,5 +257,25 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 				query.Where(p => p.Name == "a").Delete();
 			}
 		}
+
+
+		[Test]
+		public void TestTransformation()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query =
+					from p in ctx.Products
+					from c in ctx.ProductCategories.ToLinqToDBTable().InnerJoin(c => c.ProductCategoryID == p.ProductCategoryID)
+					select new
+					{
+						Product = p,
+						Ctegory = c
+					};
+
+				var items = query.ToLinqToDB().ToArray();
+			}
+		}
+
 	}
 }
