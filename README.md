@@ -113,6 +113,9 @@ using (var ctx = CreateAdventureWorksContext())
 	
 	// we have to call our method to avoid naming collisions
 	var items2 = await neededRecords.ToArrayAsyncLinqToDB(); 
+	
+	// and simple bonus - how to check SQL
+	var sql = neededRecords.ToLinqToDB().ToString();
 }
 ```
 
