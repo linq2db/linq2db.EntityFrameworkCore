@@ -140,7 +140,6 @@ Right now it is an early preview. Below is a list of providers, that should work
 - Firebird
 - DB2 LUW
 - Oracle
-- Access JET provider
 - SQL Server CE
 
 # Help! It doesn't work!
