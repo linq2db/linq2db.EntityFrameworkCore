@@ -31,7 +31,7 @@ There are many extensions for CRUD Operations missing in vanilla EF ([watch our 
 ```cs
 ctx.BulkCopy(new BulkCopyOptions {...}, items);
 query.Insert(ctx.Products.ToLinqToDBTable(), s => new Product { Name = s.Name ... });
-query.Update(ctx.Products.ToLinqToDBTable(), prev => new Product { Name = "U_" + prev.Name ... })
+query.Update(ctx.Products.ToLinqToDBTable(), prev => new Product { Name = "U_" + prev.Name ... });
 query.Delete();
 ```
 
@@ -43,6 +43,9 @@ For `ITable<T>` interface LINQ To DB provides several extensions that may be use
 table = table.TableName("NewTableName");     // change table name in query
 table = table.DatabaseName("OtherDatabase"); // change database name, useful for cross database queries.
 table = table.OwnerName("OtherOwner");       // change owner.
+
+// inserting into other existing table Products2
+query.Insert(ctx.Products.ToLinqToDBTable().TableName("Products2"), s => new Product { Name = s.Name ... });
 ```
 
 It is not required to work directly with `LINQ To DB` `DataConnection` class but there are several ways to do that. `LINQ To DB` will try to reuse your configuration and select appropriate data provider:
@@ -85,7 +88,9 @@ using (var ctx = CreateAdventureWorksContext())
 		{
 			p.Product.Name,
 			p.Product.Color,
-			p.Product.Size
+			p.Product.Size,
+			// dynamic property
+			PhotoFileName = Sql.Property<string>(p.Product, "ThumbnailPhotoFileName")
 		};
 
 	// ensure we have replaced EF context
