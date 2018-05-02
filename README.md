@@ -18,7 +18,7 @@
 
 # How to use
 
-As it is an early preview, and for now you should install from MyGet, later we'll publisg stable version on NuGet.
+As it is an early preview, it available only from MyGet. Later we'll publish stable version on NuGet.
 
 In your code you need to initialize integration using following call:
 
@@ -40,10 +40,10 @@ var query =
 	where Sql.ToNullable(op.ProductID) == null
 	select p;
 
-// insert these records into the same or other table
+// insert these records into the same or another table
 query.Insert(ctx.Products.ToLinqToDBTable(), s => new Product { Name = s.Name ... });
 
-// update these records, with changing name based on previous value
+// update these records by changing name based on previous value
 query.Update(ctx.Products.ToLinqToDBTable(), prev => new Product { Name = "U_" + prev.Name ... });
 
 // delete records that matched by query
@@ -114,7 +114,7 @@ using (var ctx = CreateAdventureWorksContext())
 	// we have to call our method to avoid naming collisions
 	var items2 = await neededRecords.ToArrayAsyncLinqToDB(); 
 	
-	// and simple bonus - how to check SQL
+	// and simple bonus - how to generate SQL
 	var sql = neededRecords.ToLinqToDB().ToString();
 }
 ```
