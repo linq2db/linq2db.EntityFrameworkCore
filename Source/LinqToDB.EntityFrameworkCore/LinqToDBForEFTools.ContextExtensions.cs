@@ -24,7 +24,10 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			return context.CreateLinqToDbConnection().BulkCopy(options, source);
+			using (var dc = context.CreateLinqToDbConnection())
+			{
+				return dc.BulkCopy(options, source);
+			}
 		}
 
 		/// <summary>
@@ -39,12 +42,13 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			var dataConnection = context.CreateLinqToDbConnection();
-
-			return dataConnection.DataProvider.BulkCopy(
-				dataConnection,
-				new BulkCopyOptions { MaxBatchSize = maxBatchSize },
-				source);
+			using (var dc = context.CreateLinqToDbConnection())
+			{
+				return dc.DataProvider.BulkCopy(
+					dc,
+					new BulkCopyOptions { MaxBatchSize = maxBatchSize },
+					source);
+			}
 		}
 
 		/// <summary>
@@ -58,12 +62,13 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			var dataConnection = context.CreateLinqToDbConnection();
-
-			return dataConnection.DataProvider.BulkCopy(
-				dataConnection,
-				new BulkCopyOptions(),
-				source);
+			using (var dc = context.CreateLinqToDbConnection())
+			{
+				return dc.DataProvider.BulkCopy(
+					dc,
+					new BulkCopyOptions(),
+					source);
+			}
 		}
 
 		#endregion
