@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using LinqToDB.Data;
 using LinqToDB.Expressions;
@@ -20,9 +21,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		static ToolsTests()
 		{
 			LinqToDBForEFTools.Initialize();
-
 			DataConnection.TurnTraceSwitchOn();
-			DataConnection.WriteTraceLine = (s, s1) => Console.WriteLine(s, s1);
 		}
 
 		public ToolsTests()
@@ -31,7 +30,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
 			optionsBuilder.UseSqlServer("Server=OCEANIA;Database=AdventureWorks;Integrated Security=SSPI");
-			optionsBuilder.UseLoggerFactory(new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) }));
+			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
 		}

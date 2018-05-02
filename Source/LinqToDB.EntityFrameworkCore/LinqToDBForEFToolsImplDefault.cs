@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using JetBrains.Annotations;
 
 using Microsoft.EntityFrameworkCore;
@@ -10,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.Extensions.Logging;
 
 namespace LinqToDB.EntityFrameworkCore
 {
+	using Data;
 	using Expressions;
 	using Mapping;
 	using Metadata;
@@ -49,7 +53,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		protected virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(EFProviderInfo providerInfo)
 		{
-			LinqToDBProviderInfo provInfo = new LinqToDBProviderInfo();
+			var provInfo = new LinqToDBProviderInfo();
 
 			var relational = providerInfo.Options?.Extensions.OfType<RelationalOptionsExtension>().FirstOrDefault();
 			if (relational != null)
@@ -177,6 +181,8 @@ namespace LinqToDB.EntityFrameworkCore
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.MySql };
 				case "NpgsqlOptionsExtension":
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.PostgreSQL };
+				case "SqlServerOptionsExtension":
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.SqlServer };
 			}
 
 			return null;
@@ -259,7 +265,14 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns><see cref="DbContextOptions"/> instance.</returns>
 		public virtual DbContextOptions GetContextOptions(DbContext context)
 		{
-			return null;
+			if (context == null)
+				return null;
+
+			var prop = typeof(DbContext).GetField("_options", BindingFlags.Instance | BindingFlags.NonPublic);
+			if (prop == null)
+				return null;
+
+			return prop.GetValue(context) as DbContextOptions;
 		}
 
 		private static readonly MethodInfo GetTableMethodInfo =
@@ -352,6 +365,43 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			var coreOptions = options.Extensions.OfType<CoreOptionsExtension>().FirstOrDefault();
 			return coreOptions?.Model;
+		}
+
+		private static int _messageCounter;
+
+		public virtual void LogConnectionTrace(TraceInfo trace, ILogger logger)
+		{
+			switch (trace.TraceInfoStep)
+			{
+				case TraceInfoStep.BeforeExecute:
+					logger.LogInformation(Interlocked.Increment(ref _messageCounter), trace.SqlText);
+					break;
+				case TraceInfoStep.AfterExecute:
+					break;
+				case TraceInfoStep.Error:
+					logger.LogError(trace.Exception, "Error during execution");
+					break;
+				case TraceInfoStep.MapperCreated:
+					break;
+				case TraceInfoStep.Completed:
+					break;
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		public virtual ILogger CreateLogger(DbContextOptions options)
+		{
+			var coreOptions = options?.FindExtension<CoreOptionsExtension>();
+
+			var logger = coreOptions?.LoggerFactory?.CreateLogger("LinqToDB");
+			if (logger != null)
+			{
+				if (DataConnection.TraceSwitch.Level == TraceLevel.Off)
+					DataConnection.TurnTraceSwitchOn();
+			}
+
+			return logger;
 		}
 
 		/// <summary>

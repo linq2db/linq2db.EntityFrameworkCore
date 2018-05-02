@@ -17,7 +17,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
 			optionsBuilder.UseMySql("Server=DBHost;Port=3306;Database=AdventureWorks;Uid=root;Pwd=TestPassword;charset=utf8");
-			optionsBuilder.UseLoggerFactory(new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) }));
+			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			var connection1 = optionsBuilder.Options.CreateLinqToDbConnection();
 			Assert.AreEqual(ProviderName.MySql, connection1.DataProvider.Name);
@@ -41,7 +41,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 
 			optionsBuilder.UseNpgsql(
 				"Server=DBHost;Port=5433;Database=TestData;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
-			optionsBuilder.UseLoggerFactory(new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) }));
+			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			var connection1 = optionsBuilder.Options.CreateLinqToDbConnection();
 			StringAssert.StartsWith(ProviderName.PostgreSQL, connection1.DataProvider.Name);

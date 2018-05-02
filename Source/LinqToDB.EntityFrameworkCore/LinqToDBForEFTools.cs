@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -238,7 +239,7 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				var dbConnection = context.Database.GetDbConnection();
 				if (provider.IsCompatibleConnection(dbConnection))
-					dc = new DataConnection(provider, context.Database.GetDbConnection());
+					dc = new DataConnection(provider, dbConnection);
 				else
 				{
 					var connectionInfo = GetConnectionInfo(info);
@@ -246,11 +247,20 @@ namespace LinqToDB.EntityFrameworkCore
 				}
 			}
 
+			var logger = CreateLogger(info.Options);
+			if (logger != null)
+				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+
 			var mappingSchema = GetMappingSchema(context.Model);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
 			return dc;
+		}
+
+		public static ILogger CreateLogger(DbContextOptions options)
+		{
+			return Implementation.CreateLogger(options);
 		}
 
 		public static IDataContext CreateLinqToDbContext(this DbContext context,
@@ -311,8 +321,11 @@ namespace LinqToDB.EntityFrameworkCore
 			var dataProvider = GetDataProvider(info);
 
 			var dc = new DataConnection(dataProvider, connectionInfo.ConnectionString);
+			var logger = CreateLogger(info.Options);
+			if (logger != null)
+				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
-			var mappingSchema = GetMappingSchema(GetModel(GetContextOptions(context)));
+			var mappingSchema = GetMappingSchema(context.Model);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
@@ -372,6 +385,10 @@ namespace LinqToDB.EntityFrameworkCore
 
 			if (dc == null)
 				throw new LinqToDBForEFToolsException($"Can not extract connection information from {nameof(DbContextOptions)}");
+
+			var logger = CreateLogger(info.Options);
+			if (logger != null)
+				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
 			var mappingSchema = GetMappingSchema(GetModel(options));
 			if (mappingSchema != null)

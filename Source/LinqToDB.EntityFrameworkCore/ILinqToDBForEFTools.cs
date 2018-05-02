@@ -3,12 +3,14 @@ using System.Linq.Expressions;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Logging;
 
 namespace LinqToDB.EntityFrameworkCore
 {
 	using DataProvider;
 	using Mapping;
 	using Metadata;
+	using Data;
 
 	/// <summary>
 	/// Interface for EF.Core - LINQ To DB integration bridge.
@@ -72,5 +74,19 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
 		/// <returns>EF.Core data model instance.</returns>
 		IModel ExtractModel(DbContextOptions options);
+
+		/// <summary>
+		/// Creates logger used for logging Linq To DB connection calls.
+		/// </summary>
+		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <returns>Logger instance.</returns>
+		ILogger CreateLogger(DbContextOptions options);
+
+		/// <summary>
+		/// Logs DataConnection information.
+		/// </summary>
+		/// <param name="trace"></param>
+		/// <param name="logger"></param>
+		void LogConnectionTrace(TraceInfo trace, ILogger logger);
 	}
 }
