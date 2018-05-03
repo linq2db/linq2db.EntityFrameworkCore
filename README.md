@@ -104,7 +104,7 @@ using (var ctx = CreateAdventureWorksContext())
 			p.Product.Name,
 			p.Product.Color,
 			p.Product.Size,
-			// dynamic property
+			// retrieving value from column dynamically
 			PhotoFileName = Sql.Property<string>(p.Product, "ThumbnailPhotoFileName")
 		};
 
