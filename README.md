@@ -44,7 +44,7 @@ var query =
 query.Insert(ctx.Products.ToLinqToDBTable(), s => new Product { Name = s.Name ... });
 
 // update these records by changing name based on previous value
-query.Update(ctx.Products.ToLinqToDBTable(), prev => new Product { Name = "U_" + prev.Name ... });
+query.Update(prev => new Product { Name = "U_" + prev.Name ... });
 
 // delete records that matched by query
 query.Delete();
