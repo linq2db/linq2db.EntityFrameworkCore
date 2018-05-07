@@ -191,11 +191,26 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			using (var ctx = CreateAdventureWorksContext())
 			{
 				var query = from p in ctx.Products
+					where EF.Functions.Like(p.Name, "a%") || true
 					select new
 					{
 						p.ProductID,
 						Date = Model.TestFunctions.GetDate(),
-						Len = Model.TestFunctions.Len(p.Name)
+						Len = Model.TestFunctions.Len(p.Name),
+						DiffYear1 = EF.Functions.DateDiffYear(p.SellStartDate, p.SellEndDate),
+						DiffYear2 = p.SellEndDate == null ? (int?)null : EF.Functions.DateDiffYear(p.SellStartDate, p.SellEndDate.Value),
+						DiffMonth1 = EF.Functions.DateDiffMonth(p.SellStartDate, p.SellEndDate),
+						DiffMonth2 = p.SellEndDate == null ? (int?)null : EF.Functions.DateDiffMonth(p.SellStartDate, p.SellEndDate.Value),
+						DiffDay1 = EF.Functions.DateDiffDay(p.SellStartDate, p.SellEndDate),
+						DiffDay2 = p.SellEndDate == null ? (int?)null : EF.Functions.DateDiffDay(p.SellStartDate, p.SellEndDate.Value),
+						DiffHour1 = EF.Functions.DateDiffHour(p.SellStartDate, p.SellEndDate),
+						DiffHour2 = p.SellEndDate == null ? (int?)null : EF.Functions.DateDiffHour(p.SellStartDate, p.SellEndDate.Value),
+						DiffMinute1 = EF.Functions.DateDiffMinute(p.SellStartDate, p.SellEndDate),
+						DiffMinute2 = p.SellEndDate == null ? (int?)null : EF.Functions.DateDiffMinute(p.SellStartDate, p.SellEndDate.Value),
+						DiffSecond1 = EF.Functions.DateDiffSecond(p.SellStartDate, p.SellEndDate),
+						DiffSecond2 = p.SellEndDate == null ? (int?)null : EF.Functions.DateDiffSecond(p.SellStartDate, p.SellEndDate.Value),
+						DiffMillisecond1 = EF.Functions.DateDiffMillisecond(p.SellStartDate, p.SellStartDate.AddMilliseconds(100)),
+						DiffMillisecond2 = p.SellEndDate == null ? (int?)null : EF.Functions.DateDiffMillisecond(p.SellStartDate, p.SellStartDate.AddMilliseconds(100)),
 					};
 
 				var items1 = query.ToArray();

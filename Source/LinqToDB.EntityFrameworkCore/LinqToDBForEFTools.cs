@@ -4,7 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-
+using LinqToDB.Tools;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -39,6 +39,8 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			var prev = LinqExtensions.ProcessSourceQueryable;
 
+			InitializeMapping();
+
 			var instantiator = MemberHelper.MethodOf(() => Internals.CreateExpressionQueryInstance<int>(null, null))
 				.GetGenericMethodDefinition();
 
@@ -68,7 +70,6 @@ namespace LinqToDB.EntityFrameworkCore
 
 			return true;
 		}
-
 
 		private static ILinqToDBForEFTools _implementation;
 
