@@ -274,8 +274,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 			transaction = transaction ?? context.Database.CurrentTransaction;
 
-			var provider = GetDataProvider(info);
+			var provider      = GetDataProvider(info);
 			var mappingSchema = GetMappingSchema(context.Model);
+			var logger        = CreateLogger(info.Options);
 
 			if (transaction != null)
 			{
@@ -294,14 +295,22 @@ namespace LinqToDB.EntityFrameworkCore
 					// special case when we have to create data connection by itself
 					var connectionInfo = GetConnectionInfo(info);
 					var dataContext = new DataContext(provider, connectionInfo.ConnectionString);
+
 					if (mappingSchema != null)
 						dataContext.MappingSchema = mappingSchema;
+		
+					if (logger != null)
+						dataContext.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+						
 					return dataContext;
 				}
 			}
 
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
+
+			if (logger != null)
+				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
 			return dc;
 		}
