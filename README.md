@@ -142,6 +142,11 @@ Right now it is an early preview. Below is a list of providers, that should work
 - Oracle
 - SQL Server CE
 
+# Know limitations
+- No Eager loading
+- No Lazy loading
+- `Include` function not supported
+
 # Help! It doesn't work!
 
 If you encounter any issue with this library, first check issues to see if it was already reported and if not, feel free to report new issue.
