@@ -82,6 +82,9 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
+				ctx.Products.Where(p => p.Name.StartsWith("Doubled - ")).Delete();
+
+
 				// all items that have more than 2 products with the same ProductModel
 				IQueryable<Product> itemsToInsert = from p in ctx.Products
 					group p by new { p.ProductModel }

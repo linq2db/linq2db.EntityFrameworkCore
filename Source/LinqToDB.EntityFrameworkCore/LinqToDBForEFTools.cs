@@ -438,7 +438,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null)
 				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
-			var dc = CreateLinqToDbConnection(context);
+			var dc = CreateLinqToDbContext(context);
 			var newExpression = TransformExpression(query.Expression, dc);
 
 			return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
