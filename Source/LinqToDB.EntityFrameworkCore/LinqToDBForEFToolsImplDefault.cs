@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using JetBrains.Annotations;
 
@@ -396,24 +397,72 @@ namespace LinqToDB.EntityFrameworkCore
 
 		private static int _messageCounter;
 
-		public virtual void LogConnectionTrace(TraceInfo trace, ILogger logger)
+		public virtual void LogConnectionTrace(TraceInfo info, ILogger logger)
 		{
-			switch (trace.TraceInfoStep)
+			Interlocked.Increment(ref _messageCounter);
+			switch (info.TraceInfoStep)
 			{
 				case TraceInfoStep.BeforeExecute:
-					logger.LogInformation(Interlocked.Increment(ref _messageCounter), trace.SqlText);
+					logger.LogInformation(_messageCounter, $"{info.TraceInfoStep}{Environment.NewLine}{info.SqlText}");
 					break;
+
 				case TraceInfoStep.AfterExecute:
+					logger.LogInformation(_messageCounter,
+						info.RecordsAffected != null
+							? $"Query Execution Time ({info.TraceInfoStep}) {(info.IsAsync ? " (async)" : "")}: {info.ExecutionTime}. Records Affected: {info.RecordsAffected}.\r\n"
+							: $"Query Execution Time ({info.TraceInfoStep}) {(info.IsAsync ? " (async)" : "")}: {info.ExecutionTime}\r\n");
 					break;
+
 				case TraceInfoStep.Error:
-					logger.LogError(trace.Exception, "Error during execution");
+				{
+					var sb = new StringBuilder();
+
+					sb.Append(info.TraceInfoStep);
+
+					for (var ex = info.Exception; ex != null; ex = ex.InnerException)
+					{
+						try
+						{
+							sb
+								.AppendLine()
+								.AppendLine($"Exception: {ex.GetType()}")
+								.AppendLine($"Message  : {ex.Message}")
+								.AppendLine(ex.StackTrace)
+								;
+						}
+						catch
+						{
+							// Sybase provider could generate exception that will throw another exception when you
+							// try to access Message property due to bug in AseErrorCollection.Message property.
+							// There it tries to fetch error from first element of list without checking wether
+							// list contains any elements or not
+							sb
+								.AppendLine()
+								.AppendFormat("Failed while tried to log failure of type {0}", ex.GetType())
+								;
+						}
+					}
+
+					logger.LogError(_messageCounter, sb.ToString());
+
 					break;
-				case TraceInfoStep.MapperCreated:
-					break;
+				}
+
 				case TraceInfoStep.Completed:
+				{
+					var sb = new StringBuilder();
+
+					sb.Append($"Total Execution Time ({info.TraceInfoStep}){(info.IsAsync ? " (async)" : "")}: {info.ExecutionTime}.");
+
+					if (info.RecordsAffected != null)
+						sb.Append($" Rows Count: {info.RecordsAffected}.");
+
+					sb.AppendLine();
+
+					logger.LogInformation(_messageCounter, sb.ToString());
+
 					break;
-				default:
-					throw new ArgumentOutOfRangeException();
+				}
 			}
 		}
 

@@ -85,8 +85,8 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Logs DataConnection information.
 		/// </summary>
-		/// <param name="trace"></param>
+		/// <param name="info"></param>
 		/// <param name="logger"></param>
-		void LogConnectionTrace(TraceInfo trace, ILogger logger);
+		void LogConnectionTrace(TraceInfo info, ILogger logger);
 	}
 }
