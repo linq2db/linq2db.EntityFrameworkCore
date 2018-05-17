@@ -147,7 +147,6 @@ Right now it is an early preview. Below is a list of providers, that should work
 - No Eager loading
 - No Lazy loading
 - `Include` function not supported
-- Not yet supported Global Query Filters
 
 # Help! It doesn't work!
 
