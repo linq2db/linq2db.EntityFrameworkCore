@@ -31,6 +31,7 @@ After that you can just call DbContext and IQueryable extension methods, provide
 There are many extensions for CRUD Operations missing in vanilla EF ([watch our video](https://www.youtube.com/watch?v=m--oX73EGeQ)):
 
 ```cs
+// fast insert big recordsets
 ctx.BulkCopy(new BulkCopyOptions {...}, items);
 
 // retrieve products that do not have duplicates by Name
