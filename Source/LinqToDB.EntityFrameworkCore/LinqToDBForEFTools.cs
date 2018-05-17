@@ -4,7 +4,6 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using LinqToDB.Tools;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -46,7 +45,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			LinqExtensions.ProcessSourceQueryable = queryable =>
 			{
-				// our Provider nothing to do
+				// our Provider - nothing to do
 				if (queryable.Provider is IQueryProviderAsync)
 					return queryable;
 
@@ -55,7 +54,7 @@ namespace LinqToDB.EntityFrameworkCore
 					throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
 				var dc = CreateLinqToDbConnection(context);
-				var newExpression = TransformExpression(queryable.Expression, dc);
+				var newExpression = TransformExpression(queryable.Expression, dc, context.Model);
 
 				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
 					.Invoke(null, new object[] { dc, newExpression });
@@ -202,10 +201,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="expression">EF.Core expression tree.</param>
 		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
+		/// <param name="model">EF.Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
-		public static Expression TransformExpression(Expression expression, IDataContext dc)
+		public static Expression TransformExpression(Expression expression, IDataContext dc, IModel model)
 		{
-			return Implementation.TransformExpression(expression, dc);
+			return Implementation.TransformExpression(expression, dc, model);
 		}
 
 		/// <summary>
@@ -371,6 +371,8 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>EF.Core data model instance.</returns>
 		public static IModel GetModel(DbContextOptions options)
 		{
+			if (options == null)
+				return null;
 			return Implementation.ExtractModel(options);
 		}
 
@@ -400,9 +402,13 @@ namespace LinqToDB.EntityFrameworkCore
 			if (logger != null)
 				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
-			var mappingSchema = GetMappingSchema(GetModel(options));
-			if (mappingSchema != null)
-				dc.AddMappingSchema(mappingSchema);
+			var model = GetModel(options);
+			if (model != null)
+			{
+				var mappingSchema = GetMappingSchema(model);
+				if (mappingSchema != null)
+					dc.AddMappingSchema(mappingSchema);
+			}
 
 			return dc;
 		}
@@ -416,7 +422,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>LINQ To DB query, attached to provided <see cref="IDataContext"/>.</returns>
 		public static IQueryable<T> ToLinqToDB<T>(this IQueryable<T> query, IDataContext dc)
 		{
-			var newExpression = TransformExpression(query.Expression, dc);
+			var context = Implementation.GetCurrentContext(query);
+			if (context == null)
+				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
+
+			var newExpression = TransformExpression(query.Expression, dc, context.Model);
 
 			return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
 		}
@@ -439,7 +449,8 @@ namespace LinqToDB.EntityFrameworkCore
 				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
 			var dc = CreateLinqToDbContext(context);
-			var newExpression = TransformExpression(query.Expression, dc);
+
+			var newExpression = TransformExpression(query.Expression, dc, context.Model);
 
 			return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
 		}

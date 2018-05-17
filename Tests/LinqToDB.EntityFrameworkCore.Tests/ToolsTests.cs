@@ -42,7 +42,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			return ctx;
 		}
 
-		public class vwProductAndDescription
+		public class VwProductAndDescription
 		{
 			public int ProductID { get; set; }
 			public string Name { get; set; }
@@ -50,12 +50,12 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			public string Description { get; set; }
 		}
 
-		private IQueryable<vwProductAndDescription> ViewProductAndDescription(AdventureWorksContext ctx)
+		private IQueryable<VwProductAndDescription> ViewProductAndDescription(AdventureWorksContext ctx)
 		{
 			var query =
 				from p in ctx.Products.AsNoTracking()
 				from pmx in p.ProductModel.ProductModelProductDescription
-				select new vwProductAndDescription
+				select new VwProductAndDescription
 				{
 					ProductID = p.ProductID,
 					Name = p.Name,
@@ -373,6 +373,18 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 
 				Assert.NotNull(identity);
 				Assert.AreEqual(true, identity.IsIdentity);
+			}
+		}
+
+		[Test]
+		public void TestGlobalQueryFilters()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var withoutFilter = ctx.Products.IgnoreQueryFilters().ToLinqToDB().ToArray();
+				var products = ctx.Products.ToLinqToDB().ToArray();
+
+				Assert.AreNotEqual(withoutFilter.Length, products.Length);
 			}
 		}
 

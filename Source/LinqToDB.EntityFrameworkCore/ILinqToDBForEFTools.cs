@@ -51,8 +51,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="expression">EF.Core expression tree.</param>
 		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
+		/// <param name="model">EF.Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
-		Expression TransformExpression(Expression expression, IDataContext dc);
+		Expression TransformExpression(Expression expression, IDataContext dc, IModel model);
 
 		/// <summary>
 		/// Extracts <see cref="DbContext"/> instance from <see cref="IQueryable"/> object.

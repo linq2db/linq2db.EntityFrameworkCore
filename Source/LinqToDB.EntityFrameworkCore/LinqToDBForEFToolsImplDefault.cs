@@ -306,16 +306,24 @@ namespace LinqToDB.EntityFrameworkCore
 		private static readonly MethodInfo GetTableMethodInfo =
 			MemberHelper.MethodOf<IDataContext>(dc => dc.GetTable<object>()).GetGenericMethodDefinition();
 
+		private static readonly MethodInfo WhereMethodInfo =
+			MemberHelper.MethodOf<IQueryable<object>>(q => q.Where(p => true)).GetGenericMethodDefinition();
+
+		private static readonly MethodInfo IgnoreQueryFiltersMethodInfo =
+			MemberHelper.MethodOf<IQueryable<object>>(q => q.IgnoreQueryFilters()).GetGenericMethodDefinition();
+
 		/// <summary>
 		/// Transforms EF.Core expression tree to LINQ To DB expression.
 		/// Method replaces EF.Core <see cref="EntityQueryable{TResult}"/> instances with LINQ To DB
 		/// <see cref="DataExtensions.GetTable{T}(IDataContext)"/> calls.
 		/// </summary>
 		/// <param name="expression">EF.Core expression tree.</param>
-		/// <param name="dataContext">LINQ To DB <see cref="IDataContext"/> instance.</param>
+		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
+		/// <param name="model">EF.Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
-		public virtual Expression TransformExpression(Expression expression, IDataContext dataContext)
+		public virtual Expression TransformExpression(Expression expression, IDataContext dc, IModel model)
 		{
+			var ignoreQueryFilters = false;
 			var newExpression =
 				expression.Transform(e =>
 				{
@@ -325,11 +333,39 @@ namespace LinqToDB.EntityFrameworkCore
 						{
 							if (LinqToDB.Extensions.ReflectionExtensions.IsSameOrParentOf(typeof(EntityQueryable<>), e.Type))
 							{
+								var entityType = e.Type.GenericTypeArguments[0];
 								var newExpr = Expression.Call(null,
-									GetTableMethodInfo.MakeGenericMethod(e.Type.GenericTypeArguments),
-									Expression.Constant(dataContext)
+									GetTableMethodInfo.MakeGenericMethod(entityType),
+									Expression.Constant(dc)
 								);
+
+								if (!ignoreQueryFilters)
+								{
+									var filter = model?.FindEntityType(entityType).QueryFilter;
+									if (filter != null)
+									{
+										var whereExpr = Expression.Call(null,
+											WhereMethodInfo.MakeGenericMethod(entityType),
+											newExpr,
+											Expression.Quote(filter)
+										);
+
+										newExpr = whereExpr;
+									}
+								}
+
 								return newExpr;
+							}
+
+							break;
+						}
+
+						case ExpressionType.Call:
+						{
+							var methodCall = (MethodCallExpression) e;
+							if (methodCall.Method.GetGenericMethodDefinition() == IgnoreQueryFiltersMethodInfo)
+							{
+								ignoreQueryFilters = true;
 							}
 
 							break;
@@ -391,7 +427,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>EF.Core data model instance.</returns>
 		public virtual IModel ExtractModel(DbContextOptions options)
 		{
-			var coreOptions = options.Extensions.OfType<CoreOptionsExtension>().FirstOrDefault();
+			var coreOptions = options?.Extensions.OfType<CoreOptionsExtension>().FirstOrDefault();
 			return coreOptions?.Model;
 		}
 
