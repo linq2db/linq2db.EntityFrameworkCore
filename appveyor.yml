@@ -20,11 +20,6 @@ cache:
 
 version: $(assemblyVersion).{build}
 
-#services:
-#- mssql2014
-#- mysql
-#- postgresql95
-
 init:
 - cmd: git config --global core.autocrlf true
 - ps: $env:buildVersion = "$env:assemblyVersion.$env:appveyor_build_number"
@@ -35,7 +30,6 @@ nuget:
 
 build_script:
   dotnet build LinqToDB.EntityFrameworkCore.sln -c Release
-##- ps: .\build.ps1
 
 before_build:
 - ps: |
@@ -52,9 +46,6 @@ after_build:
   dotnet pack .\Source\LinqToDB.EntityFrameworkCore\ -c Release --no-build
 
 test: off
-
-#test_script:
-#  - ps: .\Build\AppVeyor.NUnit.Tests.ps1
 
 artifacts:
 - path: \**\linq2db*.nupkg
@@ -73,14 +64,6 @@ deploy:
     secure: oTYw2IwTnz4qMD8c/MR/6mo+Nx3wa5Pp8MYfsKBCKCVuU6QCHlj+6QMXpnQses8G
   on:
     branch: release
-
-- provider: NuGet
-  server: https://www.myget.org/F/linq2db/api/v2
-  api_key:
-    secure: LDw0jeA1Yo3R4/TKv2kmlgJR8dTT6Wun2MONq3uDvtVQJG4LOU9LjvVTAc7IgRfm
-  skip_symbols: true
-  on:
-    branch: release1
 
 skip_commits:
   message: /ci skip/      # Regex for matching commit message
