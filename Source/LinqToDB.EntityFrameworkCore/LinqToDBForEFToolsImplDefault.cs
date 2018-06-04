@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using JetBrains.Annotations;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -21,6 +20,8 @@ namespace LinqToDB.EntityFrameworkCore
 	using Expressions;
 	using Mapping;
 	using Metadata;
+	using Extensions;
+	using Linq.Builder;
 
 	using DataProvider;
 	using DataProvider.DB2;
@@ -312,6 +313,69 @@ namespace LinqToDB.EntityFrameworkCore
 		private static readonly MethodInfo IgnoreQueryFiltersMethodInfo =
 			MemberHelper.MethodOf<IQueryable<object>>(q => q.IgnoreQueryFilters()).GetGenericMethodDefinition();
 
+		private static readonly MethodInfo AsNoTrackingMethodInfo =
+			MemberHelper.MethodOf<IQueryable<object>>(q => q.AsNoTracking()).GetGenericMethodDefinition();
+
+		public static Expression Unwrap(Expression ex)
+		{
+			if (ex == null)
+				return null;
+
+			switch (ex.NodeType)
+			{
+				case ExpressionType.Quote          : return Unwrap(((UnaryExpression)ex).Operand);
+				case ExpressionType.ConvertChecked :
+				case ExpressionType.Convert        :
+					{
+						var ue = (UnaryExpression)ex;
+
+						if (!ue.Operand.Type.IsEnumEx())
+							return Unwrap(ue.Operand);
+
+						break;
+					}
+			}
+
+			return ex;
+		}
+
+		public static bool IsQueryable(MethodCallExpression method, bool enumerable = true)
+		{
+			var type = method.Method.DeclaringType;
+
+			return type == typeof(Queryable) || (enumerable && type == typeof(Enumerable)) || type == typeof(LinqExtensions) ||
+			       type == typeof(EntityFrameworkQueryableExtensions);
+		}
+
+		public static object EvaluateExpression(Expression expr)
+		{
+			if (expr == null)
+				return null;
+
+			switch (expr.NodeType)
+			{
+				case ExpressionType.Constant:
+					return ((ConstantExpression)expr).Value;
+
+				case ExpressionType.MemberAccess:
+					{
+						var member = (MemberExpression) expr;
+
+						if (member.Member.IsFieldEx())
+							return ((FieldInfo)member.Member).GetValue(EvaluateExpression(member.Expression));
+
+						if (member.Member.IsPropertyEx())
+							return ((PropertyInfo)member.Member).GetValue(EvaluateExpression(member.Expression), null);
+
+						break;
+					}
+			}
+
+			var value = Expression.Lambda(expr).Compile().DynamicInvoke();
+			return value;
+		}
+
+
 		/// <summary>
 		/// Transforms EF.Core expression tree to LINQ To DB expression.
 		/// Method replaces EF.Core <see cref="EntityQueryable{TResult}"/> instances with LINQ To DB
@@ -324,56 +388,83 @@ namespace LinqToDB.EntityFrameworkCore
 		public virtual Expression TransformExpression(Expression expression, IDataContext dc, IModel model)
 		{
 			var ignoreQueryFilters = false;
-			var newExpression =
-				expression.Transform(e =>
+
+			Expression LocalTransform(Expression e)
+			{
+				switch (e.NodeType)
 				{
-					switch (e.NodeType)
+					case ExpressionType.Constant:
 					{
-						case ExpressionType.Constant:
+						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type))
 						{
-							if (LinqToDB.Extensions.ReflectionExtensions.IsSameOrParentOf(typeof(EntityQueryable<>), e.Type))
-							{
-								var entityType = e.Type.GenericTypeArguments[0];
-								var newExpr = Expression.Call(null,
-									GetTableMethodInfo.MakeGenericMethod(entityType),
-									Expression.Constant(dc)
-								);
+							var entityType = e.Type.GenericTypeArguments[0];
+							var newExpr = Expression.Call(null, GetTableMethodInfo.MakeGenericMethod(entityType), Expression.Constant(dc));
 
-								if (!ignoreQueryFilters)
+							if (!ignoreQueryFilters)
+							{
+								var filter = model?.FindEntityType(entityType).QueryFilter;
+								if (filter != null)
 								{
-									var filter = model?.FindEntityType(entityType).QueryFilter;
-									if (filter != null)
-									{
-										var whereExpr = Expression.Call(null,
-											WhereMethodInfo.MakeGenericMethod(entityType),
-											newExpr,
-											Expression.Quote(filter)
-										);
+									var whereExpr = Expression.Call(null, WhereMethodInfo.MakeGenericMethod(entityType), newExpr, Expression.Quote(filter));
 
-										newExpr = whereExpr;
-									}
+									newExpr = whereExpr;
 								}
-
-								return newExpr;
 							}
 
-							break;
+							return newExpr;
 						}
 
-						case ExpressionType.Call:
-						{
-							var methodCall = (MethodCallExpression) e;
-							if (methodCall.Method.GetGenericMethodDefinition() == IgnoreQueryFiltersMethodInfo)
-							{
-								ignoreQueryFilters = true;
-							}
-
-							break;
-						}
+						break;
 					}
 
-					return e;
-				});
+					case ExpressionType.Call:
+					{
+						var methodCall = (MethodCallExpression) e;
+
+						if (IsQueryable(methodCall))
+						{
+							if (methodCall.Method.IsGenericMethod)
+							{
+								var isTunnel = false;
+
+								var generic = methodCall.Method.GetGenericMethodDefinition();
+								if (generic == IgnoreQueryFiltersMethodInfo)
+								{
+									ignoreQueryFilters = true;
+									isTunnel = true;
+								}
+								else if (generic == AsNoTrackingMethodInfo)
+									isTunnel = true;
+
+								if (isTunnel)
+									return methodCall.Arguments[0].Transform(l => LocalTransform(l));
+							}
+
+							break;
+						}
+
+						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type))
+						{
+							// Invoking function to evaluate EF Subquery located in function
+
+							var obj = EvaluateExpression(methodCall.Object);
+							var arguments = methodCall.Arguments.Select(EvaluateExpression).ToArray();
+							if (methodCall.Method.Invoke(obj, arguments) is IQueryable result)
+							{
+								if (!ExpressionEqualityComparer.Instance.Equals(methodCall, result.Expression))
+									return result.Expression.Transform(l => LocalTransform(l));
+							}
+						}
+
+
+						break;
+					}
+				}
+
+				return e;
+			}
+
+			var newExpression = expression.Transform(e => LocalTransform(e));
 
 			return newExpression;
 		}

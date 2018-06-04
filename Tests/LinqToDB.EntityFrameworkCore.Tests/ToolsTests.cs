@@ -181,6 +181,28 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		}
 
 		[Test]
+		public void TestNestingFunctions()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query =
+					from pd in ViewProductAndDescription(ctx)
+					from pd2 in ViewProductAndDescription(ctx)
+					where pd.ProductID == pd2.ProductID
+					orderby pd.ProductID
+					select new { pd, pd2 };
+
+				var zz1 = ViewProductAndDescription(ctx).ToArray();
+
+				var zz2 = ViewProductAndDescription(ctx).ToArray();
+
+				var items1 = query.ToArray();
+				var items2 = query.ToLinqToDB().ToArray();
+
+			}
+		}
+
+		[Test]
 		public void TestCreateFromOptions()
 		{
 			using (var db = _options.CreateLinqToDbConnection())
