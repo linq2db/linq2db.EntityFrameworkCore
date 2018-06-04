@@ -34,7 +34,7 @@ There are many extensions for CRUD Operations missing in vanilla EF ([watch our 
 // fast insert big recordsets
 ctx.BulkCopy(new BulkCopyOptions {...}, items);
 
-// retrieve products that do not have duplicates by Name
+// query for retrieving products that do not have duplicates by Name
 var query =
 	from p in ctx.Products
 	from op in ctx.Products.LeftJoin(op => op.ProductID != p.ProductID && op.Name == p.Name)
