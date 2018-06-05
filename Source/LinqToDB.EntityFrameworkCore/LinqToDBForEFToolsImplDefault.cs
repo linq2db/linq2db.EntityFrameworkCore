@@ -21,7 +21,6 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 	using Extensions;
-	using Linq.Builder;
 
 	using DataProvider;
 	using DataProvider.DB2;
@@ -288,20 +287,13 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Returns EF.Core <see cref="DbContextOptions"/> for specific <see cref="DbContext"/> instance.
+		/// Returns EF.Core <see cref="IDbContextOptions"/> for specific <see cref="DbContext"/> instance.
 		/// </summary>
 		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
-		/// <returns><see cref="DbContextOptions"/> instance.</returns>
-		public virtual DbContextOptions GetContextOptions(DbContext context)
+		/// <returns><see cref="IDbContextOptions"/> instance.</returns>
+		public virtual IDbContextOptions GetContextOptions(DbContext context)
 		{
-			if (context == null)
-				return null;
-
-			var prop = typeof(DbContext).GetField("_options", BindingFlags.Instance | BindingFlags.NonPublic);
-			if (prop == null)
-				return null;
-
-			return prop.GetValue(context) as DbContextOptions;
+			return context?.GetService<IDbContextOptions>();
 		}
 
 		private static readonly MethodInfo GetTableMethodInfo =
@@ -497,11 +489,11 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Extracts EF.Core connection information object from <see cref="DbContextOptions"/>.
+		/// Extracts EF.Core connection information object from <see cref="IDbContextOptions"/>.
 		/// </summary>
-		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>EF.Core connection data.</returns>
-		public virtual EFConnectionInfo ExtractConnectionInfo(DbContextOptions options)
+		public virtual EFConnectionInfo ExtractConnectionInfo(IDbContextOptions options)
 		{
 			var relational = options.Extensions.OfType<RelationalOptionsExtension>().FirstOrDefault();
 			return new  EFConnectionInfo
@@ -512,11 +504,11 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Extracts EF.Core data model instance from <see cref="DbContextOptions"/>.
+		/// Extracts EF.Core data model instance from <see cref="IDbContextOptions"/>.
 		/// </summary>
-		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>EF.Core data model instance.</returns>
-		public virtual IModel ExtractModel(DbContextOptions options)
+		public virtual IModel ExtractModel(IDbContextOptions options)
 		{
 			var coreOptions = options?.Extensions.OfType<CoreOptionsExtension>().FirstOrDefault();
 			return coreOptions?.Model;
@@ -593,7 +585,7 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 		}
 
-		public virtual ILogger CreateLogger(DbContextOptions options)
+		public virtual ILogger CreateLogger(IDbContextOptions options)
 		{
 			var coreOptions = options?.FindExtension<CoreOptionsExtension>();
 

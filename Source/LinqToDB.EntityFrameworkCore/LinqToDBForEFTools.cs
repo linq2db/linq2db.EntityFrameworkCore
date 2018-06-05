@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
@@ -115,7 +116,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
 		/// <returns><see cref="DbContextOptions"/> instance.</returns>
-		public static DbContextOptions GetContextOptions(DbContext context)
+		public static IDbContextOptions GetContextOptions(DbContext context)
 		{
 			return Implementation.GetContextOptions(context);
 		}
@@ -259,7 +260,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return dc;
 		}
 
-		public static ILogger CreateLogger(DbContextOptions options)
+		public static ILogger CreateLogger(IDbContextOptions options)
 		{
 			return Implementation.CreateLogger(options);
 		}

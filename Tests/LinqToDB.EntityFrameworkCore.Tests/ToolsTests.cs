@@ -267,9 +267,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 						.Delete();
 
 
-
-					var test1 = ctx.Products.Where(p => p.Name.StartsWith("a")).MaxAsync(p => p.StandardCost).Result;
-					var test2 = ctx.Products.Where(p => p.Name.StartsWith("a")).ToLinqToDB().MaxAsync(p => p.StandardCost).Result;
+					var test1 = ctx.Products.Where(p => p.Name.StartsWith("U")).MaxAsync(p => p.StandardCost).Result;
+					var test2 = ctx.Products.Where(p => p.Name.StartsWith("U")).MaxAsyncLinqToDB(p => p.StandardCost).Result;
 
 					Assert.AreEqual(test1, test2);
 

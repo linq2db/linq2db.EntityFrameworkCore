@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Logging;
 
@@ -40,11 +41,11 @@ namespace LinqToDB.EntityFrameworkCore
 		MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader);
 
 		/// <summary>
-		/// Returns EF.Core <see cref="DbContextOptions"/> for specific <see cref="DbContext"/> instance.
+		/// Returns EF.Core <see cref="IDbContextOptions"/> for specific <see cref="DbContext"/> instance.
 		/// </summary>
 		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
-		/// <returns><see cref="DbContextOptions"/> instance.</returns>
-		DbContextOptions GetContextOptions(DbContext context);
+		/// <returns><see cref="IDbContextOptions"/> instance.</returns>
+		IDbContextOptions GetContextOptions(DbContext context);
 
 		/// <summary>
 		/// Transforms EF.Core expression tree to LINQ To DB expression.
@@ -63,25 +64,25 @@ namespace LinqToDB.EntityFrameworkCore
 		DbContext GetCurrentContext(IQueryable query);
 
 		/// <summary>
-		/// Extracts EF.Core connection information object from <see cref="DbContextOptions"/>.
+		/// Extracts EF.Core connection information object from <see cref="IDbContextOptions"/>.
 		/// </summary>
-		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>EF.Core connection data.</returns>
-		EFConnectionInfo ExtractConnectionInfo(DbContextOptions options);
+		EFConnectionInfo ExtractConnectionInfo(IDbContextOptions options);
 
 		/// <summary>
-		/// Extracts EF.Core data model instance from <see cref="DbContextOptions"/>.
+		/// Extracts EF.Core data model instance from <see cref="IDbContextOptions"/>.
 		/// </summary>
-		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>EF.Core data model instance.</returns>
-		IModel ExtractModel(DbContextOptions options);
+		IModel ExtractModel(IDbContextOptions options);
 
 		/// <summary>
 		/// Creates logger used for logging Linq To DB connection calls.
 		/// </summary>
-		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
+		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>Logger instance.</returns>
-		ILogger CreateLogger(DbContextOptions options);
+		ILogger CreateLogger(IDbContextOptions options);
 
 		/// <summary>
 		/// Logs DataConnection information.

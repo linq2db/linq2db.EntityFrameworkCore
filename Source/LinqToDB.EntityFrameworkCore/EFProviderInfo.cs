@@ -1,6 +1,7 @@
 ﻿using System.Data.Common;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -22,6 +23,6 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Gets or sets EF.Core context options instance.
 		/// </summary>
-		public DbContextOptions Options { get; set; }
+		public IDbContextOptions Options { get; set; }
 	}
 }
