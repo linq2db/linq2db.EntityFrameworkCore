@@ -12,7 +12,7 @@
 ## Feeds
 
 * NuGet [![NuGet](https://img.shields.io/nuget/vpre/linq2db.EntityFrameworkCore.svg)](https://www.nuget.org/packages?q=linq2db)
-* MyGet [![MyGet](https://img.shields.io/myget/linq2db/vpre/linq2db.EntityFrameworkCore.svg)](https://www.myget.org/gallery/linq2db)
+* MyGet [![MyGet](https://img.shields.io/myget/linq2db/vpre/linq2db.EntityFrameworkCore.svg)](https://www.myget.org/feed/linq2db/package/nuget/linq2db.EntityFrameworkCore)
   * V2 `https://www.myget.org/F/linq2db/api/v2`
   * V3 `https://www.myget.org/F/linq2db/api/v3/index.json`
 
