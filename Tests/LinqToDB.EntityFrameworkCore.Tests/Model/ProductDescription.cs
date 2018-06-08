@@ -23,7 +23,10 @@ namespace Microsoft.EntityFrameworkCore.SqlAzure.Model
         public string Description { get; set; }
 
         public DateTime ModifiedDate { get; set; }
-        public Guid rowguid { get; set; }
+
+#pragma warning disable IDE1006 // Naming Styles
+		public Guid rowguid { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
 
         [InverseProperty("ProductDescription")]
         public virtual ICollection<ProductModelProductDescription> ProductModelProductDescription { get; set; }

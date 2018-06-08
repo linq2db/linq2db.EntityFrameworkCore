@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
@@ -39,17 +41,65 @@ namespace LinqToDB.EntityFrameworkCore
 	[PublicAPI]
 	public class LinqToDBForEFToolsImplDefault : ILinqToDBForEFTools
 	{
+		class ProviderKey
+		{
+			public ProviderKey(string providerName, string connectionString)
+			{
+				ProviderName = providerName;
+				ConnectionString = connectionString;
+			}
+
+			private string ProviderName { get; }
+			private string ConnectionString { get; }
+
+			#region Equality members
+
+			protected bool Equals(ProviderKey other)
+			{
+				return string.Equals(ProviderName, other.ProviderName) && string.Equals(ConnectionString, other.ConnectionString);
+			}
+
+			public override bool Equals(object obj)
+			{
+				if (obj is null) return false;
+				if (ReferenceEquals(this, obj)) return true;
+				if (obj.GetType() != GetType()) return false;
+				return Equals((ProviderKey) obj);
+			}
+
+			public override int GetHashCode()
+			{
+				unchecked
+				{
+					return ((ProviderName != null ? ProviderName.GetHashCode() : 0) * 397) ^ (ConnectionString != null ? ConnectionString.GetHashCode() : 0);
+				}
+			}
+			
+			#endregion
+		}
+
+		private readonly ConcurrentDictionary<ProviderKey, IDataProvider> _knownProviders = new ConcurrentDictionary<ProviderKey, IDataProvider>();
+
+		public virtual void ClearCaches()
+		{
+			_knownProviders.Clear();
+		}
+
 		/// <summary>
 		/// Returns LINQ To DB provider, based on provider data from EF.Core.
 		/// Could be overriden if you have issues with default detection mechanisms.
 		/// </summary>
 		/// <param name="providerInfo">Provider information, extracted from EF.Core.</param>
+		/// <param name="connectionInfo"></param>
 		/// <returns>LINQ TO DB provider instance.</returns>
-		public virtual IDataProvider GetDataProvider(EFProviderInfo providerInfo)
+		public virtual IDataProvider GetDataProvider(EFProviderInfo providerInfo, EFConnectionInfo connectionInfo)
 		{
 			var info = GetLinqToDbProviderInfo(providerInfo);
 
-			return CreateLinqToDbDataProvider(providerInfo, info);
+			return _knownProviders.GetOrAdd(new ProviderKey(info.ProviderName, connectionInfo.ConnectionString), k =>
+			{
+				return CreateLinqToDbDataProvider(providerInfo, info, connectionInfo);
+			});
 		}
 
 		protected virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(EFProviderInfo providerInfo)
@@ -75,7 +125,8 @@ namespace LinqToDB.EntityFrameworkCore
 			return provInfo;
 		}
 
-		protected virtual IDataProvider CreateLinqToDbDataProvider(EFProviderInfo providerInfo, LinqToDBProviderInfo provInfo)
+		protected virtual IDataProvider CreateLinqToDbDataProvider(EFProviderInfo providerInfo, LinqToDBProviderInfo provInfo,
+			EFConnectionInfo connectionInfo)
 		{
 			if (provInfo.ProviderName == null)
 			{
@@ -85,11 +136,11 @@ namespace LinqToDB.EntityFrameworkCore
 			switch (provInfo.ProviderName)
 			{
 					case ProviderName.SqlServer:
-						return CreateSqlServerProvider(SqlServerDefaultVersion);
+						return CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString);
 					case ProviderName.MySql:
 						return new MySqlDataProvider();
 					case ProviderName.PostgreSQL:
-						return CreatePotgreSqlProvider(PotgreSqlDefaultVersion);
+						return CreatePotgreSqlProvider(PotgreSqlDefaultVersion, connectionInfo.ConnectionString);
 					case ProviderName.SQLite:
 						return new SQLiteDataProvider();
 					case ProviderName.Firebird:
@@ -216,8 +267,11 @@ namespace LinqToDB.EntityFrameworkCore
 			return null;
 		}
 
-		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version)
+		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string connectionString)
 		{
+			if (!string.IsNullOrEmpty(connectionString))
+				return DataConnection.GetDataProvider("System.Data.SqlClient", connectionString);
+
 			string providerName;
 			switch (version)
 			{
@@ -240,8 +294,11 @@ namespace LinqToDB.EntityFrameworkCore
 			return new SqlServerDataProvider(providerName, version);
 		}
 
-		protected virtual IDataProvider CreatePotgreSqlProvider(PostgreSQLVersion version)
+		protected virtual IDataProvider CreatePotgreSqlProvider(PostgreSQLVersion version, string connectionString)
 		{
+			if (!string.IsNullOrEmpty(connectionString))
+				return DataConnection.GetDataProvider(ProviderName.PostgreSQL, connectionString);
+
 			string providerName;
 			switch (version)
 			{
@@ -367,6 +424,94 @@ namespace LinqToDB.EntityFrameworkCore
 			return value;
 		}
 
+		/// <summary>
+		/// Compacts expression to handle big filters.
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <returns>Compacted expression.</returns>
+		public static Expression CompactExpression(Expression expression)
+		{
+			switch (expression.NodeType)
+			{
+				case ExpressionType.Or:
+				case ExpressionType.And:
+				case ExpressionType.OrElse:
+				case ExpressionType.AndAlso:
+				{
+					var stack = new Stack<Expression>();
+					var items = new List<Expression>();
+					var binary = (BinaryExpression) expression;
+
+					stack.Push(binary.Right);
+					stack.Push(binary.Left);
+					while (stack.Count > 0)
+					{
+						var item = stack.Pop();
+						if (item.NodeType == expression.NodeType)
+						{
+							binary = (BinaryExpression) item;
+							stack.Push(binary.Right);
+							stack.Push(binary.Left);
+						}
+						else
+							items.Add(item);
+					}
+
+					if (items.Count > 3)
+					{
+						// having N items will lead to NxM recursive calls in expression visitors and
+						// will result in stack overflow on relatively small numbers (~1000 items).
+						// To fix it we will rebalance condition tree here which will result in
+						// LOG2(N)*M recursive calls, or 10*M calls for 1000 items.
+						//
+						// E.g. we have condition A OR B OR C OR D OR E
+						// as an expression tree it represented as tree with depth 5
+						//   OR
+						// A    OR
+						//    B    OR
+						//       C    OR
+						//          D    E
+						// for rebalanced tree it will have depth 4
+						//                  OR
+						//        OR
+						//   OR        OR        OR
+						// A    B    C    D    E    F
+						// Not much on small numbers, but huge improvement on bigger numbers
+						while (items.Count != 1)
+						{
+							items = CompactTree(items, expression.NodeType);
+						}
+
+						return items[0];
+					}
+
+					break;
+				}
+			}
+
+			return expression;
+		}
+
+		private static List<Expression> CompactTree(List<Expression> items, ExpressionType nodeType)
+		{
+			var result = new List<Expression>();
+
+			// traverse list from left to right to preserve calculation order
+			for (var i = 0; i < items.Count; i += 2)
+			{
+				if (i + 1 == items.Count)
+				{
+					// last non-paired item
+					result.Add(items[i]);
+				}
+				else
+				{
+					result.Add(Expression.MakeBinary(nodeType, items[i], items[i + 1]));
+				}
+			}
+
+			return result;
+		}
 
 		/// <summary>
 		/// Transforms EF.Core expression tree to LINQ To DB expression.
@@ -383,6 +528,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 			Expression LocalTransform(Expression e)
 			{
+				e = CompactExpression(e);
+
 				switch (e.NodeType)
 				{
 					case ExpressionType.Constant:
@@ -437,7 +584,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type))
 						{
-							// Invoking function to evaluate EF Subquery located in function
+							// Invoking function to evaluate EF's Subquery located in function
 
 							var obj = EvaluateExpression(methodCall.Object);
 							var arguments = methodCall.Arguments.Select(EvaluateExpression).ToArray();
@@ -447,7 +594,6 @@ namespace LinqToDB.EntityFrameworkCore
 									return result.Expression.Transform(l => LocalTransform(l));
 							}
 						}
-
 
 						break;
 					}

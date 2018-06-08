@@ -17,7 +17,9 @@ namespace Microsoft.EntityFrameworkCore.SqlAzure.Model
         public int ProductID { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal UnitPriceDiscount { get; set; }
-        public Guid rowguid { get; set; }
+#pragma warning disable IDE1006 // Naming Styles
+		public Guid rowguid { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
 
         [ForeignKey("ProductID")]
         [InverseProperty("OrderDetails")]

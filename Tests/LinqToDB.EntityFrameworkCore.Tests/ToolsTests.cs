@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging.Console;
 namespace LinqToDB.EntityFrameworkCore.Tests
 {
 	[TestFixture]
-	public class ToolsTests
+	public class ToolsTests : TestsBase
 	{
 		private readonly DbContextOptions _options;
 
@@ -29,7 +29,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<AdventureWorksContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseSqlServer("Server=OCEANIA;Database=AdventureWorks;Integrated Security=SSPI");
+			optionsBuilder.UseSqlServer("Server=.;Database=AdventureWorks;Integrated Security=SSPI");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
@@ -181,6 +181,18 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		}
 
 		[Test]
+		public void TestDelete()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query = ViewProductAndDescription(ctx)
+					.Where(pd => pd.Description.StartsWith("a"));
+
+				query.Where(p => p.Name == "a").Delete();
+			}
+		}
+
+		[Test]
 		public void TestNestingFunctions()
 		{
 			using (var ctx = CreateAdventureWorksContext())
@@ -217,6 +229,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			{
 				var query = from p in ctx.Products
 					where EF.Functions.Like(p.Name, "a%") || true
+					orderby p.ProductID
 					select new
 					{
 						p.ProductID,

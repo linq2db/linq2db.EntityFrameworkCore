@@ -19,11 +19,17 @@ namespace LinqToDB.EntityFrameworkCore
 	public interface ILinqToDBForEFTools
 	{
 		/// <summary>
+		/// Clears internal caches
+		/// </summary>
+		void ClearCaches();
+
+		/// <summary>
 		/// Returns LINQ To DB provider, based on provider data from EF.Core.
 		/// </summary>
 		/// <param name="providerInfo">Provider information, extracted from EF.Core.</param>
+		/// <param name="connectionInfo">Database connection information.</param>
 		/// <returns>LINQ TO DB provider instance.</returns>
-		IDataProvider GetDataProvider(EFProviderInfo providerInfo);
+		IDataProvider GetDataProvider(EFProviderInfo providerInfo, EFConnectionInfo connectionInfo);
 
 		/// <summary>
 		/// Creates metadata provider for specified EF.Core data model.

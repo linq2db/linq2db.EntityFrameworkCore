@@ -47,7 +47,10 @@ namespace Microsoft.EntityFrameworkCore.SqlAzure.Model
         public string ThumbnailPhotoFileName { get; set; }
 
         public decimal? Weight { get; set; }
-        public Guid rowguid { get; set; }
+
+#pragma warning disable IDE1006 // Naming Styles
+		public Guid rowguid { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
 
         [InverseProperty("Product")]
         public virtual ICollection<SalesOrderDetail> OrderDetails { get; set; }

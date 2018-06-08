@@ -52,7 +52,9 @@ namespace Microsoft.EntityFrameworkCore.SqlAzure.Model
         public decimal SubTotal { get; set; }
         public decimal TaxAmt { get; set; }
         public decimal TotalDue { get; set; }
-        public Guid rowguid { get; set; }
+#pragma warning disable IDE1006 // Naming Styles
+		public Guid rowguid { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
 
         [InverseProperty("SalesOrder")]
         public virtual ICollection<SalesOrderDetail> Details { get; set; }

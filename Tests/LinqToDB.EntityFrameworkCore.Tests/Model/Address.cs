@@ -37,9 +37,11 @@ namespace Microsoft.EntityFrameworkCore.SqlAzure.Model
         [MaxLength(15)]
         public string PostalCode { get; set; }
 
-        public Guid rowguid { get; set; }
+#pragma warning disable IDE1006 // Naming Styles
+		public Guid rowguid { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
 
-        [InverseProperty("Address")]
+		[InverseProperty("Address")]
         public virtual ICollection<CustomerAddress> CustomerAddress { get; set; }
     }
 }

@@ -54,7 +54,7 @@ namespace LinqToDB.EntityFrameworkCore
 				if (context == null)
 					throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
-				var dc = CreateLinqToDbConnection(context);
+				var dc = CreateLinqToDbContext(context);
 				var newExpression = TransformExpression(queryable.Expression, dc, context.Model);
 
 				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
@@ -90,6 +90,16 @@ namespace LinqToDB.EntityFrameworkCore
 		private static readonly ConcurrentDictionary<IModel, IMetadataReader> _metadataReaders = new ConcurrentDictionary<IModel, IMetadataReader>();
 
 		private static Lazy<IMetadataReader> _defaultMeadataReader;
+
+		/// <summary>
+		/// Clears internal caches
+		/// </summary>
+		public static void ClearCaches()
+		{
+			_metadataReaders.Clear();
+			Implementation.ClearCaches();
+			Query.ClearCaches();
+		}
 
 		static LinqToDBForEFTools()
 		{
@@ -176,10 +186,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Returns LINQ To DB provider, based on provider data from EF.Core.
 		/// </summary>
 		/// <param name="info">EF.Core provider information.</param>
+		/// <param name="connectionInfo">Database connection information.</param>
 		/// <returns>LINQ TO DB provider instance.</returns>
-		public static IDataProvider GetDataProvider(EFProviderInfo info)
+		public static IDataProvider GetDataProvider(EFProviderInfo info, EFConnectionInfo connectionInfo)
 		{
-			var provider = Implementation.GetDataProvider(info);
+			var provider = Implementation.GetDataProvider(info, connectionInfo);
 
 			if (provider == null)
 				throw new LinqToDBForEFToolsException("Can not detect provider from Entity Framework or provider not supported");
@@ -228,7 +239,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 			transaction = transaction ?? context.Database.CurrentTransaction;
 
-			var provider = GetDataProvider(info);
+			var connectionInfo = GetConnectionInfo(info);
+			var provider = GetDataProvider(info, connectionInfo);
 
 			if (transaction != null)
 			{
@@ -244,7 +256,6 @@ namespace LinqToDB.EntityFrameworkCore
 					dc = new DataConnection(provider, dbConnection);
 				else
 				{
-					var connectionInfo = GetConnectionInfo(info);
 					dc = new DataConnection(provider, connectionInfo.ConnectionString);
 				}
 			}
@@ -276,9 +287,10 @@ namespace LinqToDB.EntityFrameworkCore
 
 			transaction = transaction ?? context.Database.CurrentTransaction;
 
-			var provider      = GetDataProvider(info);
-			var mappingSchema = GetMappingSchema(context.Model);
-			var logger        = CreateLogger(info.Options);
+			var connectionInfo = GetConnectionInfo(info);
+			var provider       = GetDataProvider(info, connectionInfo);
+			var mappingSchema  = GetMappingSchema(context.Model);
+			var logger         = CreateLogger(info.Options);
 
 			if (transaction != null)
 			{
@@ -295,7 +307,6 @@ namespace LinqToDB.EntityFrameworkCore
 				else
 				{
 					// special case when we have to create data connection by itself
-					var connectionInfo = GetConnectionInfo(info);
 					var dataContext = new DataContext(provider, connectionInfo.ConnectionString);
 
 					if (mappingSchema != null)
@@ -327,9 +338,9 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			var info = GetEFProviderInfo(context);
+			var info           = GetEFProviderInfo(context);
 			var connectionInfo = GetConnectionInfo(info);
-			var dataProvider = GetDataProvider(info);
+			var dataProvider   = GetDataProvider(info, connectionInfo);
 
 			var dc = new DataConnection(dataProvider, connectionInfo.ConnectionString);
 			var logger = CreateLogger(info.Options);
@@ -390,7 +401,8 @@ namespace LinqToDB.EntityFrameworkCore
 			DataConnection dc = null;
 
 			var connectionInfo = GetConnectionInfo(info);
-			var dataProvider = GetDataProvider(info);
+			var dataProvider   = GetDataProvider(info, connectionInfo);
+
 			if (connectionInfo.Connection != null)
 				dc = new DataConnection(dataProvider, connectionInfo.Connection);
 			else if (connectionInfo.ConnectionString != null)
