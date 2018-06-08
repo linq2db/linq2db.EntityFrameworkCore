@@ -55,7 +55,7 @@ namespace LinqToDB.EntityFrameworkCore
 					throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
 				var dc = CreateLinqToDbContext(context);
-				var newExpression = TransformExpression(queryable.Expression, dc, context.Model);
+				var newExpression = queryable.Expression;
 
 				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
 					.Invoke(null, new object[] { dc, newExpression });
@@ -246,17 +246,17 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				var dbTrasaction = transaction.GetDbTransaction();
 				if (provider.IsCompatibleConnection(dbTrasaction.Connection))
-					dc = new DataConnection(provider, dbTrasaction);
+					dc = new LinqToDBForEFToolsDataConnection(provider, dbTrasaction, context.Model, TransformExpression);
 			}
 
 			if (dc == null)
 			{
 				var dbConnection = context.Database.GetDbConnection();
 				if (provider.IsCompatibleConnection(dbConnection))
-					dc = new DataConnection(provider, dbConnection);
+					dc = new LinqToDBForEFToolsDataConnection(provider, dbConnection, context.Model, TransformExpression);
 				else
 				{
-					dc = new DataConnection(provider, connectionInfo.ConnectionString);
+					dc = new LinqToDBForEFToolsDataConnection(provider, connectionInfo.ConnectionString, context.Model, TransformExpression);
 				}
 			}
 
@@ -296,18 +296,18 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				var dbTrasaction = transaction.GetDbTransaction();
 				if (provider.IsCompatibleConnection(dbTrasaction.Connection))
-					dc = new DataConnection(provider, dbTrasaction);
+					dc = new LinqToDBForEFToolsDataConnection(provider, dbTrasaction, context.Model, TransformExpression);
 			}
 
 			if (dc == null)
 			{
 				var dbConnection = context.Database.GetDbConnection();
 				if (provider.IsCompatibleConnection(dbConnection))
-					dc = new DataConnection(provider, context.Database.GetDbConnection());
+					dc = new LinqToDBForEFToolsDataConnection(provider, context.Database.GetDbConnection(), context.Model, TransformExpression);
 				else
 				{
 					// special case when we have to create data connection by itself
-					var dataContext = new DataContext(provider, connectionInfo.ConnectionString);
+					var dataContext = new LinqToDBForEFToolsDataContext(provider, connectionInfo.ConnectionString, context.Model, TransformExpression);
 
 					if (mappingSchema != null)
 						dataContext.MappingSchema = mappingSchema;
@@ -342,7 +342,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var connectionInfo = GetConnectionInfo(info);
 			var dataProvider   = GetDataProvider(info, connectionInfo);
 
-			var dc = new DataConnection(dataProvider, connectionInfo.ConnectionString);
+			var dc = new LinqToDBForEFToolsDataConnection(dataProvider, connectionInfo.ConnectionString, context.Model, TransformExpression);
 			var logger = CreateLogger(info.Options);
 			if (logger != null)
 				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
@@ -402,11 +402,12 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var connectionInfo = GetConnectionInfo(info);
 			var dataProvider   = GetDataProvider(info, connectionInfo);
+			var model          = GetModel(options);
 
 			if (connectionInfo.Connection != null)
-				dc = new DataConnection(dataProvider, connectionInfo.Connection);
+				dc = new LinqToDBForEFToolsDataConnection(dataProvider, connectionInfo.Connection, model, TransformExpression);
 			else if (connectionInfo.ConnectionString != null)
-				dc = new DataConnection(dataProvider, connectionInfo.ConnectionString);
+				dc = new LinqToDBForEFToolsDataConnection(dataProvider, connectionInfo.ConnectionString, model, TransformExpression);
 
 			if (dc == null)
 				throw new LinqToDBForEFToolsException($"Can not extract connection information from {nameof(DbContextOptions)}");
@@ -415,7 +416,6 @@ namespace LinqToDB.EntityFrameworkCore
 			if (logger != null)
 				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
-			var model = GetModel(options);
 			if (model != null)
 			{
 				var mappingSchema = GetMappingSchema(model);
@@ -439,7 +439,9 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null)
 				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
-			var newExpression = TransformExpression(query.Expression, dc, context.Model);
+			var newExpression = dc is IExpressionPreprocessor
+				? query.Expression
+				: TransformExpression(query.Expression, dc, context.Model);
 
 			return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
 		}
@@ -463,7 +465,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var dc = CreateLinqToDbContext(context);
 
-			var newExpression = TransformExpression(query.Expression, dc, context.Model);
+			var newExpression = dc is IExpressionPreprocessor
+				? query.Expression
+				: TransformExpression(query.Expression, dc, context.Model);
 
 			return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
 		}
