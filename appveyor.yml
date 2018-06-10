@@ -35,7 +35,7 @@ before_build:
 - ps: |
     if ($env:APPVEYOR_REPO_BRANCH -ne "release")
     {
-        $env:packageVersion = "$env:assemblyVersion-rc$env:appveyor_build_number"
+        $env:packageVersion = "$env:assemblyVersion-rc.$env:appveyor_build_number"
     }
 
     .\Build\AppVeyor.FixVersionProps.ps1  -path Build\linq2db.Default.props -buildVersion $env:assemblyVersion -nugetVersion $env:packageVersion
