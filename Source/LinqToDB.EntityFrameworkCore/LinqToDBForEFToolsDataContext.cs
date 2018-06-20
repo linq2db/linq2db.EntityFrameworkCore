@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
+
 using Microsoft.EntityFrameworkCore.Metadata;
+
+using JetBrains.Annotations;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -11,8 +13,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 	public class LinqToDBForEFToolsDataContext : DataContext, IExpressionPreprocessor
 	{
-		private readonly IModel _model;
-		private readonly Func<Expression, IDataContext, IModel, Expression> _transformFunc;
+		readonly IModel _model;
+		readonly Func<Expression, IDataContext, IModel, Expression> _transformFunc;
 
 		public LinqToDBForEFToolsDataContext(
 			[NotNull] IDataProvider dataProvider, 

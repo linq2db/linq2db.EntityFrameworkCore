@@ -1,12 +1,14 @@
-﻿using JetBrains.Annotations;
-using LinqToDB.Linq;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
+
+using Microsoft.EntityFrameworkCore;
+
+using JetBrains.Annotations;
 
 namespace LinqToDB.EntityFrameworkCore
 {
 	using Data;
+	using Linq;
 
 	public static partial class LinqToDBForEFTools
 	{

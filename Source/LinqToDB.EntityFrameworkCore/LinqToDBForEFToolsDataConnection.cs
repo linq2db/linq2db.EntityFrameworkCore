@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Data;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
+
 using Microsoft.EntityFrameworkCore.Metadata;
+
+using JetBrains.Annotations;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -13,8 +15,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 	public class LinqToDBForEFToolsDataConnection : DataConnection, IExpressionPreprocessor
 	{
-		private readonly IModel _model;
-		private readonly Func<Expression, IDataContext, IModel, Expression> _transformFunc;
+		readonly IModel _model;
+		readonly Func<Expression, IDataContext, IModel, Expression> _transformFunc;
 
 		public LinqToDBForEFToolsDataConnection(
 			[NotNull] IDataProvider dataProvider, 

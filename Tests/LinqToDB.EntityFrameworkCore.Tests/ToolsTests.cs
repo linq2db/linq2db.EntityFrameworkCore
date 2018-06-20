@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using LinqToDB.Data;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
@@ -419,6 +420,25 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 				var products = ctx.Products.ToLinqToDB().ToArray();
 
 				Assert.AreNotEqual(withoutFilter.Length, products.Length);
+			}
+		}
+
+
+		[Test]
+		public async Task TestAsyncMethods()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query = ctx.Products.AsQueryable().Where(p => p.Name.Contains("a"));
+
+				var expected = await query.ToArrayAsync();
+				var expectedDictionary = await query.ToDictionaryAsync(p => p.ProductID);
+				var expectedAny = await query.AnyAsync();
+
+				var byList = await EntityFrameworkQueryableExtensions.ToListAsync(query.ToLinqToDB());
+				var byArray = await EntityFrameworkQueryableExtensions.ToArrayAsync(query.ToLinqToDB());
+				var byDictionary = await EntityFrameworkQueryableExtensions.ToDictionaryAsync(query.ToLinqToDB(), p => p.ProductID);
+				var any = await EntityFrameworkQueryableExtensions.AnyAsync(query.ToLinqToDB());
 			}
 		}
 

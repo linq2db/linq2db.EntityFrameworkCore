@@ -8,13 +8,15 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using JetBrains.Annotations;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Logging;
+
+using JetBrains.Annotations;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -49,8 +51,8 @@ namespace LinqToDB.EntityFrameworkCore
 				ConnectionString = connectionString;
 			}
 
-			private string ProviderName { get; }
-			private string ConnectionString { get; }
+			string ProviderName { get; }
+			string ConnectionString { get; }
 
 			#region Equality members
 
@@ -78,7 +80,7 @@ namespace LinqToDB.EntityFrameworkCore
 			#endregion
 		}
 
-		private readonly ConcurrentDictionary<ProviderKey, IDataProvider> _knownProviders = new ConcurrentDictionary<ProviderKey, IDataProvider>();
+		readonly ConcurrentDictionary<ProviderKey, IDataProvider> _knownProviders = new ConcurrentDictionary<ProviderKey, IDataProvider>();
 
 		public virtual void ClearCaches()
 		{
@@ -353,16 +355,16 @@ namespace LinqToDB.EntityFrameworkCore
 			return context?.GetService<IDbContextOptions>();
 		}
 
-		private static readonly MethodInfo GetTableMethodInfo =
+		static readonly MethodInfo GetTableMethodInfo =
 			MemberHelper.MethodOf<IDataContext>(dc => dc.GetTable<object>()).GetGenericMethodDefinition();
 
-		private static readonly MethodInfo WhereMethodInfo =
+		static readonly MethodInfo WhereMethodInfo =
 			MemberHelper.MethodOf<IQueryable<object>>(q => q.Where(p => true)).GetGenericMethodDefinition();
 
-		private static readonly MethodInfo IgnoreQueryFiltersMethodInfo =
+		static readonly MethodInfo IgnoreQueryFiltersMethodInfo =
 			MemberHelper.MethodOf<IQueryable<object>>(q => q.IgnoreQueryFilters()).GetGenericMethodDefinition();
 
-		private static readonly MethodInfo AsNoTrackingMethodInfo =
+		static readonly MethodInfo AsNoTrackingMethodInfo =
 			MemberHelper.MethodOf<IQueryable<object>>(q => q.AsNoTracking()).GetGenericMethodDefinition();
 
 		public static Expression Unwrap(Expression ex)
@@ -492,7 +494,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return expression;
 		}
 
-		private static List<Expression> CompactTree(List<Expression> items, ExpressionType nodeType)
+		static List<Expression> CompactTree(List<Expression> items, ExpressionType nodeType)
 		{
 			var result = new List<Expression>();
 
@@ -660,7 +662,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return coreOptions?.Model;
 		}
 
-		private static int _messageCounter;
+		static int _messageCounter;
 
 		public virtual void LogConnectionTrace(TraceInfo info, ILogger logger)
 		{

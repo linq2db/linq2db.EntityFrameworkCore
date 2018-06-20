@@ -13,7 +13,7 @@ namespace LinqToDB.EntityFrameworkCore
 	public partial class LinqToDBForEFTools
 	{
 
-		private static void InitializeMapping()
+		static void InitializeMapping()
 		{
 			Linq.Expressions.MapMember(
 				(DbFunctions f, string m, string p) => f.Like(m, p), (f, m, p) => Sql.Like(m, p));
@@ -24,7 +24,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		#region Sql Server
 
-		private static Sql.DateParts? GetDatePart(string name)
+		static Sql.DateParts? GetDatePart(string name)
 		{
 			switch (name)
 			{
@@ -43,7 +43,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Initilaizes SQL Server's DbFunctions dynamically to avoid dependency
 		/// </summary>
-		private static void InitializeSqlServerMapping()
+		static void InitializeSqlServerMapping()
 		{
 			var type = Type.GetType("Microsoft.EntityFrameworkCore.SqlServerDbFunctionsExtensions, Microsoft.EntityFrameworkCore.SqlServer", false);
 

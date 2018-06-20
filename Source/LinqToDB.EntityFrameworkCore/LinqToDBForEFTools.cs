@@ -3,15 +3,18 @@ using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
+using JetBrains.Annotations;
+
 namespace LinqToDB.EntityFrameworkCore
 {
+	using Async;
 	using Data;
 	using DataProvider;
 	using Linq;
@@ -19,13 +22,15 @@ namespace LinqToDB.EntityFrameworkCore
 	using Metadata;
 	using Expressions;
 
+	using Internal;
+
 	/// <summary>
 	/// EF.Core <see cref="DbContext"/> extensions to call LINQ To DB functionality.
 	/// </summary>
 	[PublicAPI]
 	public static partial class LinqToDBForEFTools
 	{
-		private static Lazy<bool> _intialized = new Lazy<bool>(InitializeInternal);
+		static Lazy<bool> _intialized = new Lazy<bool>(InitializeInternal);
 
 		/// <summary>
 		/// Initializes integration of LINQ To DB with EF.Core.
@@ -35,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var _ = _intialized.Value;
 		}
 
-		private static bool InitializeInternal()
+		static bool InitializeInternal()
 		{
 			var prev = LinqExtensions.ProcessSourceQueryable;
 
@@ -71,7 +76,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return true;
 		}
 
-		private static ILinqToDBForEFTools _implementation;
+		static ILinqToDBForEFTools _implementation;
 
 		/// <summary>
 		/// Gets or sets EF.Core to LINQ To DB integration bridge implementation.
@@ -87,9 +92,9 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 		}
 
-		private static readonly ConcurrentDictionary<IModel, IMetadataReader> _metadataReaders = new ConcurrentDictionary<IModel, IMetadataReader>();
+		static readonly ConcurrentDictionary<IModel, IMetadataReader> _metadataReaders = new ConcurrentDictionary<IModel, IMetadataReader>();
 
-		private static Lazy<IMetadataReader> _defaultMeadataReader;
+		static Lazy<IMetadataReader> _defaultMeadataReader;
 
 		/// <summary>
 		/// Clears internal caches
@@ -443,7 +448,7 @@ namespace LinqToDB.EntityFrameworkCore
 				? query.Expression
 				: TransformExpression(query.Expression, dc, context.Model);
 
-			return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
+			return new LinqToDBForEFQueryProvider<T>(dc, newExpression);
 		}
 
 		/// <summary>
@@ -469,7 +474,7 @@ namespace LinqToDB.EntityFrameworkCore
 				? query.Expression
 				: TransformExpression(query.Expression, dc, context.Model);
 
-			return Internals.CreateExpressionQueryInstance<T>(dc, newExpression);
+			return new LinqToDBForEFQueryProvider<T>(dc, newExpression);
 		}
 
 		/// <summary>

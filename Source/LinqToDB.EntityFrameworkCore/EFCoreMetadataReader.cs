@@ -18,7 +18,7 @@ namespace LinqToDB.EntityFrameworkCore
 	/// </summary>
 	internal class EFCoreMetadataReader : IMetadataReader
 	{
-		private readonly IModel _model;
+		readonly IModel _model;
 
 		public EFCoreMetadataReader(IModel model)
 		{

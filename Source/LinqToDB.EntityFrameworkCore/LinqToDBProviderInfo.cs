@@ -5,7 +5,7 @@
 	/// </summary>
 	public class LinqToDBProviderInfo
 	{
-		// ??? not used
+		// Server version. Currently not used.
 		public string Version      { get; set; }
 
 		/// <summary>
