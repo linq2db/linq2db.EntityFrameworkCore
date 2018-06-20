@@ -6,7 +6,7 @@
 		<Description>Allows to execute Linq to DB (linq2db) queries on Entity Framework Core DbContext.</Description>
 		<Title>Linq to DB (linq2db) extensions for on Entity Framework Core</Title>
 		<AssemblyTitle>$(Title)</AssemblyTitle>
-		<Authors>Igor Tkachev, Ilya Chudin, Svyatoslav Danyliv, Dmitry Lukashenko</Authors>
+		<Authors>Svyatoslav Danyliv, Igor Tkachev, Dmitry Lukashenko, Ilya Chudin</Authors>
 		<Product>Linq to DB</Product>
 		<Company>linq2db.net</Company>
 		<Copyright>2002-2018 linq2db.net</Copyright>
