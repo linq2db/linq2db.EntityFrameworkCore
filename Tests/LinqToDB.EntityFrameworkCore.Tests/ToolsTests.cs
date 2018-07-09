@@ -442,5 +442,57 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			}
 		}
 
+		[Test]
+		public async Task TestInclude()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query = ctx.SalesOrderDetails
+					.Include(d => d.SalesOrder)
+					.Include(d => d.Product)
+					.ThenInclude(p => p.ProductCategory);
+
+				var expected = await query.ToArrayAsync();
+
+				var result = await query.ToLinqToDB().ToArrayAsync();
+			}
+		}
+
+		[Test]
+		public async Task TestIncludeString()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query = ctx.SalesOrderDetails
+					.Include("SalesOrder")
+					.Include(d => d.Product)
+					.ThenInclude(p => p.ProductCategory);
+
+				var expected = await query.ToArrayAsync();
+
+				var result = await query.ToLinqToDB().ToArrayAsync();
+			}
+		}
+
+
+		[Test]
+		public async Task TestIncludeMany()
+		{
+			Common.Configuration.Linq.AllowMultipleQuery = true;
+
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query = ctx.SalesOrders
+					.Include(o => o.Details)
+					.ThenInclude(d => d.SalesOrder);
+
+				var expected = await query.ToArrayAsync();
+
+				var result = await query.ToLinqToDB().ToArrayAsync();
+			}
+
+		}
+
+
 	}
 }

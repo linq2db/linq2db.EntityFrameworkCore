@@ -358,11 +358,29 @@ namespace LinqToDB.EntityFrameworkCore
 		static readonly MethodInfo GetTableMethodInfo =
 			MemberHelper.MethodOf<IDataContext>(dc => dc.GetTable<object>()).GetGenericMethodDefinition();
 
+		static readonly MethodInfo LoadWithMethodInfo = MemberHelper.MethodOf(() => LinqExtensions.LoadWith<int>(null, null)).GetGenericMethodDefinition();
+
 		static readonly MethodInfo WhereMethodInfo =
 			MemberHelper.MethodOf<IQueryable<object>>(q => q.Where(p => true)).GetGenericMethodDefinition();
 
 		static readonly MethodInfo IgnoreQueryFiltersMethodInfo =
 			MemberHelper.MethodOf<IQueryable<object>>(q => q.IgnoreQueryFilters()).GetGenericMethodDefinition();
+
+		static readonly MethodInfo IncludeMethodInfo =
+			MemberHelper.MethodOf<IQueryable<object>>(q => q.Include(o => o.ToString())).GetGenericMethodDefinition();
+
+		static readonly MethodInfo IncludeMethodInfoString =
+			MemberHelper.MethodOf<IQueryable<object>>(q => q.Include(string.Empty)).GetGenericMethodDefinition();
+
+		static readonly MethodInfo ThenIncludeMethodInfo =
+			MemberHelper.MethodOf<IIncludableQueryable<object, object>>(q => q.ThenInclude<object, object, object>(null)).GetGenericMethodDefinition();
+
+		static readonly MethodInfo ThenIncludeEnumerableMethodInfo =
+			MemberHelper.MethodOf<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null)).GetGenericMethodDefinition();
+
+
+		static readonly MethodInfo FirstMethodInfo =
+			MemberHelper.MethodOf<IEnumerable<object>>(q => q.First()).GetGenericMethodDefinition();
 
 		static readonly MethodInfo AsNoTrackingMethodInfo =
 			MemberHelper.MethodOf<IQueryable<object>>(q => q.AsNoTracking()).GetGenericMethodDefinition();
@@ -528,6 +546,81 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			var ignoreQueryFilters = false;
 
+			var getTableCalls = new Dictionary<Type, List<List<Expression>>>();
+			var currentPropPath = new List<Expression>();
+
+			void RegisterIncludeCall(Type type)
+			{
+				if (typeof(IQueryable<>).IsSameOrParentOf(type))
+				{
+					type = type.GenericTypeArguments[0];
+				}
+
+				if (!getTableCalls.TryGetValue(type, out var list))
+				{
+					list = new List<List<Expression>>();
+					getTableCalls.Add(type, list);
+				}
+
+				list.Add(currentPropPath.ToList());
+			}
+
+			Expression GetTableExpression(Type entityType)
+			{
+				var newExpr = Expression.Call(null, GetTableMethodInfo.MakeGenericMethod(entityType), Expression.Constant(dc));
+				if (getTableCalls.TryGetValue(entityType, out var list))
+				{
+					foreach (var path in list)
+					{
+						var param = Expression.Parameter(entityType);
+						Expression memberExpression = param;
+
+						for (var index = path.Count - 1; index >= 0; index--)
+						{
+							if (typeof(IEnumerable<>).IsSameOrParentOf(memberExpression.Type))
+							{
+								memberExpression = Expression.Call(null, FirstMethodInfo.MakeGenericMethod(memberExpression.Type.GenericTypeArguments[0]), memberExpression);
+							}
+
+							var prop = Unwrap(path[index]);
+							if (prop is LambdaExpression lambda)
+							{
+								memberExpression = Expression.MakeMemberAccess(memberExpression,
+									((MemberExpression) lambda.Body).Member);
+							}
+							else
+							{
+								// Navigation path
+								if (EvaluateExpression(prop) is string navigationPath)
+								{
+									var props = navigationPath.Split('.');
+									for (int i = 0; i < props.Length; i++)
+									{
+										var propertyInfo = memberExpression.Type.GetPropertyEx(props[i]);
+										if (propertyInfo != null)
+											memberExpression = Expression.MakeMemberAccess(memberExpression, propertyInfo);
+									}
+								}
+							}
+						}
+
+						if (memberExpression != param)
+						{
+							if (memberExpression.Type != typeof(object))
+							{
+								memberExpression = Expression.Convert(memberExpression, typeof(object));
+							}
+
+							var loadWithLambda = Expression.Lambda(memberExpression, param);
+
+							newExpr = Expression.Call(null, LoadWithMethodInfo.MakeGenericMethod(entityType), newExpr,
+								Expression.Quote(loadWithLambda));
+						}
+					}
+				}
+				return newExpr;
+			}
+
 			Expression LocalTransform(Expression e)
 			{
 				e = CompactExpression(e);
@@ -539,7 +632,7 @@ namespace LinqToDB.EntityFrameworkCore
 						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type))
 						{
 							var entityType = e.Type.GenericTypeArguments[0];
-							var newExpr = Expression.Call(null, GetTableMethodInfo.MakeGenericMethod(entityType), Expression.Constant(dc));
+							var newExpr = GetTableExpression(entityType);
 
 							if (!ignoreQueryFilters)
 							{
@@ -576,6 +669,18 @@ namespace LinqToDB.EntityFrameworkCore
 								}
 								else if (generic == AsNoTrackingMethodInfo)
 									isTunnel = true;
+								else if (generic == IncludeMethodInfo || generic == IncludeMethodInfoString)
+								{
+									currentPropPath.Add(methodCall.Arguments[1]);
+									RegisterIncludeCall(methodCall.Method.GetGenericArguments()[0]);
+									currentPropPath.Clear();
+									isTunnel = true;
+								}
+								else if (generic == ThenIncludeMethodInfo || generic == ThenIncludeEnumerableMethodInfo)
+								{
+									currentPropPath.Add(methodCall.Arguments[1]);
+									isTunnel = true;
+								}
 
 								if (isTunnel)
 									return methodCall.Arguments[0].Transform(l => LocalTransform(l));
