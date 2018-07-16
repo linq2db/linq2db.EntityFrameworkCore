@@ -18,8 +18,6 @@
 
 # How to use
 
-As it is an early preview, it available only from MyGet. Later we'll publish stable version on NuGet.
-
 In your code you need to initialize integration using following call:
 
 ```cs
