@@ -143,7 +143,7 @@ Right now it is an early preview. Below is a list of providers, that should work
 # Know limitations
 - No Eager loading
 - No Lazy loading
-- `Include` function not supported yet
+- `Include` function supported with limitations
 
 # Help! It doesn't work!
 
