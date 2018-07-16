@@ -3,7 +3,7 @@
 		<Version>1.0.0</Version>
 		<PackageVersion>1.0.0</PackageVersion>
 
-		<Description>Allows to execute Linq to DB (linq2db) queries on Entity Framework Core DbContext.</Description>
+		<Description>Allows to execute Linq to DB (linq2db) queries Entity Framework Core DbContext.</Description>
 		<Title>Linq to DB (linq2db) extensions for on Entity Framework Core</Title>
 		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<Authors>Svyatoslav Danyliv, Igor Tkachev, Dmitry Lukashenko, Ilya Chudin</Authors>
@@ -12,6 +12,7 @@
 		<Copyright>2002-2018 linq2db.net</Copyright>
 		<RepositoryUrl>https://github.com/linq2db/linq2db.EntityFrameworkCore</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
+		<PackageIconUrl>http://www.gravatar.com/avatar/fc2e509b6ed116b9aa29a7988fdb8990?s=320</PackageIconUrl>
 
 		<AppDesignerFolder>Properties</AppDesignerFolder>
 		<LangVersion>latest</LangVersion>
