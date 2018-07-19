@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToDB.EntityFrameworkCore", "Source\LinqToDB.EntityFrameworkCore\LinqToDB.EntityFrameworkCore.csproj", "{29F45BE9-3B57-4162-A02A-59F05528A0E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linq2db.EntityFrameworkCore", "Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.csproj", "{29F45BE9-3B57-4162-A02A-59F05528A0E7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToDB.EntityFrameworkCore.Tests", "Tests\LinqToDB.EntityFrameworkCore.Tests\LinqToDB.EntityFrameworkCore.Tests.csproj", "{C72DF3F6-ADA9-46DB-9E4D-1870849BB3C3}"
 EndProject

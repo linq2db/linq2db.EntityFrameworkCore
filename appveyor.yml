@@ -29,7 +29,7 @@ nuget:
   project_feed: false
 
 build_script:
-  dotnet build LinqToDB.EntityFrameworkCore.sln -c Release
+  dotnet build linq2db.EFCore.sln -c Release
 
 before_build:
 - ps: |
