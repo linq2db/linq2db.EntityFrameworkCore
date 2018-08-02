@@ -18,6 +18,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 	public class ToolsTests : TestsBase
 	{
 		private readonly DbContextOptions _options;
+		private DbContextOptions<AdventureWorksContext> _inmemoryOptions;
 
 		static ToolsTests()
 		{
@@ -34,6 +35,21 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
+
+			optionsBuilder = new DbContextOptionsBuilder<AdventureWorksContext>();
+			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
+
+			optionsBuilder.UseInMemoryDatabase();
+			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
+
+			_inmemoryOptions = optionsBuilder.Options;
+		}
+
+		private AdventureWorksContext CreateAdventureWorksContextInMemory()
+		{
+			var ctx = new AdventureWorksContext(_inmemoryOptions);
+			ctx.Database.EnsureCreated();
+			return ctx;
 		}
 
 		private AdventureWorksContext CreateAdventureWorksContext()
@@ -488,6 +504,42 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 
 				var expected = await query.ToArrayAsync();
 
+				var result = await query.ToLinqToDB().ToArrayAsync();
+			}
+
+		}
+
+		[Test]
+		public async Task TestInMemory()
+		{
+			using (var ctx = CreateAdventureWorksContextInMemory())
+			{
+				Assert.Throws<LinqToDBForEFToolsException>(() =>
+				{
+					ctx.SalesOrders.ToLinqToDB().ToArray();
+				});
+
+				Assert.Throws<LinqToDBForEFToolsException>(() =>
+				{
+					var query = ctx.SalesOrders
+						.Where(so => so.CustomerID == -1)
+						.Delete();
+				});
+			}
+		}
+
+		[Test]
+		public async Task TestContinuousQueries()
+		{
+			Common.Configuration.Linq.AllowMultipleQuery = true;
+
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query = ctx.SalesOrders
+					.Include(o => o.Details)
+					.ThenInclude(d => d.SalesOrder);
+
+				var expected = await query.ToLinqToDB().ToArrayAsync();
 				var result = await query.ToLinqToDB().ToArrayAsync();
 			}
 
