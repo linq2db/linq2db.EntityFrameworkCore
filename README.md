@@ -141,6 +141,7 @@ Right now it is an early preview. Below is a list of providers, that should work
 # Know limitations
 - No Eager loading
 - No Lazy loading
+- No way to work with in-memory database
 - `Include` function supported with limitations
 
 # Help! It doesn't work!
