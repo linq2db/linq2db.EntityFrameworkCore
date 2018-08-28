@@ -39,7 +39,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			optionsBuilder = new DbContextOptionsBuilder<AdventureWorksContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseInMemoryDatabase();
+			optionsBuilder.UseInMemoryDatabase("sample");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_inmemoryOptions = optionsBuilder.Options;
@@ -510,7 +510,19 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		}
 
 		[Test]
-		public async Task TestInMemory()
+		public async Task TestGetTable()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query = ctx.GetTable<SalesOrder>()
+					.Where(o => o.IsOnlineOrder);
+
+				var expected = await query.ToArrayAsync();
+			}
+		}
+
+		[Test]
+		public void TestInMemory()
 		{
 			using (var ctx = CreateAdventureWorksContextInMemory())
 			{

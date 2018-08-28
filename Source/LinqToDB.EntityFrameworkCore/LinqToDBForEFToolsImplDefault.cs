@@ -142,7 +142,7 @@ namespace LinqToDB.EntityFrameworkCore
 					case ProviderName.MySql:
 						return new MySqlDataProvider();
 					case ProviderName.PostgreSQL:
-						return CreatePotgreSqlProvider(PotgreSqlDefaultVersion, connectionInfo.ConnectionString);
+						return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
 					case ProviderName.SQLite:
 						return new SQLiteDataProvider();
 					case ProviderName.Firebird:
@@ -296,7 +296,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return new SqlServerDataProvider(providerName, version);
 		}
 
-		protected virtual IDataProvider CreatePotgreSqlProvider(PostgreSQLVersion version, string connectionString)
+		protected virtual IDataProvider CreatePostgreSqlProvider(PostgreSQLVersion version, string connectionString)
 		{
 			if (!string.IsNullOrEmpty(connectionString))
 				return DataConnection.GetDataProvider(ProviderName.PostgreSQL, connectionString);
@@ -860,9 +860,9 @@ namespace LinqToDB.EntityFrameworkCore
 		public static SqlServerVersion SqlServerDefaultVersion { get; set; } = SqlServerVersion.v2008;
 
 		/// <summary>
-		/// Gets or sets default provider version for SQL Server. Set to <see cref="PostgreSQLVersion.v93"/> dialect.
+		/// Gets or sets default provider version for PostgreSQL Server. Set to <see cref="PostgreSQLVersion.v93"/> dialect.
 		/// </summary>
-		public static PostgreSQLVersion PotgreSqlDefaultVersion { get; set; } = PostgreSQLVersion.v93;
+		public static PostgreSQLVersion PostgreSqlDefaultVersion { get; set; } = PostgreSQLVersion.v93;
 
 	}
 }

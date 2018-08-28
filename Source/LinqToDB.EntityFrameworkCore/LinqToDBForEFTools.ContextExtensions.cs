@@ -95,5 +95,22 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		#endregion
+
+		#region GetTable
+
+		/// <summary>
+		/// Returns queryable source for specified mapping class for current DBContext, mapped to database table or view.
+		/// </summary>
+		/// <typeparam name="T">Mapping class type.</typeparam>
+		/// <returns>Queryable source.</returns>
+		public static ITable<T> GetTable<T>([NotNull] this DbContext context)
+			where T : class
+		{
+			if (context == null) throw new ArgumentNullException(nameof(context));
+
+			return context.CreateLinqToDbContext().GetTable<T>();
+		}
+		
+		#endregion
 	}
 }
