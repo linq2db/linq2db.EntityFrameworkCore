@@ -21,7 +21,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 	///		It may change or be removed without further notice.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class LinqToDBForEFQueryProvider<T> : IAsyncQueryProvider, IQueryable<T>, System.Collections.Generic.IAsyncEnumerable<T>
+	public class LinqToDBForEFQueryProvider<T> : IAsyncQueryProvider, IQueryProviderAsync, IQueryable<T>, System.Collections.Generic.IAsyncEnumerable<T>
 	{
 		public LinqToDBForEFQueryProvider([NotNull] IDataContext dataContext, [NotNull] Expression expression)
 		{
@@ -57,6 +57,11 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		public System.Collections.Generic.IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
 		{
 			return new AsyncEnumerableAdaper<TResult>(QueryProvider.ExecuteAsync<TResult>(expression));
+		}
+
+		IAsyncEnumerable<TResult> IQueryProviderAsync.ExecuteAsync<TResult>(Expression expression)
+		{
+			return QueryProvider.ExecuteAsync<TResult>(expression);
 		}
 
 		public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
