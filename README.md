@@ -78,7 +78,10 @@ using (var dc = options.CreateLinqToDbConnection())
 }
 ```
 
-You can use all `LINQ To DB` extension functions in your EF linq queries. Just ensure you have called `ToLinqToDB()` function before materializing objects.
+You can use all `LINQ To DB` extension functions in your EF linq queries. Just ensure you have called `ToLinqToDB()` function before materializing objects for synchronous methods.
+
+Since EF Core have defined it's own asynchronous methods, we have to duplicate them to resolve naming collisions. 
+Async methods have the same name but with `LinqToDB` suffix. E.g. `ToListAsyncLinqToDB()`, `SumAsyncLinqToDB()`, ect. The same methods are added whe you need `EF Core` query processing but there is collision with `LINQ To DB` and they have extensions with `EF` suffix - `ToListAsyncEF()`, `SumAsyncEF()`, ect.
 
 ```cs
 using (var ctx = CreateAdventureWorksContext())
