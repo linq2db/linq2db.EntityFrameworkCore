@@ -6,12 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace LinqToDB.EntityFrameworkCore
 {
 	// ReSharper disable InvokeAsExtensionMethod
-	[PublicAPI]
-	public static partial class LinqToDBForEFExtensions
+	public static partial class EFForEFExtensions
 	{
 		/// <summary>
 		/// Asynchronously apply provided action to each element in source sequence.
@@ -22,11 +22,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="action">Action to apply to each sequence element.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>Asynchronous operation completion task.</returns>
-		public static Task ForEachAsyncLinqToDB<TSource>(
+		public static Task ForEachAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			Action<TSource>          action,
 			CancellationToken        token = default)
-			=> AsyncExtensions.ForEachAsync(source.ToLinqToDB(), action, token);
+			=> EntityFrameworkQueryableExtensions.ForEachAsync(source, action, token);
 
 		/// <summary>
 		/// Asynchronously loads data from query to a list.
@@ -35,10 +35,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Source query.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>List with query results.</returns>
-		public static Task<List<TSource>> ToListAsyncLinqToDB<TSource>(
+		public static Task<List<TSource>> ToListAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.ToListAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.ToListAsync(source, token);
 
 		/// <summary>
 		/// Asynchronously loads data from query to an array.
@@ -47,10 +47,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Source query.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>Array with query results.</returns>
-		public static Task<TSource[]> ToArrayAsyncLinqToDB<TSource>(
+		public static Task<TSource[]> ToArrayAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.ToArrayAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.ToArrayAsync(source, token);
 
 		/// <summary>
 		/// Asynchronously loads data from query to a dictionary.
@@ -61,11 +61,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="keySelector">Source element key selector.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>Dictionary with query results.</returns>
-		public static Task<Dictionary<TKey, TSource>> ToDictionaryAsyncLinqToDB<TSource, TKey>(
+		public static Task<Dictionary<TKey, TSource>> ToDictionaryAsyncEF<TSource, TKey>(
 			this IQueryable<TSource> source,
 			Func<TSource, TKey>      keySelector,
 			CancellationToken        token = default)
-			=> AsyncExtensions.ToDictionaryAsync(source.ToLinqToDB(), keySelector, token);
+			=> EntityFrameworkQueryableExtensions.ToDictionaryAsync(source, keySelector, token);
 
 		/// <summary>
 		/// Asynchronously loads data from query to a dictionary.
@@ -78,12 +78,12 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="elementSelector">Dictionary element selector.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>Dictionary with query results.</returns>
-		public static Task<Dictionary<TKey,TElement>> ToDictionaryAsyncLinqToDB<TSource,TKey,TElement>(
+		public static Task<Dictionary<TKey,TElement>> ToDictionaryAsyncEF<TSource,TKey,TElement>(
 			this IQueryable<TSource>      source,
 			Func<TSource,TKey>            keySelector,
 			Func<TSource,TElement>        elementSelector,
 			CancellationToken             token = default)
-			=> AsyncExtensions.ToDictionaryAsync(source.ToLinqToDB(), keySelector, elementSelector, token);
+			=> EntityFrameworkQueryableExtensions.ToDictionaryAsync(source, keySelector, elementSelector, token);
 
 		/// <summary>
 		/// Asynchronously loads data from query to a dictionary.
@@ -97,13 +97,13 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="comparer">Dictionary key comparer.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>Dictionary with query results.</returns>
-		public static Task<Dictionary<TKey,TElement>> ToDictionaryAsyncLinqToDB<TSource,TKey,TElement>(
+		public static Task<Dictionary<TKey,TElement>> ToDictionaryAsyncEF<TSource,TKey,TElement>(
 			this IQueryable<TSource>      source,
 			Func<TSource,TKey>            keySelector,
 			Func<TSource,TElement>        elementSelector,
 			IEqualityComparer<TKey>       comparer,
 			CancellationToken             token = default)
-			=> AsyncExtensions.ToDictionaryAsync(source.ToLinqToDB(), keySelector, elementSelector, comparer, token);
+			=> EntityFrameworkQueryableExtensions.ToDictionaryAsync(source, keySelector, elementSelector, comparer, token);
 
 		/// <summary>
 		/// Asynchronously loads first record from query.
@@ -113,10 +113,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Source query.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>First record from query results.</returns>
-		public static Task<TSource> FirstAsyncLinqToDB<TSource>(
+		public static Task<TSource> FirstAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.FirstAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.FirstAsync(source, token);
 
 		/// <summary>
 		/// Asynchronously loads first record from query, filtered using provided predicate.
@@ -127,11 +127,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="predicate">Query filter predicate.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>First record from query results.</returns>
-		public static Task<TSource> FirstAsyncLinqToDB<TSource>(
+		public static Task<TSource> FirstAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default)
-			=> AsyncExtensions.FirstAsync(source.ToLinqToDB(), predicate, token);
+			=> EntityFrameworkQueryableExtensions.FirstAsync(source, predicate, token);
 
 		/// <summary>
 		/// Asynchronously loads first record from query.
@@ -141,10 +141,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Source query.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>First record from query results or <c>default(TSource)</c> for empty resultset.</returns>
-		public static Task<TSource> FirstOrDefaultAsyncLinqToDB<TSource>(
+		public static Task<TSource> FirstOrDefaultAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.FirstOrDefaultAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(source, token);
 
 		/// <summary>
 		/// Asynchronously loads first record from query, filtered using provided predicate.
@@ -155,11 +155,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="predicate">Query filter predicate.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>First record from query results or <c>default(TSource)</c> for empty resultset.</returns>
-		public static Task<TSource> FirstOrDefaultAsyncLinqToDB<TSource>(
+		public static Task<TSource> FirstOrDefaultAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default)
-			=> AsyncExtensions.FirstOrDefaultAsync(source.ToLinqToDB(), predicate, token);
+			=> EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(source, predicate, token);
 
 		/// <summary>
 		/// Asynchronously loads first record from query.
@@ -169,10 +169,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Source query.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>First record from query results.</returns>
-		public static Task<TSource> SingleAsyncLinqToDB<TSource>(
+		public static Task<TSource> SingleAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.SingleAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SingleAsync(source, token);
 
 		/// <summary>
 		/// Asynchronously loads first record from query, filtered using provided predicate.
@@ -183,11 +183,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="predicate">Query filter predicate.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>First record from query results.</returns>
-		public static Task<TSource> SingleAsyncLinqToDB<TSource>(
+		public static Task<TSource> SingleAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default)
-			=> AsyncExtensions.SingleAsync(source.ToLinqToDB(), predicate, token);
+			=> EntityFrameworkQueryableExtensions.SingleAsync(source, predicate, token);
 
 		/// <summary>
 		/// Asynchronously loads first record from query.
@@ -198,10 +198,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Source query.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>First record from query results or <c>default(TSource)</c> for empty resultset.</returns>
-		public static Task<TSource> SingleOrDefaultAsyncLinqToDB<TSource>(
+		public static Task<TSource> SingleOrDefaultAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.SingleOrDefaultAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(source, token);
 
 		/// <summary>
 		/// Asynchronously loads first record from query, filtered using provided predicate.
@@ -213,305 +213,305 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="predicate">Query filter predicate.</param>
 		/// <param name="token">Optional asynchronous operation cancellation token.</param>
 		/// <returns>First record from query results or <c>default(TSource)</c> for empty resultset.</returns>
-		public static Task<TSource> SingleOrDefaultAsyncLinqToDB<TSource>(
+		public static Task<TSource> SingleOrDefaultAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default)
-			=> AsyncExtensions.SingleOrDefaultAsync(source.ToLinqToDB(), predicate, token);
+			=> EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(source, predicate, token);
 
-		public static Task<bool> ContainsAsyncLinqToDB<TSource>(
+		public static Task<bool> ContainsAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			TSource                  item,
 			CancellationToken        token = default)
-			=> AsyncExtensions.ContainsAsync(source.ToLinqToDB(), item, token);
+			=> EntityFrameworkQueryableExtensions.ContainsAsync(source, item, token);
 
-		public static Task<bool> AnyAsyncLinqToDB<TSource>(
+		public static Task<bool> AnyAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.AnyAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AnyAsync(source, token);
 
-		public static Task<bool> AnyAsyncLinqToDB<TSource>(
+		public static Task<bool> AnyAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default)
-			=> AsyncExtensions.AnyAsync(source.ToLinqToDB(), predicate, token);
+			=> EntityFrameworkQueryableExtensions.AnyAsync(source, predicate, token);
 
-		public static Task<bool> AllAsyncLinqToDB<TSource>(
+		public static Task<bool> AllAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default)
-			=> AsyncExtensions.AllAsync(source.ToLinqToDB(), predicate, token);
+			=> EntityFrameworkQueryableExtensions.AllAsync(source, predicate, token);
 
-		public static Task<int> CountAsyncLinqToDB<TSource>(
+		public static Task<int> CountAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.CountAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.CountAsync(source, token);
 
-		public static Task<int> CountAsyncLinqToDB<TSource>(
+		public static Task<int> CountAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default)
-			=> AsyncExtensions.CountAsync(source.ToLinqToDB(), predicate, token);
+			=> EntityFrameworkQueryableExtensions.CountAsync(source, predicate, token);
 
-		public static Task<long> LongCountAsyncLinqToDB<TSource>(
+		public static Task<long> LongCountAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.LongCountAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.LongCountAsync(source, token);
 
-		public static Task<long> LongCountAsyncLinqToDB<TSource>(
+		public static Task<long> LongCountAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default)
-			=> AsyncExtensions.LongCountAsync(source.ToLinqToDB(), predicate, token);
+			=> EntityFrameworkQueryableExtensions.LongCountAsync(source, predicate, token);
 
-		public static Task<TSource> MinAsyncLinqToDB<TSource>(
+		public static Task<TSource> MinAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.MinAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.MinAsync(source, token);
 
-		public static Task<TResult> MinAsyncLinqToDB<TSource,TResult>(
+		public static Task<TResult> MinAsyncEF<TSource,TResult>(
 			this IQueryable<TSource>         source,
 			Expression<Func<TSource,TResult>> selector,
 			CancellationToken                 token = default)
-			=> AsyncExtensions.MinAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.MinAsync(source, selector, token);
 
-		public static Task<TSource> MaxAsyncLinqToDB<TSource>(
+		public static Task<TSource> MaxAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.MaxAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.MaxAsync(source, token);
 
-		public static Task<TResult> MaxAsyncLinqToDB<TSource,TResult>(
+		public static Task<TResult> MaxAsyncEF<TSource,TResult>(
 			this IQueryable<TSource>          source,
 			Expression<Func<TSource,TResult>> selector,
 			CancellationToken                 token = default)
-			=> AsyncExtensions.MaxAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.MaxAsync(source, selector, token);
 
-		#region SumAsyncLinqToDB
+		#region SumAsyncEF
 
-		public static Task<int> SumAsyncLinqToDB(
+		public static Task<int> SumAsyncEF(
 			this IQueryable<int>   source,
 			CancellationToken token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, token);
 
-		public static Task<int?> SumAsyncLinqToDB(
+		public static Task<int?> SumAsyncEF(
 			this IQueryable<int?> source,
 			CancellationToken     token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, token);
 
-		public static Task<long> SumAsyncLinqToDB(
+		public static Task<long> SumAsyncEF(
 			this IQueryable<long> source,
 			CancellationToken     token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, token);
 
-		public static Task<long?> SumAsyncLinqToDB(
+		public static Task<long?> SumAsyncEF(
 			this IQueryable<long?> source,
 			CancellationToken      token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, token);
 
-		public static Task<float> SumAsyncLinqToDB(
+		public static Task<float> SumAsyncEF(
 			this IQueryable<float> source,
 			CancellationToken      token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, token);
 
-		public static Task<float?> SumAsyncLinqToDB(
+		public static Task<float?> SumAsyncEF(
 			this IQueryable<float?> source,
 			CancellationToken       token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, token);
 
-		public static Task<double> SumAsyncLinqToDB(
+		public static Task<double> SumAsyncEF(
 			this IQueryable<double> source,
 			CancellationToken       token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, token);
 
-		public static Task<double?> SumAsyncLinqToDB(
+		public static Task<double?> SumAsyncEF(
 			this IQueryable<double?> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, token);
 
-		public static Task<decimal> SumAsyncLinqToDB(
+		public static Task<decimal> SumAsyncEF(
 			this IQueryable<decimal> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, token);
 
-		public static Task<decimal?> SumAsyncLinqToDB(
+		public static Task<decimal?> SumAsyncEF(
 			this IQueryable<decimal?> source,
 			CancellationToken         token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, token);
 
-		public static Task<int> SumAsyncLinqToDB<TSource>(
+		public static Task<int> SumAsyncEF<TSource>(
 			this IQueryable<TSource>      source,
 			Expression<Func<TSource,int>> selector,
 			CancellationToken             token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, selector, token);
 
-		public static Task<int?> SumAsyncLinqToDB<TSource>(
+		public static Task<int?> SumAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,int?>> selector,
 			CancellationToken              token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, selector, token);
 
-		public static Task<long> SumAsyncLinqToDB<TSource>(
+		public static Task<long> SumAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,long>> selector,
 			CancellationToken              token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, selector, token);
 
-		public static Task<long?> SumAsyncLinqToDB<TSource>(
+		public static Task<long?> SumAsyncEF<TSource>(
 			this IQueryable<TSource>        source,
 			Expression<Func<TSource,long?>> selector,
 			CancellationToken               token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, selector, token);
 
-		public static Task<float> SumAsyncLinqToDB<TSource>(
+		public static Task<float> SumAsyncEF<TSource>(
 			this IQueryable<TSource>             source,
 			Expression<Func<TSource,float>> selector,
 			CancellationToken               token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, selector, token);
 
-		public static Task<float?> SumAsyncLinqToDB<TSource>(
+		public static Task<float?> SumAsyncEF<TSource>(
 			this IQueryable<TSource>         source,
 			Expression<Func<TSource,float?>> selector,
 			CancellationToken                token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, selector, token);
 
-		public static Task<double> SumAsyncLinqToDB<TSource>(
+		public static Task<double> SumAsyncEF<TSource>(
 			this IQueryable<TSource>         source,
 			Expression<Func<TSource,double>> selector,
 			CancellationToken                token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, selector, token);
 
-		public static Task<double?> SumAsyncLinqToDB<TSource>(
+		public static Task<double?> SumAsyncEF<TSource>(
 			this IQueryable<TSource>          source,
 			Expression<Func<TSource,double?>> selector,
 			CancellationToken                 token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, selector, token);
 
-		public static Task<decimal> SumAsyncLinqToDB<TSource>(
+		public static Task<decimal> SumAsyncEF<TSource>(
 			this IQueryable<TSource>          source,
 			Expression<Func<TSource,decimal>> selector,
 			CancellationToken                 token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, selector, token);
 
-		public static Task<decimal?> SumAsyncLinqToDB<TSource>(
+		public static Task<decimal?> SumAsyncEF<TSource>(
 			this IQueryable<TSource>           source,
 			Expression<Func<TSource,decimal?>> selector,
 			CancellationToken                  token = default)
-			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.SumAsync(source, selector, token);
 
-		#endregion SumAsyncLinqToDB
+		#endregion SumAsyncEF
 
-		#region AverageAsyncLinqToDB
+		#region AverageAsyncEF
 
-		public static Task<double> AverageAsyncLinqToDB(
+		public static Task<double> AverageAsyncEF(
 			this IQueryable<int> source,
 			CancellationToken    token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, token);
 
-		public static Task<double?> AverageAsyncLinqToDB(
+		public static Task<double?> AverageAsyncEF(
 			this IQueryable<int?> source,
 			CancellationToken     token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, token);
 
-		public static Task<double> AverageAsyncLinqToDB(
+		public static Task<double> AverageAsyncEF(
 			this IQueryable<long> source,
 			CancellationToken     token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, token);
 
-		public static Task<double?> AverageAsyncLinqToDB(
+		public static Task<double?> AverageAsyncEF(
 			this IQueryable<long?> source,
 			CancellationToken      token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, token);
 
-		public static Task<float> AverageAsyncLinqToDB(
+		public static Task<float> AverageAsyncEF(
 			this IQueryable<float> source,
 			CancellationToken      token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, token);
 
-		public static Task<float?> AverageAsyncLinqToDB(
+		public static Task<float?> AverageAsyncEF(
 			this IQueryable<float?> source,
 			CancellationToken       token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, token);
 
-		public static Task<double> AverageAsyncLinqToDB(
+		public static Task<double> AverageAsyncEF(
 			this IQueryable<double> source,
 			CancellationToken       token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, token);
 
-		public static Task<double?> AverageAsyncLinqToDB(
+		public static Task<double?> AverageAsyncEF(
 			this IQueryable<double?> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, token);
 
-		public static Task<decimal> AverageAsyncLinqToDB(
+		public static Task<decimal> AverageAsyncEF(
 			this IQueryable<decimal> source,
 			CancellationToken        token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, token);
 
-		public static Task<decimal?> AverageAsyncLinqToDB(
+		public static Task<decimal?> AverageAsyncEF(
 			this IQueryable<decimal?> source,
 			CancellationToken         token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, token);
 
-		public static Task<double> AverageAsyncLinqToDB<TSource>(
+		public static Task<double> AverageAsyncEF<TSource>(
 			this IQueryable<TSource>      source,
 			Expression<Func<TSource,int>> selector,
 			CancellationToken             token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, selector, token);
 
-		public static Task<double?> AverageAsyncLinqToDB<TSource>(
+		public static Task<double?> AverageAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,int?>> selector,
 			CancellationToken              token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, selector, token);
 
-		public static Task<double> AverageAsyncLinqToDB<TSource>(
+		public static Task<double> AverageAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,long>> selector,
 			CancellationToken              token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, selector, token);
 
-		public static Task<double?> AverageAsyncLinqToDB<TSource>(
+		public static Task<double?> AverageAsyncEF<TSource>(
 			this IQueryable<TSource>        source,
 			Expression<Func<TSource,long?>> selector,
 			CancellationToken               token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, selector, token);
 
-		public static Task<float> AverageAsyncLinqToDB<TSource>(
+		public static Task<float> AverageAsyncEF<TSource>(
 			this IQueryable<TSource>        source,
 			Expression<Func<TSource,float>> selector,
 			CancellationToken               token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, selector, token);
 
-		public static Task<float?> AverageAsyncLinqToDB<TSource>(
+		public static Task<float?> AverageAsyncEF<TSource>(
 			this IQueryable<TSource>         source,
 			Expression<Func<TSource,float?>> selector,
 			CancellationToken                token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, selector, token);
 
-		public static Task<double> AverageAsyncLinqToDB<TSource>(
+		public static Task<double> AverageAsyncEF<TSource>(
 			this IQueryable<TSource>         source,
 			Expression<Func<TSource,double>> selector,
 			CancellationToken                token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, selector, token);
 
-		public static Task<double?> AverageAsyncLinqToDB<TSource>(
+		public static Task<double?> AverageAsyncEF<TSource>(
 			this IQueryable<TSource>          source,
 			Expression<Func<TSource,double?>> selector,
 			CancellationToken                 token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, selector, token);
 
-		public static Task<decimal> AverageAsyncLinqToDB<TSource>(
+		public static Task<decimal> AverageAsyncEF<TSource>(
 			this IQueryable<TSource>          source,
 			Expression<Func<TSource,decimal>> selector,
 			CancellationToken                 token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, selector, token);
 
-		public static Task<decimal?> AverageAsyncLinqToDB<TSource>(
+		public static Task<decimal?> AverageAsyncEF<TSource>(
 			this IQueryable<TSource>           source,
 			Expression<Func<TSource,decimal?>> selector,
 			CancellationToken                  token = default)
-			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
+			=> EntityFrameworkQueryableExtensions.AverageAsync(source, selector, token);
 
-		#endregion AverageAsyncLinqToDB
+		#endregion AverageAsyncEF
 	}
 }

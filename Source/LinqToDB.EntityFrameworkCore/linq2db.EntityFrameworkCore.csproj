@@ -9,9 +9,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="linq2db" Version="2.2.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.1" />
-		<PackageReference Include="System.Interactive.Async" Version="3.1.1" />
+		<PackageReference Include="linq2db" Version="2.5.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.2.0" />
 	</ItemGroup>
 
 </Project>

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB.Data;
+using LinqToDB.EntityFrameworkCore;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
 using NUnit.Framework;
@@ -11,6 +12,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlAzure.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+
+using LinqToDB;
+using LinqToDB.EntityFrameworkCore.Tests;
 
 namespace LinqToDB.EntityFrameworkCore.Tests
 {
@@ -274,7 +278,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		}
 
 		[Test]
-		public void TestTransaction()
+		public async Task TestTransaction()
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
@@ -297,8 +301,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 						.Delete();
 
 
-					var test1 = ctx.Products.Where(p => p.Name.StartsWith("U")).MaxAsync(p => p.StandardCost).Result;
-					var test2 = ctx.Products.Where(p => p.Name.StartsWith("U")).MaxAsyncLinqToDB(p => p.StandardCost).Result;
+					var test1 = await ctx.Products.Where(p => p.Name.StartsWith("U")).MaxAsync(p => p.StandardCost);
+					var test2 = await ctx.Products.Where(p => p.Name.StartsWith("U")).MaxAsyncLinqToDB(p => p.StandardCost);
 
 					Assert.AreEqual(test1, test2);
 
@@ -555,6 +559,21 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 				var result = await query.ToLinqToDB().ToArrayAsync();
 			}
 
+		}
+
+		[Test]
+		public async Task TestSetUpdate()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var customer = await ctx.Customers.FirstOrDefaultAsync();
+
+				var updatable = ctx.Customers.Where(c => c.CustomerID == customer.CustomerID)
+					.Set(c => c.CompanyName, customer.CompanyName);
+
+				var affected = updatable
+					.UpdateAsync();
+			}
 		}
 
 
