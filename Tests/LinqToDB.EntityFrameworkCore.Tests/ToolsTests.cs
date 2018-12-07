@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB.Data;
+using LinqToDB.EntityFrameworkCore;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
 using NUnit.Framework;
@@ -11,6 +12,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlAzure.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+
+using LinqToDB;
+using LinqToDB.EntityFrameworkCore.Tests;
 
 namespace LinqToDB.EntityFrameworkCore.Tests
 {
