@@ -286,54 +286,54 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken                 token = default)
 			=> AsyncExtensions.MaxAsync(source.ToLinqToDB(), selector, token);
 
-		#region SumAsync
+		#region SumAsyncLinqToDB
 
-		public static Task<int> SumAsync(
+		public static Task<int> SumAsyncLinqToDB(
 			this IQueryable<int>   source,
 			CancellationToken token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
 
-		public static Task<int?> SumAsync(
+		public static Task<int?> SumAsyncLinqToDB(
 			this IQueryable<int?> source,
 			CancellationToken     token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
 
-		public static Task<long> SumAsync(
+		public static Task<long> SumAsyncLinqToDB(
 			this IQueryable<long> source,
 			CancellationToken     token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
 
-		public static Task<long?> SumAsync(
+		public static Task<long?> SumAsyncLinqToDB(
 			this IQueryable<long?> source,
 			CancellationToken      token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
 
-		public static Task<float> SumAsync(
+		public static Task<float> SumAsyncLinqToDB(
 			this IQueryable<float> source,
 			CancellationToken      token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
 
-		public static Task<float?> SumAsync(
+		public static Task<float?> SumAsyncLinqToDB(
 			this IQueryable<float?> source,
 			CancellationToken       token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
 
-		public static Task<double> SumAsync(
+		public static Task<double> SumAsyncLinqToDB(
 			this IQueryable<double> source,
 			CancellationToken       token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
 
-		public static Task<double?> SumAsync(
+		public static Task<double?> SumAsyncLinqToDB(
 			this IQueryable<double?> source,
 			CancellationToken        token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
 
-		public static Task<decimal> SumAsync(
+		public static Task<decimal> SumAsyncLinqToDB(
 			this IQueryable<decimal> source,
 			CancellationToken        token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
 
-		public static Task<decimal?> SumAsync(
+		public static Task<decimal?> SumAsyncLinqToDB(
 			this IQueryable<decimal?> source,
 			CancellationToken         token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), token);
@@ -398,56 +398,56 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken                  token = default)
 			=> AsyncExtensions.SumAsync(source.ToLinqToDB(), selector, token);
 
-		#endregion SumAsync
+		#endregion SumAsyncLinqToDB
 
-		#region AverageAsync
+		#region AverageAsyncLinqToDB
 
-		public static Task<double> AverageAsync(
+		public static Task<double> AverageAsyncLinqToDB(
 			this IQueryable<int> source,
 			CancellationToken    token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
 
-		public static Task<double?> AverageAsync(
+		public static Task<double?> AverageAsyncLinqToDB(
 			this IQueryable<int?> source,
 			CancellationToken     token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
 
-		public static Task<double> AverageAsync(
+		public static Task<double> AverageAsyncLinqToDB(
 			this IQueryable<long> source,
 			CancellationToken     token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
 
-		public static Task<double?> AverageAsync(
+		public static Task<double?> AverageAsyncLinqToDB(
 			this IQueryable<long?> source,
 			CancellationToken      token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
 
-		public static Task<float> AverageAsync(
+		public static Task<float> AverageAsyncLinqToDB(
 			this IQueryable<float> source,
 			CancellationToken      token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
 
-		public static Task<float?> AverageAsync(
+		public static Task<float?> AverageAsyncLinqToDB(
 			this IQueryable<float?> source,
 			CancellationToken       token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
 
-		public static Task<double> AverageAsync(
+		public static Task<double> AverageAsyncLinqToDB(
 			this IQueryable<double> source,
 			CancellationToken       token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
 
-		public static Task<double?> AverageAsync(
+		public static Task<double?> AverageAsyncLinqToDB(
 			this IQueryable<double?> source,
 			CancellationToken        token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
 
-		public static Task<decimal> AverageAsync(
+		public static Task<decimal> AverageAsyncLinqToDB(
 			this IQueryable<decimal> source,
 			CancellationToken        token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
 
-		public static Task<decimal?> AverageAsync(
+		public static Task<decimal?> AverageAsyncLinqToDB(
 			this IQueryable<decimal?> source,
 			CancellationToken         token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), token);
@@ -512,6 +512,6 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken                  token = default)
 			=> AsyncExtensions.AverageAsync(source.ToLinqToDB(), selector, token);
 
-		#endregion AverageAsync
+		#endregion AverageAsyncLinqToDB
 	}
 }

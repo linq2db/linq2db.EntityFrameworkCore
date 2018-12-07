@@ -52,7 +52,7 @@ namespace SomeNamespace
 			using (var ctx = CreateAdventureWorksContext())
 			using (var db = ctx.CreateLinqToDbConnection())
 			{
-				var items = db.GetTable<SalesOrderDetail>().AsNoTracking().ToListAsyncEF();
+				var items = ctx.Addresses.AsNoTracking().ToListAsyncEF();
 			}
 		}
 
