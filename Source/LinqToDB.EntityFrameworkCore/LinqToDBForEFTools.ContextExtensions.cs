@@ -22,7 +22,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="options">Operation options.</param>
 		/// <param name="source">Records to insert.</param>
 		/// <returns>Bulk insert operation status.</returns>
-		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DbContext context, BulkCopyOptions options, IEnumerable<T> source)
+		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DbContext context, BulkCopyOptions options, IEnumerable<T> source) where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
@@ -40,14 +40,13 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="maxBatchSize">Number of rows in each batch. At the end of each batch, the rows in the batch are sent to the server. </param>
 		/// <param name="source">Records to insert.</param>
 		/// <returns>Bulk insert operation status.</returns>
-		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DbContext context, int maxBatchSize, IEnumerable<T> source)
+		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DbContext context, int maxBatchSize, IEnumerable<T> source) where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
 			using (var dc = context.CreateLinqToDbConnection())
 			{
-				return dc.DataProvider.BulkCopy(
-					dc,
+				return dc.BulkCopy(
 					new BulkCopyOptions { MaxBatchSize = maxBatchSize },
 					source);
 			}
@@ -60,14 +59,13 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="context">Database context.</param>
 		/// <param name="source">Records to insert.</param>
 		/// <returns>Bulk insert operation status.</returns>
-		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DbContext context, IEnumerable<T> source)
+		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DbContext context, IEnumerable<T> source) where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
 			using (var dc = context.CreateLinqToDbConnection())
 			{
-				return dc.DataProvider.BulkCopy(
-					dc,
+				return dc.BulkCopy(
 					new BulkCopyOptions(),
 					source);
 			}

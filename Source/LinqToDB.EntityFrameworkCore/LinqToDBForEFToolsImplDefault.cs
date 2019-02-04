@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -325,10 +326,12 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <see cref="EFCoreMetadataReader"/> metadata provider.
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
+		/// <param name="dependencies"></param>
 		/// <returns>LINQ To DB metadata provider for specified EF.Core model.</returns>
-		public virtual IMetadataReader CreateMetadataReader(IModel model)
+		public virtual IMetadataReader CreateMetadataReader(IModel model,
+			SqlTranslatingExpressionVisitorDependencies dependencies)
 		{
-			return new EFCoreMetadataReader(model);
+			return new EFCoreMetadataReader(model, dependencies);
 		}
 
 		/// <summary>

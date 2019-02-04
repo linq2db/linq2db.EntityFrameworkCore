@@ -1,11 +1,19 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
-
+using LinqToDB.Common;
+using LinqToDB.EntityFrameworkCore.Internal;
+using LinqToDB.SqlQuery;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Query.Expressions;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -19,10 +27,13 @@ namespace LinqToDB.EntityFrameworkCore
 	internal class EFCoreMetadataReader : IMetadataReader
 	{
 		readonly IModel _model;
+		private readonly SqlTranslatingExpressionVisitorDependencies _dependencies;
+		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute>();
 
-		public EFCoreMetadataReader(IModel model)
+		public EFCoreMetadataReader(IModel model, SqlTranslatingExpressionVisitorDependencies dependencies)
 		{
 			_model = model;
+			_dependencies = dependencies;
 		}
 
 		public T[] GetAttributes<T>(Type type, bool inherit = true) where T : Attribute
@@ -133,6 +144,25 @@ namespace LinqToDB.EntityFrameworkCore
 
 			if (typeof(T) == typeof(Sql.ExpressionAttribute))
 			{
+				// Search for translator first
+				if (_dependencies != null)
+				{
+					if (memberInfo.IsMethodEx())
+					{
+						var methodInfo = (MethodInfo) memberInfo;
+						var func = GetDbFunctionFromMethodCall(type, methodInfo);
+						if (func != null)
+							return new T[] { (T) (Attribute) func };
+					}
+					else if (memberInfo.IsPropertyEx())
+					{
+						var propertyInfo = (PropertyInfo) memberInfo;
+						var func = GetDbFunctionFromProperty(type, propertyInfo);
+						if (func != null)
+							return new T[] { (T) (Attribute) func };
+					}
+				}
+
 				if (memberInfo.IsMethodEx())
 				{
 					var method = (MethodInfo) memberInfo;
@@ -158,6 +188,149 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 
 			return Array.Empty<T>();
+		}
+
+		private Sql.ExpressionAttribute GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
+		{
+			if (_dependencies == null || _model == null)
+				return null;
+
+			methodInfo = (MethodInfo) type.GetMemberEx(methodInfo) ?? methodInfo;
+
+			var found = _calculatedExtensions.GetOrAdd(methodInfo, mi =>
+			{
+				EFCoreExpressionAttribute result = null;
+
+				if (!methodInfo.IsGenericMethodDefinition && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
+				{
+					var objExpr = Expression.Constant(DefaultValue.GetValue(type), type);
+					var parameterInfos = methodInfo.GetParameters();
+					var parametersArray = parameterInfos
+						.Select(p =>
+							(Expression) Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType)).ToArray();
+
+					var mcExpr = Expression.Call(methodInfo.IsStatic ? null : objExpr, methodInfo, parametersArray);
+
+					var newExpression = _dependencies.MethodCallTranslator.Translate(mcExpr, _model);
+					if (newExpression != null && newExpression != mcExpr)
+					{
+						if (!methodInfo.IsStatic)
+							parametersArray = new Expression[] { objExpr }.Concat(parametersArray).ToArray();
+
+						result = ConvertToExpressionAttribute(methodInfo, newExpression, parametersArray);
+					}
+				}
+
+				return result;
+			});
+
+			return found;
+		}
+
+		private Sql.ExpressionAttribute GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
+		{
+			if (_dependencies == null || _model == null)
+				return null;
+
+			propInfo = (PropertyInfo) type.GetMemberEx(propInfo) ?? propInfo;
+
+			var found = _calculatedExtensions.GetOrAdd(propInfo, mi =>
+			{
+				EFCoreExpressionAttribute result = null;
+
+				if ((propInfo.GetMethod?.IsStatic != true) && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
+				{
+					var objExpr = Expression.Constant(DefaultValue.GetValue(type), type);
+					var mcExpr = Expression.MakeMemberAccess(objExpr, propInfo);
+
+					var newExpression = _dependencies.MemberTranslator.Translate(mcExpr);
+					if (newExpression != null && newExpression != mcExpr)
+					{
+						var parametersArray = new Expression[] { objExpr };
+						result = ConvertToExpressionAttribute(propInfo, newExpression, parametersArray);
+					}
+				}
+
+				return result;
+			});
+
+			return found;
+		}
+
+		private static EFCoreExpressionAttribute ConvertToExpressionAttribute(MemberInfo memberInfo, Expression newExpression, Expression[] parameters)
+		{
+			string PrepareExpressionText(Expression expr)
+			{
+				var idx = parameters.IndexOf(expr);
+				if (idx >= 0)
+					return $"{{{idx}}}";
+
+				if (expr is SqlFragmentExpression fragment)
+					return fragment.Sql;
+
+				if (expr is SqlFunctionExpression sqlFunction)
+				{
+					var text = sqlFunction.FunctionName;
+					if (!sqlFunction.Schema.IsNullOrEmpty())
+						text = sqlFunction.Schema + "." + sqlFunction.FunctionName;
+
+					if (!sqlFunction.IsNiladic)
+					{
+						text = text + "(";
+						for (int i = 0; i < sqlFunction.Arguments.Count; i++)
+						{
+							var paramText = PrepareExpressionText(sqlFunction.Arguments[i]);
+							if (i > 0)
+								text = text + ", ";
+							text = text + paramText;
+						}
+
+						text = text + ")";
+					}
+
+					return text;
+				}
+
+				if (newExpression.GetType().GetProperty("Left") != null &&
+				    newExpression.GetType().GetProperty("Right") != null &&
+				    newExpression.GetType().GetProperty("Operator") != null)
+				{
+					// Handling NpgSql's CustomBinaryExpression
+
+					var left = newExpression.GetType().GetProperty("Left")?.GetValue(newExpression) as Expression;
+					var right = newExpression.GetType().GetProperty("Right")?.GetValue(newExpression) as Expression;
+
+					var operand = newExpression.GetType().GetProperty("Operator")?.GetValue(newExpression) as string;
+
+					var text = $"{PrepareExpressionText(left)} {operand} {PrepareExpressionText(right)}";
+
+					return text;
+				}
+
+				return "NULL";
+			}
+
+			var converted = UnwrapConverted(newExpression);
+			var expressionText = PrepareExpressionText(converted);
+			var result = new EFCoreExpressionAttribute(expressionText)
+				{ ServerSideOnly = true, IsPredicate = memberInfo.GetMemberType() == typeof(bool) };
+
+			if (converted is SqlFunctionExpression || converted is SqlFragmentExpression)
+				result.Precedence = Precedence.Primary;
+
+			return result;
+		}
+
+		private static Expression UnwrapConverted(Expression expr)
+		{
+			if (expr is SqlFunctionExpression func)
+			{
+				if (string.Equals(func.FunctionName, "COALESCE", StringComparison.InvariantCultureIgnoreCase) &&
+				    func.Arguments.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Default)
+					return UnwrapConverted(func.Arguments[0]);
+			}
+
+			return expr;
 		}
 
 		public MemberInfo[] GetDynamicColumns(Type type)

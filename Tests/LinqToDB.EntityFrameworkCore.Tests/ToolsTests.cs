@@ -15,6 +15,8 @@ using Microsoft.Extensions.Logging.Console;
 
 using LinqToDB;
 using LinqToDB.EntityFrameworkCore.Tests;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 
 namespace LinqToDB.EntityFrameworkCore.Tests
 {
@@ -374,7 +376,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model);
+				var dependencies = ctx.GetService<SqlTranslatingExpressionVisitorDependencies>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies);
 				
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(CustomerAddress),
 					MemberHelper.MemberOf<CustomerAddress>(c => c.CustomerID));
@@ -397,7 +400,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model);
+				var dependencies = ctx.GetService<SqlTranslatingExpressionVisitorDependencies>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies);
 				
 				var associationCustomer = ms.GetAttribute<AssociationAttribute>(typeof(CustomerAddress),
 					MemberHelper.MemberOf<CustomerAddress>(c => c.Customer));
@@ -421,7 +425,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model);
+				var dependencies = ctx.GetService<SqlTranslatingExpressionVisitorDependencies>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies);
 				
 				var identity = ms.GetAttribute<ColumnAttribute>(typeof(SalesOrderDetail),
 					MemberHelper.MemberOf<SalesOrderDetail>(c => c.SalesOrderDetailID));

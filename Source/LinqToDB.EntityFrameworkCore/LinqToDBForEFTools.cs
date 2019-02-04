@@ -11,6 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -88,7 +90,7 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				_implementation = value ?? throw new ArgumentNullException(nameof(value));
 				_metadataReaders.Clear();
-				_defaultMeadataReader = new Lazy<IMetadataReader>(() => Implementation.CreateMetadataReader(null));
+				_defaultMeadataReader = new Lazy<IMetadataReader>(() => Implementation.CreateMetadataReader(null, null));
 			}
 		}
 
@@ -117,13 +119,15 @@ namespace LinqToDB.EntityFrameworkCore
 		/// provider will be returned.
 		/// </summary>
 		/// <param name="model">EF.Core data model instance. Could be <c>null</c>.</param>
+		/// <param name="dependencies"></param>
 		/// <returns>LINQ To DB metadata provider.</returns>
-		public static IMetadataReader GetMetadataReader([JetBrains.Annotations.CanBeNull] IModel model)
+		public static IMetadataReader GetMetadataReader([JetBrains.Annotations.CanBeNull] IModel model,
+			SqlTranslatingExpressionVisitorDependencies dependencies)
 		{
 			if (model == null)
 				return _defaultMeadataReader.Value;
 
-			return _metadataReaders.GetOrAdd(model, m => Implementation.CreateMetadataReader(model));
+			return _metadataReaders.GetOrAdd(model, m => Implementation.CreateMetadataReader(model, dependencies));
 		}
 
 		/// <summary>
@@ -207,10 +211,12 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Creates mapping schema using provided EF.Core data model.
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
+		/// <param name="dependencies"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public static MappingSchema GetMappingSchema(IModel model)
+		public static MappingSchema GetMappingSchema(IModel model,
+			SqlTranslatingExpressionVisitorDependencies dependencies)
 		{
-			return Implementation.GetMappingSchema(model, GetMetadataReader(model));
+			return Implementation.GetMappingSchema(model, GetMetadataReader(model, dependencies));
 		}
 
 		/// <summary>
@@ -269,7 +275,8 @@ namespace LinqToDB.EntityFrameworkCore
 			if (logger != null)
 				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
-			var mappingSchema = GetMappingSchema(context.Model);
+			var dependencies  = context.GetService<SqlTranslatingExpressionVisitorDependencies>();
+			var mappingSchema = GetMappingSchema(context.Model, dependencies);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
@@ -294,14 +301,15 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var connectionInfo = GetConnectionInfo(info);
 			var provider       = GetDataProvider(info, connectionInfo);
-			var mappingSchema  = GetMappingSchema(context.Model);
+			var dependencies   = context.GetService<SqlTranslatingExpressionVisitorDependencies>();
+			var mappingSchema  = GetMappingSchema(context.Model, dependencies);
 			var logger         = CreateLogger(info.Options);
 
 			if (transaction != null)
 			{
-				var dbTrasaction = transaction.GetDbTransaction();
-				if (provider.IsCompatibleConnection(dbTrasaction.Connection))
-					dc = new LinqToDBForEFToolsDataConnection(provider, dbTrasaction, context.Model, TransformExpression);
+				var dbTransaction = transaction.GetDbTransaction();
+				if (provider.IsCompatibleConnection(dbTransaction.Connection))
+					dc = new LinqToDBForEFToolsDataConnection(provider, dbTransaction, context.Model, TransformExpression);
 			}
 
 			if (dc == null)
@@ -352,7 +360,8 @@ namespace LinqToDB.EntityFrameworkCore
 			if (logger != null)
 				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
-			var mappingSchema = GetMappingSchema(context.Model);
+			var dependencies  = context.GetService<SqlTranslatingExpressionVisitorDependencies>();
+			var mappingSchema = GetMappingSchema(context.Model, dependencies);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
@@ -423,7 +432,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			if (model != null)
 			{
-				var mappingSchema = GetMappingSchema(model);
+				var mappingSchema = GetMappingSchema(model, null);
 				if (mappingSchema != null)
 					dc.AddMappingSchema(mappingSchema);
 			}
