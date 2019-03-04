@@ -648,6 +648,8 @@ namespace LinqToDB.EntityFrameworkCore
 								var filter = model?.FindEntityType(entityType).QueryFilter;
 								if (filter != null)
 								{
+									var filterBody = filter.Body.Transform(l => LocalTransform(l));
+									filter = Expression.Lambda(filterBody, filter.Parameters[0]);
 									var whereExpr = Expression.Call(null, WhereMethodInfo.MakeGenericMethod(entityType), newExpr, Expression.Quote(filter));
 
 									newExpr = whereExpr;
