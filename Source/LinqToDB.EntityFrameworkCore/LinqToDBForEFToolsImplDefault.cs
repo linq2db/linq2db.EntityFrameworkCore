@@ -14,10 +14,10 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -388,6 +388,12 @@ namespace LinqToDB.EntityFrameworkCore
 		static readonly MethodInfo AsNoTrackingMethodInfo =
 			MemberHelper.MethodOf<IQueryable<object>>(q => q.AsNoTracking()).GetGenericMethodDefinition();
 
+		static readonly MethodInfo EFProperty =
+			MemberHelper.MethodOf(() => EF.Property<object>(1, "")).GetGenericMethodDefinition();
+
+		private static readonly MethodInfo
+			L2DBProperty = typeof(Sql).GetMethod(nameof(Sql.Property)).GetGenericMethodDefinition();
+
 		public static Expression Unwrap(Expression ex)
 		{
 			if (ex == null)
@@ -657,6 +663,7 @@ namespace LinqToDB.EntityFrameworkCore
 					case ExpressionType.Call:
 					{
 						var methodCall = (MethodCallExpression) e;
+						var generic = methodCall.Method.IsGenericMethod ? methodCall.Method.GetGenericMethodDefinition() : methodCall.Method;
 
 						if (IsQueryable(methodCall))
 						{
@@ -664,7 +671,6 @@ namespace LinqToDB.EntityFrameworkCore
 							{
 								var isTunnel = false;
 
-								var generic = methodCall.Method.GetGenericMethodDefinition();
 								if (generic == IgnoreQueryFiltersMethodInfo)
 								{
 									ignoreQueryFilters = true;
@@ -703,6 +709,13 @@ namespace LinqToDB.EntityFrameworkCore
 								if (!ExpressionEqualityComparer.Instance.Equals(methodCall, result.Expression))
 									return result.Expression.Transform(l => LocalTransform(l));
 							}
+						}
+
+						if (generic == EFProperty)
+						{
+							var prop = Expression.Call(null, L2DBProperty.MakeGenericMethod(methodCall.Method.GetGenericArguments()[0]),
+								methodCall.Arguments[0].Transform(l => LocalTransform(l)), methodCall.Arguments[1]);
+							return prop;
 						}
 
 						break;
