@@ -99,6 +99,20 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			}
 		}
 
+		[Test]
+		public void TestShadowProperty()
+		{
+			using (var ctx = CreateAdventureWorksContext())
+			{
+				var query = ctx.Products.Select(p => new
+				{
+					Color = EF.Property<string>(p, "Color")
+				});
+
+				query = query.ToLinqToDB();
+				var result = query.ToArray();
+			}
+		}
 
 		[Test]
 		public void TestInsertFrom()
