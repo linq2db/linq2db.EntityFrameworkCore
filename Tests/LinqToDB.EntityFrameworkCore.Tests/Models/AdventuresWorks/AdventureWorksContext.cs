@@ -108,7 +108,7 @@ namespace Microsoft.EntityFrameworkCore.SqlAzure.Model
 
                         entity.Property(e => e.rowguid).HasDefaultValueSql("newid()");
 
-                        entity.HasQueryFilter(e => e.Weight != null);
+                        entity.HasQueryFilter(e => e.Weight != null || EF.Property<decimal?>(e, "Weight") != null);
                     });
 
             modelBuilder.Entity<ProductCategory>(
