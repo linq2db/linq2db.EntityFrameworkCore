@@ -10,8 +10,8 @@ branches:
     - /dev.*/
 
 environment:
-  assemblyVersion: 1.6.0
-  packageVersion: 1.6.0
+  assemblyVersion: 1.6.1
+  packageVersion: 1.6.1
   access_token:
     secure: IlfmHXRdUK6v8dX/WqieXQ==
 
