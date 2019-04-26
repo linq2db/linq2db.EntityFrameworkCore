@@ -5,15 +5,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Models\UniversalEntities\**" />
+	  <EmbeddedResource Remove="Models\UniversalEntities\**" />
+	  <None Remove="Models\UniversalEntities\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="JetBrains.DotMemoryUnit" Version="3.0.20171219.105559" />
-		<PackageReference Include="linq2db" Version="2.6.4" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="2.2.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.1" />
+		<PackageReference Include="linq2db" Version="2.7.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="2.2.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.4" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.2.0" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.2.0" />
 		<PackageReference Include="NUnit" Version="3.11.0" />
-		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="2.1.4" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="2.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>

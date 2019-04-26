@@ -13,7 +13,8 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		{
 		}
 
-		public override ISqlExpression GetExpression(MappingSchema mapping, SelectQuery query, Expression expression, Func<Expression, ISqlExpression> converter)
+		public override ISqlExpression GetExpression(IDataContext dataContext, SelectQuery query,
+				Expression expression, Func<Expression, ISqlExpression> converter)
 		{
 			var knownExpressions = new List<Expression>();
 			if (expression.NodeType == ExpressionType.Call)

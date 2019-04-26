@@ -141,7 +141,8 @@ namespace LinqToDB.EntityFrameworkCore
 					case ProviderName.SqlServer:
 						return CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString);
 					case ProviderName.MySql:
-						return new MySqlDataProvider();
+					case ProviderName.MySqlConnector:
+						return new MySqlDataProvider(provInfo.ProviderName);
 					case ProviderName.PostgreSQL:
 						return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
 					case ProviderName.SQLite:
@@ -174,8 +175,12 @@ namespace LinqToDB.EntityFrameworkCore
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.SqlServer };
 
 				case "Pomelo.EntityFrameworkCore.MySql":
-				case "MySql.Data.EntityFrameworkCore":
 				case "Devart.Data.MySql.EFCore":
+				{
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.MySqlConnector };
+				}
+
+				case "MySql.Data.EntityFrameworkCore":
 				{
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.MySql };
 				}
@@ -245,6 +250,7 @@ namespace LinqToDB.EntityFrameworkCore
 			switch (extensions.GetType().Name)
 			{
 				case "MySqlOptionsExtension":
+					return new LinqToDBProviderInfo { ProviderName = ProviderName.MySqlConnector };
 				case "MySQLOptionsExtension":
 					return new LinqToDBProviderInfo { ProviderName = ProviderName.MySql };
 				case "NpgsqlOptionsExtension":
