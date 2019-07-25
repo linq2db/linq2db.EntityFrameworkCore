@@ -60,6 +60,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
+			if (typeof(Expression).IsSameOrParentOf(type)) 
+				return Array.Empty<T>();
+
 			if (typeof(T) == typeof(ColumnAttribute))
 			{
 				var et = _model?.FindEntityType(type);
