@@ -14,7 +14,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
@@ -335,7 +334,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="dependencies"></param>
 		/// <returns>LINQ To DB metadata provider for specified EF.Core model.</returns>
 		public virtual IMetadataReader CreateMetadataReader(IModel model,
-			SqlTranslatingExpressionVisitorDependencies dependencies)
+			RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
 		{
 			return new EFCoreMetadataReader(model, dependencies);
 		}
@@ -548,6 +547,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return result;
 		}
 
+
 		/// <summary>
 		/// Transforms EF.Core expression tree to LINQ To DB expression.
 		/// Method replaces EF.Core <see cref="EntityQueryable{TResult}"/> instances with LINQ To DB
@@ -557,6 +557,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
 		/// <param name="model">EF.Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		public virtual Expression TransformExpression(Expression expression, IDataContext dc, IModel model)
 		{
 			var ignoreQueryFilters = false;
@@ -651,7 +652,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 							if (!ignoreQueryFilters)
 							{
-								var filter = model?.FindEntityType(entityType).QueryFilter;
+								var filter = model?.FindEntityType(entityType).GetQueryFilter();
 								if (filter != null)
 								{
 									var filterBody = filter.Body.Transform(l => LocalTransform(l));
@@ -757,14 +758,14 @@ namespace LinqToDB.EntityFrameworkCore
 			if (!(queryContextFactoryField.GetValue(compiler) is RelationalQueryContextFactory queryContextFactory))
 				throw new LinqToDBForEFToolsException("LinqToDB Tools for EFCore support only Relational Databases.");
 
-			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
+			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetField("_dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
 
-			if (queryContextFactoryField == null)
-				throw new LinqToDBForEFToolsException($"Can not find private property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version.");
+			if (dependenciesProperty == null)
+				throw new LinqToDBForEFToolsException($"Can not find private property '{nameof(RelationalQueryContextFactory)}._dependencies' in current EFCore Version.");
 
 			var dependencies = (QueryContextDependencies) dependenciesProperty.GetValue(queryContextFactory);
 
-			return dependencies.CurrentDbContext?.Context;
+			return dependencies.CurrentContext?.Context;
 		}
 
 		/// <summary>

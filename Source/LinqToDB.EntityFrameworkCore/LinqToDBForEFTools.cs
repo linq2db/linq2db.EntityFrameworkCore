@@ -11,8 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -122,7 +121,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="dependencies"></param>
 		/// <returns>LINQ To DB metadata provider.</returns>
 		public static IMetadataReader GetMetadataReader([JetBrains.Annotations.CanBeNull] IModel model,
-			SqlTranslatingExpressionVisitorDependencies dependencies)
+			RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
 		{
 			if (model == null)
 				return _defaultMeadataReader.Value;
@@ -214,7 +213,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="dependencies"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		public static MappingSchema GetMappingSchema(IModel model,
-			SqlTranslatingExpressionVisitorDependencies dependencies)
+			RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
 		{
 			return Implementation.GetMappingSchema(model, GetMetadataReader(model, dependencies));
 		}
@@ -275,7 +274,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (logger != null)
 				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
-			var dependencies  = context.GetService<SqlTranslatingExpressionVisitorDependencies>();
+			var dependencies  = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSchema = GetMappingSchema(context.Model, dependencies);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
@@ -301,7 +300,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var connectionInfo = GetConnectionInfo(info);
 			var provider       = GetDataProvider(info, connectionInfo);
-			var dependencies   = context.GetService<SqlTranslatingExpressionVisitorDependencies>();
+			var dependencies   = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSchema  = GetMappingSchema(context.Model, dependencies);
 			var logger         = CreateLogger(info.Options);
 
@@ -360,7 +359,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (logger != null)
 				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
-			var dependencies  = context.GetService<SqlTranslatingExpressionVisitorDependencies>();
+			var dependencies  = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSchema = GetMappingSchema(context.Model, dependencies);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);

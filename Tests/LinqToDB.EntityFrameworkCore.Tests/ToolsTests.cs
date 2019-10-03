@@ -1,22 +1,15 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB.Data;
-using LinqToDB.EntityFrameworkCore;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
 using NUnit.Framework;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlAzure.Model;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
-
-using LinqToDB;
-using LinqToDB.EntityFrameworkCore.Tests;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace LinqToDB.EntityFrameworkCore.Tests
 {
@@ -390,7 +383,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
-				var dependencies = ctx.GetService<SqlTranslatingExpressionVisitorDependencies>();
+				var dependencies = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies);
 				
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(CustomerAddress),
@@ -414,7 +407,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
-				var dependencies = ctx.GetService<SqlTranslatingExpressionVisitorDependencies>();
+				var dependencies = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies);
 				
 				var associationCustomer = ms.GetAttribute<AssociationAttribute>(typeof(CustomerAddress),
@@ -439,7 +432,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
-				var dependencies = ctx.GetService<SqlTranslatingExpressionVisitorDependencies>();
+				var dependencies = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies);
 				
 				var identity = ms.GetAttribute<ColumnAttribute>(typeof(SalesOrderDetail),
@@ -571,8 +564,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			using (var ctx = CreateAdventureWorksContext())
 			{
 				var query = ctx.SalesOrders
-					.Include(o => o.Details)
-					.ThenInclude(d => d.SalesOrder);
+					.Include(o => o.Details);
+					//.ThenInclude(d => d.SalesOrder);
 
 				var expected = await query.ToLinqToDB().ToArrayAsync();
 				var result = await query.ToLinqToDB().ToArrayAsync();

@@ -10,10 +10,9 @@ using LinqToDB.SqlQuery;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -27,10 +26,10 @@ namespace LinqToDB.EntityFrameworkCore
 	internal class EFCoreMetadataReader : IMetadataReader
 	{
 		readonly IModel _model;
-		private readonly SqlTranslatingExpressionVisitorDependencies _dependencies;
+		private readonly RelationalSqlTranslatingExpressionVisitorDependencies _dependencies;
 		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute>();
 
-		public EFCoreMetadataReader(IModel model, SqlTranslatingExpressionVisitorDependencies dependencies)
+		public EFCoreMetadataReader(IModel model, RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
 		{
 			_model = model;
 			_dependencies = dependencies;
@@ -43,8 +42,7 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				if (typeof(T) == typeof(TableAttribute))
 				{
-					var relational = et.Relational();
-					return new[] { (T)(Attribute)new TableAttribute(relational.TableName) { Schema = relational.Schema } };
+					return new[] { (T)(Attribute)new TableAttribute(et.GetTableName()) { Schema = et.GetSchema() } };
 				}
 			}
 
@@ -76,19 +74,17 @@ namespace LinqToDB.EntityFrameworkCore
 						var primaryKeyOrder = 0;
 						if (isPrimaryKey)
 						{
-							var pk = prop.GetContainingPrimaryKey();
+							var pk = prop.FindContainingPrimaryKey();
 							primaryKeyOrder = pk.Properties.Select((p, i) => new { p, index = i })
 								                  .FirstOrDefault(v => v.p.GetIdentifyingMemberInfo() == memberInfo)?.index ?? 0;
 						}
 
-						var relational = prop.Relational();
-
 						return new T[]{(T)(Attribute) new ColumnAttribute
 						{
-							Name = relational.ColumnName,
+							Name = prop.GetColumnName(),
 							Length = prop.GetMaxLength() ?? 0,
 							CanBeNull = prop.IsNullable,
-							DbType = relational.ColumnType,
+							DbType = prop.GetColumnType(),
 							IsPrimaryKey = isPrimaryKey,
 							PrimaryKeyOrder = primaryKeyOrder,
 							IsIdentity = prop.ValueGenerated == ValueGenerated.OnAdd,
@@ -170,13 +166,13 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					var method = (MethodInfo) memberInfo;
 
-					var func = _model?.Relational().DbFunctions.FirstOrDefault(f => f.MethodInfo == method);
+					var func = _model?.GetDbFunctions().FirstOrDefault(f => f.MethodInfo == method);
 					if (func != null)
 						return new T[]
 						{
 							(T) (Attribute) new Sql.FunctionAttribute
 							{
-								Name = func.FunctionName,
+								Name = func.Name,
 								ServerSideOnly = true
 							}
 						};
@@ -184,7 +180,7 @@ namespace LinqToDB.EntityFrameworkCore
 					var functionAttributes = memberInfo.GetCustomAttributes<DbFunctionAttribute>(inherit);
 					return functionAttributes.Select(f => (T) (Attribute) new Sql.FunctionAttribute
 					{
-						Name = f.FunctionName,
+						Name = f.Name,
 						ServerSideOnly = true,
 					}).ToArray();
 				}
@@ -214,14 +210,14 @@ namespace LinqToDB.EntityFrameworkCore
 
 					var mcExpr = Expression.Call(methodInfo.IsStatic ? null : objExpr, methodInfo, parametersArray);
 
-					var newExpression = _dependencies.MethodCallTranslator.Translate(mcExpr, _model);
-					if (newExpression != null && newExpression != mcExpr)
-					{
-						if (!methodInfo.IsStatic)
-							parametersArray = new Expression[] { objExpr }.Concat(parametersArray).ToArray();
-
-						result = ConvertToExpressionAttribute(methodInfo, newExpression, parametersArray);
-					}
+//					var newExpression = _dependencies.MethodCallTranslatorProvider.Translate(_model, null, mcExpr, new List<SqlExpression>());
+//					if (newExpression != null && newExpression != mcExpr)
+//					{
+//						if (!methodInfo.IsStatic)
+//							parametersArray = new Expression[] { objExpr }.Concat(parametersArray).ToArray();
+//
+//						result = ConvertToExpressionAttribute(methodInfo, newExpression, parametersArray);
+//					}
 				}
 
 				return result;
@@ -246,12 +242,12 @@ namespace LinqToDB.EntityFrameworkCore
 					var objExpr = Expression.Constant(DefaultValue.GetValue(type), type);
 					var mcExpr = Expression.MakeMemberAccess(objExpr, propInfo);
 
-					var newExpression = _dependencies.MemberTranslator.Translate(mcExpr);
-					if (newExpression != null && newExpression != mcExpr)
-					{
-						var parametersArray = new Expression[] { objExpr };
-						result = ConvertToExpressionAttribute(propInfo, newExpression, parametersArray);
-					}
+//					var newExpression = _dependencies.MemberTranslator.Translate(mcExpr);
+//					if (newExpression != null && newExpression != mcExpr)
+//					{
+//						var parametersArray = new Expression[] { objExpr };
+//						result = ConvertToExpressionAttribute(propInfo, newExpression, parametersArray);
+//					}
 				}
 
 				return result;
@@ -273,9 +269,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 				if (expr is SqlFunctionExpression sqlFunction)
 				{
-					var text = sqlFunction.FunctionName;
+					var text = sqlFunction.Name;
 					if (!sqlFunction.Schema.IsNullOrEmpty())
-						text = sqlFunction.Schema + "." + sqlFunction.FunctionName;
+						text = sqlFunction.Schema + "." + sqlFunction.Name;
 
 					if (!sqlFunction.IsNiladic)
 					{
@@ -328,7 +324,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (expr is SqlFunctionExpression func)
 			{
-				if (string.Equals(func.FunctionName, "COALESCE", StringComparison.InvariantCultureIgnoreCase) &&
+				if (string.Equals(func.Name, "COALESCE", StringComparison.InvariantCultureIgnoreCase) &&
 				    func.Arguments.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Default)
 					return UnwrapConverted(func.Arguments[0]);
 			}
