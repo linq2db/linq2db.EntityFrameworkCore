@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Logging;
@@ -332,11 +333,13 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="dependencies"></param>
+		/// <param name="mappingSource"></param>
 		/// <returns>LINQ To DB metadata provider for specified EF.Core model.</returns>
 		public virtual IMetadataReader CreateMetadataReader(IModel model,
-			RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
+			RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
+			IRelationalTypeMappingSource mappingSource)
 		{
-			return new EFCoreMetadataReader(model, dependencies);
+			return new EFCoreMetadataReader(model, dependencies, mappingSource);
 		}
 
 		/// <summary>

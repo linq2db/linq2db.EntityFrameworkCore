@@ -4,21 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using LinqToDB.Common;
-using LinqToDB.EntityFrameworkCore.Internal;
-using LinqToDB.SqlQuery;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LinqToDB.EntityFrameworkCore
 {
 	using Mapping;
 	using Metadata;
 	using Extensions;
+	using Common;
+	using Internal;
+	using SqlQuery;
+	using SqlExpression = Microsoft.EntityFrameworkCore.Query.SqlExpressions.SqlExpression;
 
 	/// <summary>
 	/// LINQ To DB metadata reader for EF.Core model.
@@ -27,12 +28,14 @@ namespace LinqToDB.EntityFrameworkCore
 	{
 		readonly IModel _model;
 		private readonly RelationalSqlTranslatingExpressionVisitorDependencies _dependencies;
+		private readonly IRelationalTypeMappingSource _mappingSource;
 		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute>();
 
-		public EFCoreMetadataReader(IModel model, RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
+		public EFCoreMetadataReader(IModel model, RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource)
 		{
 			_model = model;
 			_dependencies = dependencies;
+			_mappingSource = mappingSource;
 		}
 
 		public T[] GetAttributes<T>(Type type, bool inherit = true) where T : Attribute
@@ -189,6 +192,21 @@ namespace LinqToDB.EntityFrameworkCore
 			return Array.Empty<T>();
 		}
 
+		class SqlTransparentExpression : SqlExpression
+		{
+			public Expression Expression { get; }
+
+			public SqlTransparentExpression(Expression expression, RelationalTypeMapping typeMapping) : base(expression.Type, typeMapping)
+			{
+				Expression = expression;
+			}
+
+			public override void Print(ExpressionPrinter expressionPrinter)
+			{
+				expressionPrinter.Print(Expression);
+			}
+		}
+
 		private Sql.ExpressionAttribute GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
 		{
 			if (_dependencies == null || _model == null)
@@ -202,22 +220,22 @@ namespace LinqToDB.EntityFrameworkCore
 
 				if (!methodInfo.IsGenericMethodDefinition && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
 				{
-					var objExpr = Expression.Constant(DefaultValue.GetValue(type), type);
+					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource.FindMapping(type));
 					var parameterInfos = methodInfo.GetParameters();
 					var parametersArray = parameterInfos
 						.Select(p =>
-							(Expression) Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType)).ToArray();
+							(SqlExpression)new SqlTransparentExpression(
+								Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType),
+								_mappingSource.FindMapping(p.ParameterType))).ToArray();
 
-					var mcExpr = Expression.Call(methodInfo.IsStatic ? null : objExpr, methodInfo, parametersArray);
+					var newExpression = _dependencies.MethodCallTranslatorProvider.Translate(_model, objExpr, methodInfo, parametersArray);
+					if (newExpression != null)
+					{
+						if (!methodInfo.IsStatic)
+							parametersArray = new SqlExpression[] { objExpr }.Concat(parametersArray).ToArray();
 
-//					var newExpression = _dependencies.MethodCallTranslatorProvider.Translate(_model, null, mcExpr, new List<SqlExpression>());
-//					if (newExpression != null && newExpression != mcExpr)
-//					{
-//						if (!methodInfo.IsStatic)
-//							parametersArray = new Expression[] { objExpr }.Concat(parametersArray).ToArray();
-//
-//						result = ConvertToExpressionAttribute(methodInfo, newExpression, parametersArray);
-//					}
+						result = ConvertToExpressionAttribute(methodInfo, newExpression, parametersArray);
+					}
 				}
 
 				return result;
@@ -239,15 +257,14 @@ namespace LinqToDB.EntityFrameworkCore
 
 				if ((propInfo.GetMethod?.IsStatic != true) && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
 				{
-					var objExpr = Expression.Constant(DefaultValue.GetValue(type), type);
-					var mcExpr = Expression.MakeMemberAccess(objExpr, propInfo);
+					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource.FindMapping(propInfo));
 
-//					var newExpression = _dependencies.MemberTranslator.Translate(mcExpr);
-//					if (newExpression != null && newExpression != mcExpr)
-//					{
-//						var parametersArray = new Expression[] { objExpr };
-//						result = ConvertToExpressionAttribute(propInfo, newExpression, parametersArray);
-//					}
+					var newExpression = _dependencies.MemberTranslatorProvider.Translate(objExpr, propInfo, propInfo.GetMemberType());
+					if (newExpression != null)
+					{
+						var parametersArray = new Expression[] { objExpr };
+						result = ConvertToExpressionAttribute(propInfo, newExpression, parametersArray);
+					}
 				}
 
 				return result;
@@ -260,7 +277,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			string PrepareExpressionText(Expression expr)
 			{
-				var idx = parameters.IndexOf(expr);
+				var idx = Array.IndexOf(parameters, expr);
 				if (idx >= 0)
 					return $"{{{idx}}}";
 
