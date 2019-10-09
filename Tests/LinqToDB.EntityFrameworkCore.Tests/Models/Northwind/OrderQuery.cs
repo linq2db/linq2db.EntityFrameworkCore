@@ -30,13 +30,10 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
                 return false;
             }
 
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            return obj.GetType() == GetType()
-                   && Equals((OrderQuery)obj);
+            return ReferenceEquals(this, obj)
+                ? true
+                : obj.GetType() == GetType()
+                  && Equals((OrderQuery)obj);
         }
 
         public static bool operator ==(OrderQuery left, OrderQuery right) => Equals(left, right);
