@@ -3,14 +3,14 @@
 	<Import Project="..\..\Build\linq2db.Default.props" />
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
+		<TargetFramework>netstandard2.1</TargetFramework>
 		<PackageId>linq2db.EntityFrameworkCore</PackageId>
 		<RootNamespace>LinqToDB.EntityFrameworkCore</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="linq2db" Version="2.8.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.2.6" />
+		<PackageReference Include="linq2db" Version="2.9.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.0.0" />
 	</ItemGroup>
 
 </Project>

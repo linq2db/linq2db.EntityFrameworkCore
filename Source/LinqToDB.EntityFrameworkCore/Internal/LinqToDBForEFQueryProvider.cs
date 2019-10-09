@@ -3,12 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
 using JetBrains.Annotations;
+using LinqToDB.Expressions;
 
 namespace LinqToDB.EntityFrameworkCore.Internal
 {
@@ -54,6 +56,16 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			return QueryProvider.Execute<TResult>(expression);
 		}
 
+		private static MethodInfo _executeAsyncMethodInfo =
+			MemberHelper.MethodOf((IQueryProviderAsync p) => p.ExecuteAsync<int>(null, default)).GetGenericMethodDefinition();
+
+		TResult IAsyncQueryProvider.ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+		{
+			var item = typeof(TResult).GetGenericArguments()[0];
+			var method = _executeAsyncMethodInfo.MakeGenericMethod(item);
+			return (TResult) method.Invoke(QueryProvider, new object[] { expression, cancellationToken });
+		}
+
 		public System.Collections.Generic.IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
 		{
 			return new AsyncEnumerableAdaper<TResult>(QueryProvider.ExecuteAsync<TResult>(expression));
@@ -87,9 +99,9 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 
 		#endregion
 
-		System.Collections.Generic.IAsyncEnumerator<T> System.Collections.Generic.IAsyncEnumerable<T>.GetEnumerator()
+		System.Collections.Generic.IAsyncEnumerator<T> System.Collections.Generic.IAsyncEnumerable<T>.GetAsyncEnumerator(CancellationToken cancellationTokent)
 		{
-			return ExecuteAsync<T>(Expression).GetEnumerator();
+			return ExecuteAsync<T>(Expression).GetAsyncEnumerator(CancellationToken.None);
 		}
 
 		class AsyncEnumerableAdaper<TEntity> : System.Collections.Generic.IAsyncEnumerable<TEntity>
@@ -101,7 +113,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 				AsyncEnumerable = asyncEnumerable;
 			}
 
-			public System.Collections.Generic.IAsyncEnumerator<TEntity> GetEnumerator()
+			public System.Collections.Generic.IAsyncEnumerator<TEntity> GetAsyncEnumerator(CancellationToken cancellationToken = new CancellationToken())
 			{
 				return new AsyncEnumeratorAdapter<TEntity>(AsyncEnumerable.GetEnumerator());
 			}
@@ -116,17 +128,18 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 				AsyncEnumerator = asyncEnumerator;
 			}
 
-			public void Dispose()
+			public ValueTask<bool> MoveNextAsync()
 			{
-				AsyncEnumerator?.Dispose();
-			}
-
-			public Task<bool> MoveNext(CancellationToken cancellationToken)
-			{
-				return AsyncEnumerator.MoveNext(cancellationToken);
+				return new ValueTask<bool>(AsyncEnumerator.MoveNext(CancellationToken.None));
 			}
 
 			public TEntity Current => AsyncEnumerator.Current;
+
+			public ValueTask DisposeAsync()
+			{
+				AsyncEnumerator?.Dispose();
+				return default;
+			}
 		}
 
 	}

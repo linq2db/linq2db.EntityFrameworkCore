@@ -6,6 +6,14 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 	public class TestUtils
 	{
 		public static readonly ILoggerFactory LoggerFactory =
-			new LoggerFactory(new[] { new ConsoleLoggerProvider((_, __) => true, true) });
+			Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
+			{
+				builder.AddFilter("Microsoft", LogLevel.Information)
+					.AddFilter("System", LogLevel.Warning)
+					.AddFilter("LinqToDB.EntityFrameworkCore.Test", LogLevel.Information)
+
+					.AddTestLogger();
+			});		
+
 	}
 }

@@ -1,8 +1,11 @@
 ﻿using System.Linq;
+using LinqToDB.EntityFrameworkCore.Tests.Models.AdventuresWorks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlAzure.Model;
+using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestModels.Northwind;
 using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.Tests
@@ -24,6 +27,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 
 			using (var context = new AdventureWorksContext(optionsBuilder.Options))
 			{
+				context.Database.EnsureDeleted();
 				context.Database.EnsureCreated();
 
 				var connection2 = optionsBuilder.Options.CreateLinqToDbConnection();
@@ -36,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		[Test]
 		public void TestPostgreSql()
 		{
-			var optionsBuilder = new DbContextOptionsBuilder<AdventureWorksContext>();
+			var optionsBuilder = new DbContextOptionsBuilder<NorthwindNpgsqlContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
 			optionsBuilder.UseNpgsql(
@@ -46,8 +50,11 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			var connection1 = optionsBuilder.Options.CreateLinqToDbConnection();
 			StringAssert.StartsWith(ProviderName.PostgreSQL, connection1.DataProvider.Name);
 
-			using (var context = new AdventureWorksContext(optionsBuilder.Options))
+			using (var context = new NorthwindNpgsqlContext(optionsBuilder.Options))
 			{
+				context.Database.EnsureDeleted();
+				context.Database.EnsureCreated();
+
 				var connection2 = optionsBuilder.Options.CreateLinqToDbConnection();
 				StringAssert.StartsWith(ProviderName.PostgreSQL, connection2.DataProvider.Name);
 
