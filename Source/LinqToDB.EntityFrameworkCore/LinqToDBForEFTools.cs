@@ -119,6 +119,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF.Core data model instance. Could be <c>null</c>.</param>
 		/// <param name="dependencies"></param>
+		/// <param name="mappingSource"></param>
 		/// <returns>LINQ To DB metadata provider.</returns>
 		public static IMetadataReader GetMetadataReader([JetBrains.Annotations.CanBeNull] IModel model,
 			RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource)

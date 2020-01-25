@@ -59,6 +59,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return Array.Empty<T>();
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
 			if (typeof(Expression).IsSameOrParentOf(type)) 
