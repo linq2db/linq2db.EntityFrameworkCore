@@ -22,7 +22,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="options">Operation options.</param>
 		/// <param name="source">Records to insert.</param>
 		/// <returns>Bulk insert operation status.</returns>
-		public static BulkCopyRowsCopied BulkCopy<T>(this DbContext context, BulkCopyOptions options, IEnumerable<T> source) where T : class
+		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DbContext context, BulkCopyOptions options, IEnumerable<T> source) where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
@@ -40,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="maxBatchSize">Number of rows in each batch. At the end of each batch, the rows in the batch are sent to the server. </param>
 		/// <param name="source">Records to insert.</param>
 		/// <returns>Bulk insert operation status.</returns>
-		public static BulkCopyRowsCopied BulkCopy<T>(this DbContext context, int maxBatchSize, IEnumerable<T> source) where T : class
+		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DbContext context, int maxBatchSize, IEnumerable<T> source) where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
@@ -59,7 +59,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="context">Database context.</param>
 		/// <param name="source">Records to insert.</param>
 		/// <returns>Bulk insert operation status.</returns>
-		public static BulkCopyRowsCopied BulkCopy<T>(this DbContext context, IEnumerable<T> source) where T : class
+		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DbContext context, IEnumerable<T> source) where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
@@ -84,7 +84,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Insertable source query.</returns>
 		[LinqTunnel]
 		[Pure]
-		public static IValueInsertable<T> Into<T>(this DbContext context, ITable<T> target)
+		public static IValueInsertable<T> Into<T>([NotNull] this DbContext context, [NotNull] ITable<T> target)
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (target == null)  throw new ArgumentNullException(nameof(target));
@@ -101,7 +101,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <typeparam name="T">Mapping class type.</typeparam>
 		/// <returns>Queryable source.</returns>
-		public static ITable<T> GetTable<T>(this DbContext context)
+		public static ITable<T> GetTable<T>([NotNull] this DbContext context)
 			where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));

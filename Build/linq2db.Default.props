@@ -14,7 +14,7 @@
 
 		<AppDesignerFolder>Properties</AppDesignerFolder>
 		<LangVersion>8.0</LangVersion>
-		<Nullable>enable</Nullable>
+		<Nullable>disable</Nullable>
 		<WarningLevel>4</WarningLevel>
 		<ErrorReport>prompt</ErrorReport>
 		<NoWarn>1701;1591</NoWarn>

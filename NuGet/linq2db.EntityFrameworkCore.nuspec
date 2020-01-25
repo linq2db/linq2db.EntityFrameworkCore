@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
 	<metadata>
 		<id>linq2db.EntityFrameworkCore</id>
@@ -14,7 +14,10 @@
 		<projectUrl>https://github.com/linq2db/linq2db.EntityFrameworkCore</projectUrl>
 		<license type="file">MIT-LICENSE.txt</license>
 		<dependencies>
-				<dependency id="linq2db" version="2.9.5"/>
+			<group targetFramework=".NETStandard2.1">
+				<dependency id="Microsoft.EntityFrameworkCore.Relational" version="3.0.0" />
+				<dependency id="linq2db" version="2.9.5" />
+			</group>
 		</dependencies>
 	</metadata>
 

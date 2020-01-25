@@ -10,11 +10,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Gets or sets database connection instance.
 		/// </summary>
-		public DbConnection? Connection { get; set; }
+		public DbConnection Connection { get; set; }
 
 		/// <summary>
 		/// Gets or sets database connection string.
 		/// </summary>
-		public string? ConnectionString { get; set; }
+		public string ConnectionString { get; set; }
 	}
 }

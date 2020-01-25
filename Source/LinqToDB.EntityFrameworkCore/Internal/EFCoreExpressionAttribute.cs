@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using LinqToDB.Mapping;
 using LinqToDB.SqlQuery;
 
 namespace LinqToDB.EntityFrameworkCore.Internal
@@ -29,7 +30,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 				knownExpressions.Add(me.Expression);
 			}
 
-			var pams = new ISqlExpression?[knownExpressions.Count];
+			var pams = new List<ISqlExpression>(knownExpressions.Select(_ => (ISqlExpression) null));
 
 			_ = Sql.ExtensionAttribute.ResolveExpressionValues(Expression,
 				(v, d) =>

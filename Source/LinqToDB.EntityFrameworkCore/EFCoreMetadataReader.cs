@@ -26,15 +26,12 @@ namespace LinqToDB.EntityFrameworkCore
 	/// </summary>
 	internal class EFCoreMetadataReader : IMetadataReader
 	{
-		readonly IModel? _model;
-		private readonly RelationalSqlTranslatingExpressionVisitorDependencies? _dependencies;
-		private readonly IRelationalTypeMappingSource? _mappingSource;
-		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?>();
+		readonly IModel _model;
+		private readonly RelationalSqlTranslatingExpressionVisitorDependencies _dependencies;
+		private readonly IRelationalTypeMappingSource _mappingSource;
+		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute>();
 
-		public EFCoreMetadataReader(
-			IModel? model,
-			RelationalSqlTranslatingExpressionVisitorDependencies? dependencies,
-			IRelationalTypeMappingSource? mappingSource)
+		public EFCoreMetadataReader(IModel model, RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource)
 		{
 			_model = model;
 			_dependencies = dependencies;
@@ -200,7 +197,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			public Expression Expression { get; }
 
-			public SqlTransparentExpression(Expression expression, RelationalTypeMapping? typeMapping) : base(expression.Type, typeMapping)
+			public SqlTransparentExpression(Expression expression, RelationalTypeMapping typeMapping) : base(expression.Type, typeMapping)
 			{
 				Expression = expression;
 			}
@@ -211,7 +208,7 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 		}
 
-		private Sql.ExpressionAttribute? GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
+		private Sql.ExpressionAttribute GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
@@ -220,17 +217,17 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var found = _calculatedExtensions.GetOrAdd(methodInfo, mi =>
 			{
-				EFCoreExpressionAttribute? result = null;
+				EFCoreExpressionAttribute result = null;
 
 				if (!methodInfo.IsGenericMethodDefinition && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
 				{
-					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource?.FindMapping(type));
+					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource.FindMapping(type));
 					var parameterInfos = methodInfo.GetParameters();
 					var parametersArray = parameterInfos
 						.Select(p =>
 							(SqlExpression)new SqlTransparentExpression(
 								Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType),
-								_mappingSource?.FindMapping(p.ParameterType))).ToArray();
+								_mappingSource.FindMapping(p.ParameterType))).ToArray();
 
 					var newExpression = _dependencies.MethodCallTranslatorProvider.Translate(_model, objExpr, methodInfo, parametersArray);
 					if (newExpression != null)
@@ -248,7 +245,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return found;
 		}
 
-		private Sql.ExpressionAttribute? GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
+		private Sql.ExpressionAttribute GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
@@ -257,11 +254,11 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var found = _calculatedExtensions.GetOrAdd(propInfo, mi =>
 			{
-				EFCoreExpressionAttribute? result = null;
+				EFCoreExpressionAttribute result = null;
 
 				if ((propInfo.GetMethod?.IsStatic != true) && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
 				{
-					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource?.FindMapping(propInfo));
+					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource.FindMapping(propInfo));
 
 					var newExpression = _dependencies.MemberTranslatorProvider.Translate(objExpr, propInfo, propInfo.GetMemberType());
 					if (newExpression != null)
@@ -279,7 +276,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		private static EFCoreExpressionAttribute ConvertToExpressionAttribute(MemberInfo memberInfo, Expression newExpression, Expression[] parameters)
 		{
-			string PrepareExpressionText(Expression? expr)
+			string PrepareExpressionText(Expression expr)
 			{
 				var idx = Array.IndexOf(parameters, expr);
 				if (idx >= 0)

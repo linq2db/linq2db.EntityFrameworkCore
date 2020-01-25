@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
+using JetBrains.Annotations;
 using LinqToDB.Expressions;
 
 namespace LinqToDB.EntityFrameworkCore.Internal
@@ -24,7 +25,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 	/// <typeparam name="T"></typeparam>
 	public class LinqToDBForEFQueryProvider<T> : IAsyncQueryProvider, IQueryProviderAsync, IQueryable<T>, System.Collections.Generic.IAsyncEnumerable<T>
 	{
-		public LinqToDBForEFQueryProvider(IDataContext dataContext, Expression expression)
+		public LinqToDBForEFQueryProvider([NotNull] IDataContext dataContext, [NotNull] Expression expression)
 		{
 			if (expression == null) throw new ArgumentNullException(nameof(expression));
 			var dataContext1 = dataContext ?? throw new ArgumentNullException(nameof(dataContext));
