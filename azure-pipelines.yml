@@ -68,10 +68,9 @@ stages:
         workingDirectory: $(Build.SourcesDirectory)/NuGet
       displayName: Install nuget
 
-    - task: NugetCommand@2
+    - task: CmdLine@2
       inputs:
-        command: 'custom'
-        arguments: 'Pack linq2db.EntityFrameworkCore.nuspec -OutputDirectory built'
+        script: 'nuget Pack linq2db.EntityFrameworkCore.nuspec -OutputDirectory built'
         workingDirectory: $(Build.SourcesDirectory)/NuGet
       displayName: Build nuget
 
