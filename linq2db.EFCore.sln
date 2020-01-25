@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2036
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29324.140
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linq2db.EntityFrameworkCore", "Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.csproj", "{29F45BE9-3B57-4162-A02A-59F05528A0E7}"
 EndProject
@@ -9,17 +9,23 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToDB.EntityFrameworkCor
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{A3F30061-485E-4112-9675-3AE332BEED13}"
 	ProjectSection(SolutionItems) = preProject
-		Build\AppVeyor.FixVersionProps.ps1 = Build\AppVeyor.FixVersionProps.ps1
-		Build\AppVeyor.NUnit.Tests.ps1 = Build\AppVeyor.NUnit.Tests.ps1
-		appveyor.yml = appveyor.yml
+		azure-pipelines.yml = azure-pipelines.yml
 		Build\linq2db.Default.props = Build\linq2db.Default.props
 		Build\linq2db.snk = Build\linq2db.snk
+		Build\SetVersion.ps1 = Build\SetVersion.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7316BE20-8825-4234-923D-45F0FBC48B7D}"
 	ProjectSection(SolutionItems) = preProject
 		NuGet.config = NuGet.config
 		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{4BCDB6FB-E23E-4908-8C7A-F40A336D4B7D}"
+	ProjectSection(SolutionItems) = preProject
+		NuGet\BuildNuspecs.ps1 = NuGet\BuildNuspecs.ps1
+		NuGet\icon.png = NuGet\icon.png
+		NuGet\linq2db.EntityFrameworkCore.nuspec = NuGet\linq2db.EntityFrameworkCore.nuspec
 	EndProjectSection
 EndProject
 Global
