@@ -23,7 +23,7 @@
 		<file src="..\Source\LinqToDB.EntityFrameworkCore\bin\Release\**\linq2db.EntityFrameworkCore.xml" target="lib\" />
 		<file src="..\Source\LinqToDB.EntityFrameworkCore\bin\Release\**\linq2db.EntityFrameworkCore.dll" target="lib\" />
 
-		<file src="..\MIT-LICENSE.txt" target="lib\" />
+		<file src="..\MIT-LICENSE.txt" />
 		
 		<file src="icon.png" target="images\icon.png" />
 	</files>
