@@ -1,20 +1,17 @@
+
+
 # linq2db.EntityFrameworkCore
 
 `linq2db.EntityFrameworkCore` is an integration of `LINQ To DB` with existing EntityFrameworkCore projects. It was inspired by [this issue](https://github.com/aspnet/EntityFrameworkCore/issues/11657) in EF.Core repository.
 
 ## Build status
 
-| |Appveyor|
------|-------
-|master|[![Master](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x/branch/master?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore/branch/master)
-|latest|[![Latest](https://ci.appveyor.com/api/projects/status/vmp9pj4gqrch4x3x?svg=true)](https://ci.appveyor.com/project/igor-tkachev/linq2db-entityframeworkcore)
+[![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
 
 ## Feeds
 
 * NuGet [![NuGet](https://img.shields.io/nuget/vpre/linq2db.EntityFrameworkCore.svg)](https://www.nuget.org/packages/linq2db.EntityFrameworkCore)
-* MyGet [![MyGet](https://img.shields.io/myget/linq2db/vpre/linq2db.EntityFrameworkCore.svg)](https://www.myget.org/feed/linq2db/package/nuget/linq2db.EntityFrameworkCore)
-  * V2 `https://www.myget.org/F/linq2db/api/v2`
-  * V3 `https://www.myget.org/F/linq2db/api/v3/index.json`
+* Azure Artifacts [![MyGet](https://img.shields.io/badge/azure-download-yellowgreen)](https://dev.azure.com/linq2db/linq2db/_packaging?_a=package&feed=linq2db&view=versions&package=linq2db.EntityFrameworkCore&protocolType=NuGet)
 
 # How to use
 
@@ -130,7 +127,7 @@ There are many reasons. Some of them:
 
 # Current status
 
-Right now it is an early preview. Below is a list of providers, that should work right now:
+Below is a list of providers, that should work right now:
 
 - SQL Server
 - MySQL (including Devart and Pomelo providers)
