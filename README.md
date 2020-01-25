@@ -6,7 +6,8 @@
 
 ## Build status
 
-[![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
+[![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7/master?label=master)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
+[![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7?label=latest)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
 
 ## Feeds
 
