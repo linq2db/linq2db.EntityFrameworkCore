@@ -62,9 +62,17 @@ stages:
         arguments: -path $(Build.SourcesDirectory)/NuGet/linq2db.EntityFrameworkCore.nuspec -version $(packageVersion) -branch $(Build.SourceBranchName)
       displayName: Generate nuspec
 
-    - task: CmdLine@2
+    - task: NuGetToolInstaller@0
       inputs:
+        versionSpec: '5.4.x'
         script: 'NuGet Pack linq2db.EntityFrameworkCore.nuspec -OutputDirectory built'
+        workingDirectory: $(Build.SourcesDirectory)/NuGet
+      displayName: Install nuget
+
+    - task: NugetCommand@2
+      inputs:
+        command: 'custom'
+        arguments: 'Pack linq2db.EntityFrameworkCore.nuspec -OutputDirectory built'
         workingDirectory: $(Build.SourcesDirectory)/NuGet
       displayName: Build nuget
 

@@ -5,10 +5,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.1</TargetFramework>
 		<RootNamespace>LinqToDB.EntityFrameworkCore</RootNamespace>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <DocumentationFile>c:\GitHub\linq2db.EntityFrameworkCore\Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.xml</DocumentationFile>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\linq2db.EntityFrameworkCore.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
