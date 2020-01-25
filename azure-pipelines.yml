@@ -83,7 +83,7 @@ stages:
     - task: NuGetCommand@2
       inputs:
         command: 'push'
-        packagesToPush: '$(Build.SourcesDirectory)/NuGet/built/linq2db.EntityFrameworkCore.nupkg'
+        packagesToPush: '$(Build.SourcesDirectory)/NuGet/built/linq2db.EntityFrameworkCore.*.nupkg'
         nuGetFeedType: 'internal'
         publishVstsFeed: '0dcc414b-ea54-451e-a54f-d63f05367c4b/967a4107-9788-41a4-9f6d-a2318aab1410'
       displayName: Publish to Azure Artifacts feed
@@ -93,7 +93,7 @@ stages:
     - task: NuGetCommand@2
       inputs:
         command: 'push'
-        packagesToPush: '$(Build.SourcesDirectory)/NuGet/built/linq2db.EntityFrameworkCore.nupkg'
+        packagesToPush: '$(Build.SourcesDirectory)/NuGet/built/linq2db.EntityFrameworkCore.*.nupkg'
         nuGetFeedType: 'external'
         publishFeedCredentials: 'linq2db nuget.org feed'
       displayName: Publish to Nuget.org
