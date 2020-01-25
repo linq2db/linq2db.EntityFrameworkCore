@@ -77,7 +77,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return true;
 		}
 
-		static ILinqToDBForEFTools _implementation;
+		static ILinqToDBForEFTools _implementation = null!;
 
 		/// <summary>
 		/// Gets or sets EF.Core to LINQ To DB integration bridge implementation.
@@ -95,7 +95,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static readonly ConcurrentDictionary<IModel, IMetadataReader> _metadataReaders = new ConcurrentDictionary<IModel, IMetadataReader>();
 
-		static Lazy<IMetadataReader> _defaultMeadataReader;
+		static Lazy<IMetadataReader> _defaultMeadataReader = null!;
 
 		/// <summary>
 		/// Clears internal caches
@@ -120,8 +120,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model instance. Could be <c>null</c>.</param>
 		/// <param name="dependencies"></param>
 		/// <returns>LINQ To DB metadata provider.</returns>
-		public static IMetadataReader GetMetadataReader([JetBrains.Annotations.CanBeNull] IModel model,
-			RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource)
+		public static IMetadataReader GetMetadataReader(
+			IModel? model,
+			RelationalSqlTranslatingExpressionVisitorDependencies? dependencies,
+			IRelationalTypeMappingSource? mappingSource)
 		{
 			if (model == null)
 				return _defaultMeadataReader.Value;
@@ -134,7 +136,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
 		/// <returns><see cref="DbContextOptions"/> instance.</returns>
-		public static IDbContextOptions GetContextOptions(DbContext context)
+		public static IDbContextOptions? GetContextOptions(DbContext context)
 		{
 			return Implementation.GetContextOptions(context);
 		}
@@ -213,9 +215,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="dependencies"></param>
 		/// <param name="mappingSource"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public static MappingSchema GetMappingSchema(IModel model,
-			RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-			IRelationalTypeMappingSource mappingSource)
+		public static MappingSchema? GetMappingSchema(IModel model,
+			RelationalSqlTranslatingExpressionVisitorDependencies? dependencies,
+			IRelationalTypeMappingSource? mappingSource)
 		{
 			return Implementation.GetMappingSchema(model, GetMetadataReader(model, dependencies, mappingSource));
 		}
@@ -227,7 +229,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
 		/// <param name="model">EF.Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
-		public static Expression TransformExpression(Expression expression, IDataContext dc, IModel model)
+		public static Expression TransformExpression(Expression expression, IDataContext dc, IModel? model)
 		{
 			return Implementation.TransformExpression(expression, dc, model);
 		}
@@ -241,13 +243,13 @@ namespace LinqToDB.EntityFrameworkCore
 		/// If not specified, will use current <see cref="DbContext"/> transaction if it available.</param>
 		/// <returns>LINQ To DB <see cref="DataConnection"/> instance.</returns>
 		public static DataConnection CreateLinqToDbConnection(this DbContext context,
-			IDbContextTransaction transaction = null)
+			IDbContextTransaction? transaction = null)
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
 			var info = GetEFProviderInfo(context);
 
-			DataConnection dc = null;
+			DataConnection? dc = null;
 
 			transaction = transaction ?? context.Database.CurrentTransaction;
 
@@ -285,19 +287,19 @@ namespace LinqToDB.EntityFrameworkCore
 			return dc;
 		}
 
-		public static ILogger CreateLogger(IDbContextOptions options)
+		public static ILogger? CreateLogger(IDbContextOptions? options)
 		{
 			return Implementation.CreateLogger(options);
 		}
 
 		public static IDataContext CreateLinqToDbContext(this DbContext context,
-			IDbContextTransaction transaction = null)
+			IDbContextTransaction? transaction = null)
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
 			var info = GetEFProviderInfo(context);
 
-			DataConnection dc = null;
+			DataConnection? dc = null;
 
 			transaction = transaction ?? context.Database.CurrentTransaction;
 
@@ -350,7 +352,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
 		/// <returns>LINQ To DB <see cref="DataConnection"/> instance.</returns>
-		public static DataConnection CreateLinq2DbConnectionDetached([JetBrains.Annotations.NotNull] this DbContext context)
+		public static DataConnection CreateLinq2DbConnectionDetached(this DbContext context)
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
@@ -399,7 +401,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options"><see cref="DbContextOptions"/> instance.</param>
 		/// <returns>EF.Core data model instance.</returns>
-		public static IModel GetModel(DbContextOptions options)
+		public static IModel? GetModel(DbContextOptions? options)
 		{
 			if (options == null)
 				return null;
@@ -416,7 +418,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			var info = GetEFProviderInfo(options);
 
-			DataConnection dc = null;
+			DataConnection? dc = null;
 
 			var connectionInfo = GetConnectionInfo(info);
 			var dataProvider   = GetDataProvider(info, connectionInfo);
@@ -487,7 +489,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="query">EF.Core query.</param>
 		/// <returns>Current <see cref="DbContext"/> instance.</returns>
-		public static DbContext GetCurrentContext(IQueryable query)
+		public static DbContext? GetCurrentContext(IQueryable query)
 		{
 			return Implementation.GetCurrentContext(query);
 		}

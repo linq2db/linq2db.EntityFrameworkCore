@@ -46,14 +46,14 @@ namespace LinqToDB.EntityFrameworkCore
 	{
 		class ProviderKey
 		{
-			public ProviderKey(string providerName, string connectionString)
+			public ProviderKey(string? providerName, string? connectionString)
 			{
 				ProviderName = providerName;
 				ConnectionString = connectionString;
 			}
 
-			string ProviderName { get; }
-			string ConnectionString { get; }
+			string? ProviderName { get; }
+			string? ConnectionString { get; }
 
 			#region Equality members
 
@@ -62,7 +62,7 @@ namespace LinqToDB.EntityFrameworkCore
 				return string.Equals(ProviderName, other.ProviderName) && string.Equals(ConnectionString, other.ConnectionString);
 			}
 
-			public override bool Equals(object obj)
+			public override bool Equals(object? obj)
 			{
 				if (obj is null) return false;
 				if (ReferenceEquals(this, obj)) return true;
@@ -167,7 +167,7 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 		}
 
-		protected virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(DatabaseFacade database)
+		protected virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(DatabaseFacade database)
 		{
 			switch (database.ProviderName)
 			{
@@ -218,7 +218,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return null;
 		}
 
-		protected virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(DbConnection connection)
+		protected virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(DbConnection connection)
 		{
 			switch (connection.GetType().Name)
 			{
@@ -245,7 +245,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return null;
 		}
 
-		protected  virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(RelationalOptionsExtension extensions)
+		protected  virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(RelationalOptionsExtension extensions)
 		{
 			switch (extensions.GetType().Name)
 			{
@@ -276,7 +276,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return null;
 		}
 
-		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string connectionString)
+		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string? connectionString)
 		{
 			if (!string.IsNullOrEmpty(connectionString))
 				return DataConnection.GetDataProvider("System.Data.SqlClient", connectionString);
@@ -303,7 +303,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return new SqlServerDataProvider(providerName, version);
 		}
 
-		protected virtual IDataProvider CreatePostgreSqlProvider(PostgreSQLVersion version, string connectionString)
+		protected virtual IDataProvider CreatePostgreSqlProvider(PostgreSQLVersion version, string? connectionString)
 		{
 			if (!string.IsNullOrEmpty(connectionString))
 				return DataConnection.GetDataProvider(ProviderName.PostgreSQL, connectionString);
@@ -335,9 +335,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="dependencies"></param>
 		/// <param name="mappingSource"></param>
 		/// <returns>LINQ To DB metadata provider for specified EF.Core model.</returns>
-		public virtual IMetadataReader CreateMetadataReader(IModel model,
-			RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-			IRelationalTypeMappingSource mappingSource)
+		public virtual IMetadataReader CreateMetadataReader(
+			IModel? model,
+			RelationalSqlTranslatingExpressionVisitorDependencies? dependencies,
+			IRelationalTypeMappingSource? mappingSource)
 		{
 			return new EFCoreMetadataReader(model, dependencies, mappingSource);
 		}
@@ -348,7 +349,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader)
+		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader? metadataReader)
 		{
 			var schema = new MappingSchema();
 			if (metadataReader != null)
@@ -361,7 +362,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
 		/// <returns><see cref="IDbContextOptions"/> instance.</returns>
-		public virtual IDbContextOptions GetContextOptions(DbContext context)
+		public virtual IDbContextOptions? GetContextOptions(DbContext? context)
 		{
 			return context?.GetService<IDbContextOptions>();
 		}
@@ -402,7 +403,7 @@ namespace LinqToDB.EntityFrameworkCore
 		private static readonly MethodInfo
 			L2DBProperty = typeof(Sql).GetMethod(nameof(Sql.Property)).GetGenericMethodDefinition();
 
-		public static Expression Unwrap(Expression ex)
+		public static Expression? Unwrap(Expression? ex)
 		{
 			if (ex == null)
 				return null;
@@ -433,7 +434,7 @@ namespace LinqToDB.EntityFrameworkCore
 			       type == typeof(EntityFrameworkQueryableExtensions);
 		}
 
-		public static object EvaluateExpression(Expression expr)
+		public static object? EvaluateExpression(Expression? expr)
 		{
 			if (expr == null)
 				return null;
@@ -561,7 +562,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
-		public virtual Expression TransformExpression(Expression expression, IDataContext dc, IModel model)
+		public virtual Expression TransformExpression(Expression expression, IDataContext dc, IModel? model)
 		{
 			var ignoreQueryFilters = false;
 
@@ -748,7 +749,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="query">EF.Core query.</param>
 		/// <returns>Current <see cref="DbContext"/> instance.</returns>
-		public virtual DbContext GetCurrentContext(IQueryable query)
+		public virtual DbContext? GetCurrentContext(IQueryable query)
 		{
 			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance);
 			var compiler = (QueryCompiler) compilerField.GetValue(query.Provider);
@@ -776,9 +777,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>EF.Core connection data.</returns>
-		public virtual EFConnectionInfo ExtractConnectionInfo(IDbContextOptions options)
+		public virtual EFConnectionInfo? ExtractConnectionInfo(IDbContextOptions? options)
 		{
-			var relational = options.Extensions.OfType<RelationalOptionsExtension>().FirstOrDefault();
+			var relational = options?.Extensions.OfType<RelationalOptionsExtension>().FirstOrDefault();
 			return new  EFConnectionInfo
 			{
 				ConnectionString = relational?.ConnectionString,
@@ -791,7 +792,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>EF.Core data model instance.</returns>
-		public virtual IModel ExtractModel(IDbContextOptions options)
+		public virtual IModel? ExtractModel(IDbContextOptions? options)
 		{
 			var coreOptions = options?.Extensions.OfType<CoreOptionsExtension>().FirstOrDefault();
 			return coreOptions?.Model;
@@ -868,7 +869,7 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 		}
 
-		public virtual ILogger CreateLogger(IDbContextOptions options)
+		public virtual ILogger? CreateLogger(IDbContextOptions? options)
 		{
 			var coreOptions = options?.FindExtension<CoreOptionsExtension>();
 

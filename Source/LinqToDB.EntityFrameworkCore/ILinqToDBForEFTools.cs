@@ -31,7 +31,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="providerInfo">Provider information, extracted from EF.Core.</param>
 		/// <param name="connectionInfo">Database connection information.</param>
 		/// <returns>LINQ TO DB provider instance.</returns>
-		IDataProvider GetDataProvider(EFProviderInfo providerInfo, EFConnectionInfo connectionInfo);
+		IDataProvider? GetDataProvider(EFProviderInfo providerInfo, EFConnectionInfo connectionInfo);
 
 		/// <summary>
 		/// Creates metadata provider for specified EF.Core data model.
@@ -40,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="dependencies"></param>
 		/// <param name="mappingSource"></param>
 		/// <returns>LINQ To DB metadata provider for specified EF.Core model. Can return <c>null</c>.</returns>
-		IMetadataReader CreateMetadataReader(IModel model, RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource);
+		IMetadataReader CreateMetadataReader(IModel? model, RelationalSqlTranslatingExpressionVisitorDependencies? dependencies, IRelationalTypeMappingSource? mappingSource);
 
 		/// <summary>
 		/// Creates mapping schema using provided EF.Core data model and metadata provider.
@@ -48,14 +48,14 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader);
+		MappingSchema? GetMappingSchema(IModel model, IMetadataReader? metadataReader);
 
 		/// <summary>
 		/// Returns EF.Core <see cref="IDbContextOptions"/> for specific <see cref="DbContext"/> instance.
 		/// </summary>
 		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
 		/// <returns><see cref="IDbContextOptions"/> instance.</returns>
-		IDbContextOptions GetContextOptions(DbContext context);
+		IDbContextOptions? GetContextOptions(DbContext? context);
 
 		/// <summary>
 		/// Transforms EF.Core expression tree to LINQ To DB expression.
@@ -64,35 +64,35 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
 		/// <param name="model">EF.Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
-		Expression TransformExpression(Expression expression, IDataContext dc, IModel model);
+		Expression TransformExpression(Expression expression, IDataContext dc, IModel? model);
 
 		/// <summary>
 		/// Extracts <see cref="DbContext"/> instance from <see cref="IQueryable"/> object.
 		/// </summary>
 		/// <param name="query">EF.Core query.</param>
 		/// <returns>Current <see cref="DbContext"/> instance.</returns>
-		DbContext GetCurrentContext(IQueryable query);
+		DbContext? GetCurrentContext(IQueryable query);
 
 		/// <summary>
 		/// Extracts EF.Core connection information object from <see cref="IDbContextOptions"/>.
 		/// </summary>
 		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>EF.Core connection data.</returns>
-		EFConnectionInfo ExtractConnectionInfo(IDbContextOptions options);
+		EFConnectionInfo? ExtractConnectionInfo(IDbContextOptions? options);
 
 		/// <summary>
 		/// Extracts EF.Core data model instance from <see cref="IDbContextOptions"/>.
 		/// </summary>
 		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>EF.Core data model instance.</returns>
-		IModel ExtractModel(IDbContextOptions options);
+		IModel? ExtractModel(IDbContextOptions? options);
 
 		/// <summary>
 		/// Creates logger used for logging Linq To DB connection calls.
 		/// </summary>
 		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>Logger instance.</returns>
-		ILogger CreateLogger(IDbContextOptions options);
+		ILogger? CreateLogger(IDbContextOptions? options);
 
 		/// <summary>
 		/// Logs DataConnection information.
