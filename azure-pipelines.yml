@@ -71,7 +71,8 @@ stages:
     - task: NugetCommand@2
       inputs:
         command: 'custom'
-        arguments: 'Pack $(Build.SourcesDirectory)/NuGet/linq2db.EntityFrameworkCore.nuspec -OutputDirectory $(Build.SourcesDirectory)/NuGet/built'
+        arguments: 'Pack linq2db.EntityFrameworkCore.nuspec -OutputDirectory built'
+        workingDirectory: $(Build.SourcesDirectory)/NuGet
       displayName: Build nuget
 
     - task: PublishBuildArtifacts@1
@@ -93,7 +94,7 @@ stages:
     - task: NuGetCommand@2
       inputs:
         command: 'push'
-        packagesToPush: '$(Build.SourcesDirectory)/NuGet/built/*.nupkg'
+        packagesToPush: '$(Build.SourcesDirectory)/NuGet/built/linq2db.EntityFrameworkCore.nupkg'
         nuGetFeedType: 'external'
         publishFeedCredentials: 'linq2db nuget.org feed'
       displayName: Publish to Nuget.org
