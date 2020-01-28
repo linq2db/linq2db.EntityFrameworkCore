@@ -8,11 +8,12 @@
 
 [![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7/master?label=master)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
 [![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7?label=latest)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
+[![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7/version1.X?label=efcore%202%20master)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
 
 ## Feeds
 
 * NuGet [![NuGet](https://img.shields.io/nuget/vpre/linq2db.EntityFrameworkCore.svg)](https://www.nuget.org/packages/linq2db.EntityFrameworkCore)
-* Azure Artifacts [![MyGet](https://img.shields.io/badge/azure-download-yellowgreen)](https://dev.azure.com/linq2db/linq2db/_packaging?_a=package&feed=linq2db&view=versions&package=linq2db.EntityFrameworkCore&protocolType=NuGet)
+* Azure Artifacts [![MyGet](https://img.shields.io/badge/azure-download-yellowgreen)](https://dev.azure.com/linq2db/linq2db/_packaging?_a=package&feed=linq2db&view=versions&package=linq2db.EntityFrameworkCore&protocolType=NuGet) ([feed]( https://pkgs.dev.azure.com/linq2db/linq2db/_packaging/linq2db/nuget/v3/index.json))
 
 # How to use
 
