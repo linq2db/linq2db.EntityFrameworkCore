@@ -46,6 +46,14 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
+		MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader);
+
+		/// <summary>
+		/// Returns mapping schema using provided EF.Core data model and metadata provider.
+		/// </summary>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
+		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader);
 
 		/// <summary>

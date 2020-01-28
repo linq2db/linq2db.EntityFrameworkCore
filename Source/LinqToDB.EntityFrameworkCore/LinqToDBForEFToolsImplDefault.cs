@@ -26,6 +26,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 	using Extensions;
+	using Common.Internal.Cache;
 
 	using DataProvider;
 	using DataProvider.DB2;
@@ -83,9 +84,17 @@ namespace LinqToDB.EntityFrameworkCore
 
 		readonly ConcurrentDictionary<ProviderKey, IDataProvider> _knownProviders = new ConcurrentDictionary<ProviderKey, IDataProvider>();
 
+		private readonly MemoryCache _schemaCache = new MemoryCache(
+			new MemoryCacheOptions
+			{
+				ExpirationScanFrequency = TimeSpan.FromHours(1.0)
+			});
+
+
 		public virtual void ClearCaches()
 		{
 			_knownProviders.Clear();
+			_schemaCache.Compact(1.0);
 		}
 
 		/// <summary>
@@ -346,12 +355,29 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader)
+		public virtual MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader)
 		{
 			var schema = new MappingSchema();
 			if (metadataReader != null)
 				schema.AddMetadataReader(metadataReader);
 			return schema;
+		}
+
+		/// <summary>
+		/// Returns mapping schema using provided EF.Core data model and metadata provider.
+		/// </summary>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
+		/// <returns>Mapping schema for provided EF.Core model.</returns>
+		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader)
+		{
+			var result = _schemaCache.GetOrCreate(Tuple.Create(model, metadataReader), e =>
+			{
+				e.SlidingExpiration = TimeSpan.FromHours(1); 
+				return CreateMappingSchema(model, metadataReader);
+			});
+
+			return result;
 		}
 
 		/// <summary>
