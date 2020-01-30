@@ -26,6 +26,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 	using Extensions;
+	using Common.Internal.Cache;
 
 	using DataProvider;
 	using DataProvider.DB2;
@@ -83,9 +84,17 @@ namespace LinqToDB.EntityFrameworkCore
 
 		readonly ConcurrentDictionary<ProviderKey, IDataProvider> _knownProviders = new ConcurrentDictionary<ProviderKey, IDataProvider>();
 
+		private readonly MemoryCache _schemaCache = new MemoryCache(
+			new MemoryCacheOptions
+			{
+				ExpirationScanFrequency = TimeSpan.FromHours(1.0)
+			});
+
+
 		public virtual void ClearCaches()
 		{
 			_knownProviders.Clear();
+			_schemaCache.Compact(1.0);
 		}
 
 		/// <summary>
@@ -348,12 +357,29 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader)
+		public virtual MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader)
 		{
 			var schema = new MappingSchema();
 			if (metadataReader != null)
 				schema.AddMetadataReader(metadataReader);
 			return schema;
+		}
+
+		/// <summary>
+		/// Returns mapping schema using provided EF.Core data model and metadata provider.
+		/// </summary>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
+		/// <returns>Mapping schema for provided EF.Core model.</returns>
+		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader)
+		{
+			var result = _schemaCache.GetOrCreate(Tuple.Create(model, metadataReader), e =>
+			{
+				e.SlidingExpiration = TimeSpan.FromHours(1); 
+				return CreateMappingSchema(model, metadataReader);
+			});
+
+			return result;
 		}
 
 		/// <summary>
@@ -430,7 +456,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var type = method.Method.DeclaringType;
 
 			return type == typeof(Queryable) || (enumerable && type == typeof(Enumerable)) || type == typeof(LinqExtensions) ||
-			       type == typeof(EntityFrameworkQueryableExtensions);
+				   type == typeof(EntityFrameworkQueryableExtensions);
 		}
 
 		public static object EvaluateExpression(Expression expr)
@@ -550,7 +576,6 @@ namespace LinqToDB.EntityFrameworkCore
 			return result;
 		}
 
-
 		/// <summary>
 		/// Transforms EF.Core expression tree to LINQ To DB expression.
 		/// Method replaces EF.Core <see cref="EntityQueryable{TResult}"/> instances with LINQ To DB
@@ -558,10 +583,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="expression">EF.Core expression tree.</param>
 		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
+		/// <param name="ctx">Optional DbContext instance.</param>
 		/// <param name="model">EF.Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
-		public virtual Expression TransformExpression(Expression expression, IDataContext dc, IModel model)
+		public virtual Expression TransformExpression(Expression expression, IDataContext dc, DbContext ctx, IModel model)
 		{
 			var ignoreQueryFilters = false;
 
@@ -659,6 +685,24 @@ namespace LinqToDB.EntityFrameworkCore
 								if (filter != null)
 								{
 									var filterBody = filter.Body.Transform(l => LocalTransform(l));
+
+									// replacing DbContext constant
+									if (ctx != null)
+									{
+										filterBody = filterBody.Transform(fe =>
+										{
+											if (fe.NodeType == ExpressionType.Constant)
+											{
+												if (fe.Type.IsAssignableFrom(ctx.GetType()))
+												{
+													return Expression.Constant(ctx, fe.Type);
+												}
+											}
+
+											return fe;
+										});
+									}
+
 									filter = Expression.Lambda(filterBody, filter.Parameters[0]);
 									var whereExpr = Expression.Call(null, WhereMethodInfo.MakeGenericMethod(entityType), newExpr, Expression.Quote(filter));
 

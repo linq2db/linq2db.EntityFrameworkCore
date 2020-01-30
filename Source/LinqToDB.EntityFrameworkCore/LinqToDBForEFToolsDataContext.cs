@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -13,16 +14,20 @@ namespace LinqToDB.EntityFrameworkCore
 
 	public class LinqToDBForEFToolsDataContext : DataContext, IExpressionPreprocessor
 	{
+		[CanBeNull] 
+		readonly DbContext _context;
 		readonly IModel _model;
-		readonly Func<Expression, IDataContext, IModel, Expression> _transformFunc;
+		readonly Func<Expression, IDataContext, DbContext, IModel, Expression> _transformFunc;
 
 		public LinqToDBForEFToolsDataContext(
-			[NotNull] IDataProvider dataProvider, 
-			[NotNull] string connectionString, 
-			IModel    model,
-			Func<Expression, IDataContext, IModel, Expression> transformFunc) : base(dataProvider, connectionString)
+			[CanBeNull] DbContext     context,
+			[NotNull]   IDataProvider dataProvider, 
+			[NotNull]   string        connectionString, 
+			            IModel        model,
+			Func<Expression, IDataContext, DbContext, IModel, Expression> transformFunc) : base(dataProvider, connectionString)
 		{
-			_model = model;
+			_context       = context;
+			_model         = model;
 			_transformFunc = transformFunc;
 		}
 
@@ -30,7 +35,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (_transformFunc == null)
 				return expression;
-			return _transformFunc(expression, this, _model);
+			return _transformFunc(expression, this, _context, _model);
 		}
 
 	}

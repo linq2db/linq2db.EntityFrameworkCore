@@ -451,12 +451,23 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		[Test]
 		public void TestGlobalQueryFilters()
 		{
-			using (var ctx = CreateAdventureWorksContext())
+			using (var ctx = new AdventureWorksContextDerived(_options))
 			{
+				ctx.Database.EnsureCreated();
+
 				var withoutFilter = ctx.Products.IgnoreQueryFilters().ToLinqToDB().ToArray();
-				var products = ctx.Products.ToLinqToDB().ToArray();
+
+				ctx.IsFilterNullable = true;
+				var query = ctx.Products.ToLinqToDB();
+
+				var products = query.ToArray();
 
 				Assert.AreNotEqual(withoutFilter.Length, products.Length);
+
+				ctx.IsFilterNullable = false;
+				products = query.ToArray();
+
+				Assert.AreEqual(withoutFilter.Length, products.Length);
 			}
 		}
 
