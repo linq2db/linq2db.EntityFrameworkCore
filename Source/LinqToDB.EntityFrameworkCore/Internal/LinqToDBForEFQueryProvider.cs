@@ -68,7 +68,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 
 		public System.Collections.Generic.IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
 		{
-			return new AsyncEnumerableAdaper<TResult>(QueryProvider.ExecuteAsync<TResult>(expression));
+			return new AsyncEnumerableAdapter<TResult>(QueryProvider.ExecuteAsync<TResult>(expression));
 		}
 
 		IAsyncEnumerable<TResult> IQueryProviderAsync.ExecuteAsync<TResult>(Expression expression)
@@ -99,38 +99,40 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 
 		#endregion
 
-		System.Collections.Generic.IAsyncEnumerator<T> System.Collections.Generic.IAsyncEnumerable<T>.GetAsyncEnumerator(CancellationToken cancellationTokent)
+		System.Collections.Generic.IAsyncEnumerator<T> System.Collections.Generic.IAsyncEnumerable<T>.GetAsyncEnumerator(CancellationToken cancellationToken)
 		{
-			return ExecuteAsync<T>(Expression).GetAsyncEnumerator(CancellationToken.None);
+			return ExecuteAsync<T>(Expression).GetAsyncEnumerator(cancellationToken);
 		}
 
-		class AsyncEnumerableAdaper<TEntity> : System.Collections.Generic.IAsyncEnumerable<TEntity>
+		class AsyncEnumerableAdapter<TEntity> : System.Collections.Generic.IAsyncEnumerable<TEntity>
 		{
 			private IAsyncEnumerable<TEntity> AsyncEnumerable { get; }
 
-			public AsyncEnumerableAdaper(IAsyncEnumerable<TEntity> asyncEnumerable)
+			public AsyncEnumerableAdapter(IAsyncEnumerable<TEntity> asyncEnumerable)
 			{
 				AsyncEnumerable = asyncEnumerable;
 			}
 
-			public System.Collections.Generic.IAsyncEnumerator<TEntity> GetAsyncEnumerator(CancellationToken cancellationToken = new CancellationToken())
+			public System.Collections.Generic.IAsyncEnumerator<TEntity> GetAsyncEnumerator(CancellationToken cancellationToken = default)
 			{
-				return new AsyncEnumeratorAdapter<TEntity>(AsyncEnumerable.GetEnumerator());
+				return new AsyncEnumeratorAdapter<TEntity>(AsyncEnumerable.GetEnumerator(), cancellationToken);
 			}
 		}
 
 		class AsyncEnumeratorAdapter<TEntity> : System.Collections.Generic.IAsyncEnumerator<TEntity>
 		{
+			private readonly CancellationToken _cancellationToken;
 			private IAsyncEnumerator<TEntity> AsyncEnumerator { get; }
 
-			public AsyncEnumeratorAdapter(IAsyncEnumerator<TEntity> asyncEnumerator)
+			public AsyncEnumeratorAdapter(IAsyncEnumerator<TEntity> asyncEnumerator, CancellationToken cancellationToken)
 			{
-				AsyncEnumerator = asyncEnumerator;
+				_cancellationToken = cancellationToken;
+				AsyncEnumerator    = asyncEnumerator;
 			}
 
 			public ValueTask<bool> MoveNextAsync()
 			{
-				return new ValueTask<bool>(AsyncEnumerator.MoveNext(CancellationToken.None));
+				return new ValueTask<bool>(AsyncEnumerator.MoveNext(_cancellationToken));
 			}
 
 			public TEntity Current => AsyncEnumerator.Current;

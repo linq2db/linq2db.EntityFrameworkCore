@@ -576,7 +576,6 @@ namespace LinqToDB.EntityFrameworkCore
 			return result;
 		}
 
-
 		/// <summary>
 		/// Transforms EF.Core expression tree to LINQ To DB expression.
 		/// Method replaces EF.Core <see cref="EntityQueryable{TResult}"/> instances with LINQ To DB
