@@ -4,12 +4,12 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<PackageId>linq2db.EntityFrameworkCore</PackageId>
 		<RootNamespace>LinqToDB.EntityFrameworkCore</RootNamespace>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\linq2db.EntityFrameworkCore.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="linq2db" Version="2.8.0" />
+		<PackageReference Include="linq2db" Version="2.9.6" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.2.6" />
 	</ItemGroup>
 

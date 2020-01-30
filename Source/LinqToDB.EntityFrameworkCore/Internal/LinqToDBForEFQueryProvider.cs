@@ -56,7 +56,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 
 		public System.Collections.Generic.IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
 		{
-			return new AsyncEnumerableAdaper<TResult>(QueryProvider.ExecuteAsync<TResult>(expression));
+			return new AsyncEnumerableAdapter<TResult>(QueryProvider.ExecuteAsync<TResult>(expression));
 		}
 
 		IAsyncEnumerable<TResult> IQueryProviderAsync.ExecuteAsync<TResult>(Expression expression)
@@ -92,11 +92,11 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			return ExecuteAsync<T>(Expression).GetEnumerator();
 		}
 
-		class AsyncEnumerableAdaper<TEntity> : System.Collections.Generic.IAsyncEnumerable<TEntity>
+		class AsyncEnumerableAdapter<TEntity> : System.Collections.Generic.IAsyncEnumerable<TEntity>
 		{
 			private IAsyncEnumerable<TEntity> AsyncEnumerable { get; }
 
-			public AsyncEnumerableAdaper(IAsyncEnumerable<TEntity> asyncEnumerable)
+			public AsyncEnumerableAdapter(IAsyncEnumerable<TEntity> asyncEnumerable)
 			{
 				AsyncEnumerable = asyncEnumerable;
 			}
