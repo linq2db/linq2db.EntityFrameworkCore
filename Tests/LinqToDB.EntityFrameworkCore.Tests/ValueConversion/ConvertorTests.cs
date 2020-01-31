@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -17,6 +18,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests.ValueConversion
 			{
 			}
 
+			[DatabaseGenerated(DatabaseGeneratedOption.Identity)] 	
 			public virtual DbSet<SubDivision> Subdivisions { get; set; }
 		}
 
@@ -46,6 +48,9 @@ namespace LinqToDB.EntityFrameworkCore.Tests.ValueConversion
 					{ Code = "C1", Id = new Id<SubDivision, long>(1), Name = "N1", PermanentId = Guid.NewGuid() });
 
 				ctx.SaveChanges(true);
+
+				var resut = db.InsertWithInt32Identity(new SubDivision()
+					{ Code = "C2", Name = "N2", PermanentId = Guid.NewGuid() });
 
 				var ef   = ctx.Subdivisions.Where(s => s.Id == 1).ToArray();
 				var ltdb = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == 1).ToArray();
