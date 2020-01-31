@@ -1,24 +1,24 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 2.0.1
-  nugetVersion: 2.0.1
+  assemblyVersion: 2.0.2
+  nugetVersion: 2.0.2
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
 # v2: 'master' + 'release'
-# v1: 'version1.X'+ 'release.1'
+# v1: 'version1'+ 'release.1'
 trigger:
   - master
   - release
-  - version1.X
+  - version1
   - release.1
 # don't trigger pr builds by default, users should trigger them manually using /azp bot commands
 # when we have multiple test runs waiting for free job, when nobody needs them
 # we only want to trigger it for pr to release branch
 pr:
   - master
-  - version1.X
+  - version1
 
 stages:
 
@@ -87,7 +87,7 @@ stages:
         nuGetFeedType: 'internal'
         publishVstsFeed: '0dcc414b-ea54-451e-a54f-d63f05367c4b/967a4107-9788-41a4-9f6d-a2318aab1410'
       displayName: Publish to Azure Artifacts feed
-      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.SourceBranchName'], 'version1.X')))
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.SourceBranchName'], 'version1')))
 
 # apikey exires around 31/07/2020
     - task: NuGetCommand@2

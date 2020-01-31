@@ -14,6 +14,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests.Models.AdventuresWorks
 		{
 		}
 
+		public bool IsFilterNullable { get; set; }
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<Address>(
@@ -109,7 +111,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests.Models.AdventuresWorks
 
 						entity.Property(e => e.rowguid).HasDefaultValueSql("newid()");
 
-						entity.HasQueryFilter(e => e.Weight != null || EF.Property<decimal?>(e, "Weight") != null);
+						entity.HasQueryFilter(e => !IsFilterNullable || e.Weight != null || EF.Property<decimal?>(e, "Weight") != null);
 					});
 
 			modelBuilder.Entity<ProductCategory>(
