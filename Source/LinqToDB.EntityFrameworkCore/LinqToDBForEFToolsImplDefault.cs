@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Logging;
@@ -26,6 +27,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 	using Extensions;
+	using SqlQuery;
 	using Common.Internal.Cache;
 
 	using DataProvider;
@@ -356,13 +358,94 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
+		/// <param name="convertorSelector"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public virtual MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader)
+		public virtual MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader,
+			IValueConverterSelector convertorSelector)
 		{
 			var schema = new MappingSchema();
 			if (metadataReader != null)
 				schema.AddMetadataReader(metadataReader);
+
+			DefineConvertors(schema, model, convertorSelector);
+
 			return schema;
+		}
+
+		public virtual void DefineConvertors(
+			[JetBrains.Annotations.NotNull] MappingSchema mappingSchema,
+			[JetBrains.Annotations.NotNull] IModel model, 
+			IValueConverterSelector convertorSelector)
+		{
+			if (mappingSchema == null) throw new ArgumentNullException(nameof(mappingSchema));
+			if (model == null)         throw new ArgumentNullException(nameof(model));
+
+			if (convertorSelector == null)
+				return;
+
+			var entities = model.GetEntityTypes().ToArray();
+
+			var types = entities.SelectMany(e => e.GetProperties().Select(p => p.ClrType))
+				.Distinct()
+				.ToArray();
+
+			foreach (var clrType in types)
+			{
+				var currentType = mappingSchema.GetDataType(clrType);
+				if (currentType != SqlDataType.Undefined)
+					continue;
+
+				var infos = convertorSelector.Select(clrType).ToArray();
+				if (infos.Length > 0)
+				{
+					foreach (var info in infos)
+					{
+						currentType = mappingSchema.GetDataType(info.ModelClrType);
+						if (currentType != SqlDataType.Undefined)
+							continue;
+
+						var dataType    = mappingSchema.GetDataType(info.ProviderClrType);
+						var fromParam   = Expression.Parameter(clrType, "t");
+
+						var convertExpression = mappingSchema.GetConvertExpression(clrType, info.ProviderClrType, false);
+						var converter         = convertExpression.GetBody(fromParam);
+
+						var valueExpression   = converter;
+
+						if (clrType.IsClass || clrType.IsInterface)
+						{
+							valueExpression = Expression.Condition(
+								Expression.Equal(fromParam,
+									Expression.Constant(null, clrType)),
+								Expression.Constant(null, clrType),
+								valueExpression
+							);
+						}
+						else if (typeof(Nullable<>).IsSameOrParentOf(clrType))
+						{
+							valueExpression = Expression.Condition(
+								Expression.Property(fromParam, "HasValue"),
+								Expression.Convert(valueExpression, typeof(object)),
+								Expression.Constant(null, typeof(object))
+							);
+						}
+
+						if (valueExpression.Type != typeof(object))
+							valueExpression = Expression.Convert(valueExpression, typeof(object));
+
+						var convertLambda = Expression.Lambda(
+							Expression.New(DataParameterConstructor,
+								Expression.Constant("Conv", typeof(string)),
+								valueExpression,
+								Expression.Constant(dataType.DataType, typeof(DataType)),
+								Expression.Constant(dataType.DbType,   typeof(string))
+							), fromParam);
+
+						mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
+					}
+				}
+			}
+
 		}
 
 		/// <summary>
@@ -370,13 +453,15 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
+		/// <param name="convertorSelector"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader)
+		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader,
+			IValueConverterSelector convertorSelector)
 		{
-			var result = _schemaCache.GetOrCreate(Tuple.Create(model, metadataReader), e =>
+			var result = _schemaCache.GetOrCreate(Tuple.Create(model, metadataReader, convertorSelector), e =>
 			{
 				e.SlidingExpiration = TimeSpan.FromHours(1); 
-				return CreateMappingSchema(model, metadataReader);
+				return CreateMappingSchema(model, metadataReader, convertorSelector);
 			});
 
 			return result;
@@ -425,8 +510,10 @@ namespace LinqToDB.EntityFrameworkCore
 		static readonly MethodInfo EFProperty =
 			MemberHelper.MethodOf(() => EF.Property<object>(1, "")).GetGenericMethodDefinition();
 
-		private static readonly MethodInfo
+		static readonly MethodInfo
 			L2DBProperty = typeof(Sql).GetMethod(nameof(Sql.Property)).GetGenericMethodDefinition();
+
+		static readonly ConstructorInfo DataParameterConstructor = MemberHelper.ConstructorOf(() => new DataParameter("", "", DataType.Undefined, ""));
 
 		public static Expression Unwrap(Expression ex)
 		{
