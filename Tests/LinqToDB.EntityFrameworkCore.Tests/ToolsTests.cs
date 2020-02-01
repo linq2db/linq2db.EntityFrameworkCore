@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore.SqlAzure.Model;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace LinqToDB.EntityFrameworkCore.Tests
 {
@@ -387,7 +388,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			{
 				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies, mappingSource);
+				var converters    = ctx.GetService<IValueConverterSelector>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource);
 				
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(CustomerAddress),
 					MemberHelper.MemberOf<CustomerAddress>(c => c.CustomerID));
@@ -412,7 +414,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			{
 				var dependencies = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies, null);
+				var converters    = ctx.GetService<IValueConverterSelector>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, null);
 				
 				var associationCustomer = ms.GetAttribute<AssociationAttribute>(typeof(CustomerAddress),
 					MemberHelper.MemberOf<CustomerAddress>(c => c.Customer));
@@ -438,7 +441,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			{
 				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies, mappingSource);
+				var converters    = ctx.GetService<IValueConverterSelector>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource);
 				
 				var identity = ms.GetAttribute<ColumnAttribute>(typeof(SalesOrderDetail),
 					MemberHelper.MemberOf<SalesOrderDetail>(c => c.SalesOrderDetailID));
