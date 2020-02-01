@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -211,14 +212,16 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Creates mapping schema using provided EF.Core data model.
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
+		/// <param name="convertorSelector">EF Core registry for type conversion.</param>
 		/// <param name="dependencies"></param>
 		/// <param name="mappingSource"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		public static MappingSchema GetMappingSchema(IModel model,
+			IValueConverterSelector convertorSelector,
 			RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
 			IRelationalTypeMappingSource mappingSource)
 		{
-			return Implementation.GetMappingSchema(model, GetMetadataReader(model, dependencies, mappingSource));
+			return Implementation.GetMappingSchema(model, GetMetadataReader(model, dependencies, mappingSource), convertorSelector);
 		}
 
 		/// <summary>
@@ -280,7 +283,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var dependencies  = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSource = context.GetService<IRelationalTypeMappingSource>();
-			var mappingSchema = GetMappingSchema(context.Model, dependencies, mappingSource);
+			var converters    = context.GetService<IValueConverterSelector>();
+			var mappingSchema = GetMappingSchema(context.Model, converters, dependencies, mappingSource);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
@@ -307,7 +311,8 @@ namespace LinqToDB.EntityFrameworkCore
 			var provider       = GetDataProvider(info, connectionInfo);
 			var dependencies   = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSource  = context.GetService<IRelationalTypeMappingSource>();
-			var mappingSchema  = GetMappingSchema(context.Model, dependencies, mappingSource);
+			var converters     = context.GetService<IValueConverterSelector>();
+			var mappingSchema  = GetMappingSchema(context.Model, converters, dependencies, mappingSource);
 			var logger         = CreateLogger(info.Options);
 
 			if (transaction != null)
@@ -367,7 +372,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var dependencies  = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSource = context.GetService<IRelationalTypeMappingSource>();
-			var mappingSchema = GetMappingSchema(context.Model, dependencies, mappingSource);
+			var converters    = context.GetService<IValueConverterSelector>();
+			var mappingSchema = GetMappingSchema(context.Model, converters, dependencies, mappingSource);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
@@ -438,7 +444,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			if (model != null)
 			{
-				var mappingSchema = GetMappingSchema(model, null, null);
+				var mappingSchema = GetMappingSchema(model, null, null, null);
 				if (mappingSchema != null)
 					dc.AddMappingSchema(mappingSchema);
 			}

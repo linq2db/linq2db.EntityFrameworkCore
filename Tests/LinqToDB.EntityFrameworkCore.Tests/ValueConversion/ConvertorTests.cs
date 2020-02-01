@@ -44,16 +44,30 @@ namespace LinqToDB.EntityFrameworkCore.Tests.ValueConversion
 				ctx.Database.EnsureDeleted();
 				ctx.Database.EnsureCreated();
 
-				ctx.Subdivisions.Add(new SubDivision()
-					{ Code = "C1", Id = new Id<SubDivision, long>(1), Name = "N1", PermanentId = Guid.NewGuid() });
 
-				ctx.SaveChanges(true);
+				var resut = db.InsertWithInt64Identity(new SubDivision()
+					{ Code = "C1", Id = new Id<SubDivision, long>(0), Name = "N1", PermanentId = Guid.NewGuid() });
 
-				var resut = db.InsertWithInt32Identity(new SubDivision()
-					{ Code = "C2", Name = "N2", PermanentId = Guid.NewGuid() });
+				resut = db.InsertWithInt64Identity(new SubDivision()
+					{ Code = "C2", Id = new Id<SubDivision, long>(1), Name = "N2", PermanentId = Guid.NewGuid() });
 
-				var ef   = ctx.Subdivisions.Where(s => s.Id == 1).ToArray();
-				var ltdb = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == 1).ToArray();
+				resut = db.InsertWithInt64Identity(new SubDivision()
+					{ Code = "C3", Id = new Id<SubDivision, long>(2), Name = "N3", PermanentId = Guid.NewGuid() });
+
+				
+				db.GetTable<SubDivision>()
+					.Where(s => s.Id == 1)
+					.Set(s => s.ParentId, new Id<SubDivision, long>(11))
+					.Update();
+
+				db.GetTable<SubDivision>()
+					.Where(s => s.Id == 2)
+					.Set(s => s.ParentId, () => new Id<SubDivision, long>(33))
+					.Update();
+
+				var ef   = ctx.Subdivisions.Where(s => s.Id == 1L).ToArray();
+				var ltdb = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == 1L).ToArray();
+				var all  = ctx.Subdivisions.ToLinqToDB().ToArray();
 			}
 		}
 
