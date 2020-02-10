@@ -1,6 +1,6 @@
 ﻿<Project>
 	<PropertyGroup>
-		<Version>2.0.2</Version>
+		<Version>2.0.3</Version>
 
 		<Description>Allows to execute Linq to DB (linq2db) queries in Entity Framework Core DbContext.</Description>
 		<Title>Linq to DB (linq2db) extensions for Entity Framework Core</Title>
