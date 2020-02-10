@@ -59,6 +59,27 @@ namespace LinqToDB.EntityFrameworkCore
 			return Array.Empty<T>();
 		}
 
+		static bool CompareProperty(MemberInfo property, MemberInfo memberInfo)
+		{
+			if (property == memberInfo)
+				return true;
+			
+			if (memberInfo.DeclaringType.IsAssignableFrom(property.DeclaringType) 
+			    && memberInfo.Name == property.Name 
+			    && memberInfo.MemberType == property.MemberType 
+			    && memberInfo.GetMemberType() == property.GetMemberType())
+			{
+				return true;
+			}
+
+			return false;
+		}
+		
+		static bool CompareProperty(IProperty property, MemberInfo memberInfo)
+		{
+			return CompareProperty(property.GetIdentifyingMemberInfo(), memberInfo);
+		}
+		
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
@@ -71,7 +92,8 @@ namespace LinqToDB.EntityFrameworkCore
 				if (et != null)
 				{
 					var props = et.GetProperties();
-					var prop = props.FirstOrDefault(p => p.GetIdentifyingMemberInfo() == memberInfo);
+					var prop  = props.FirstOrDefault(p => CompareProperty(p, memberInfo));
+					
 					if (prop != null)
 					{
 						var isPrimaryKey = prop.IsPrimaryKey();
@@ -80,18 +102,18 @@ namespace LinqToDB.EntityFrameworkCore
 						{
 							var pk = prop.FindContainingPrimaryKey();
 							primaryKeyOrder = pk.Properties.Select((p, i) => new { p, index = i })
-								                  .FirstOrDefault(v => v.p.GetIdentifyingMemberInfo() == memberInfo)?.index ?? 0;
+								                  .FirstOrDefault(v => CompareProperty(v.p, memberInfo))?.index ?? 0;
 						}
 
 						return new T[]{(T)(Attribute) new ColumnAttribute
 						{
-							Name = prop.GetColumnName(),
-							Length = prop.GetMaxLength() ?? 0,
-							CanBeNull = prop.IsNullable,
-							DbType = prop.GetColumnType(),
-							IsPrimaryKey = isPrimaryKey,
+							Name            = prop.GetColumnName(),
+							Length          = prop.GetMaxLength() ?? 0,
+							CanBeNull       = prop.IsNullable,
+							DbType          = prop.GetColumnType(),
+							IsPrimaryKey    = isPrimaryKey,
 							PrimaryKeyOrder = primaryKeyOrder,
-							IsIdentity = prop.ValueGenerated == ValueGenerated.OnAdd,
+							IsIdentity      = prop.ValueGenerated == ValueGenerated.OnAdd,
 						}};
 					}
 				}
@@ -108,7 +130,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (typeof(T) == typeof(AssociationAttribute))
 			{
 				var et = _model?.FindEntityType(type);
-				var navigations = et?.GetNavigations().Where(n => n.PropertyInfo == memberInfo).ToArray();
+				var navigations = et?.GetNavigations().Where(n => CompareProperty(n.PropertyInfo, memberInfo)).ToArray();
 				if (navigations?.Length > 0)
 				{
 					var associations = new List<AssociationAttribute>();
