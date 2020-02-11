@@ -1,8 +1,8 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 2.0.4
-  nugetVersion: 2.0.4
+  assemblyVersion: 2.0.5
+  nugetVersion: 2.0.5
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
