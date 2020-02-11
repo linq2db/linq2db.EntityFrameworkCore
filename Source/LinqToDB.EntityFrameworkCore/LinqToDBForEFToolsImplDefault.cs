@@ -391,6 +391,10 @@ namespace LinqToDB.EntityFrameworkCore
 
 			foreach (var clrType in types)
 			{
+				// skipping enums
+				if (clrType.IsEnum)
+					continue;
+
 				var currentType = mappingSchema.GetDataType(clrType);
 				if (currentType != SqlDataType.Undefined)
 					continue;

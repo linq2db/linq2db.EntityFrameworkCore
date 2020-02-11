@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using LinqToDB.Data;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -24,9 +25,17 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			public int Id { get; set; }
 			public virtual LocalizedString NameLocalized { get; set; }
 		}
+		
+		public enum CrashEnum : byte
+		{
+			OneValue = 0,
+			OtherValue = 1
+		}
 
 		public class EventScheduleItem : EventScheduleItemBase
 		{
+			public CrashEnum CrashEnum { get; set; }
+			public Guid GuidColumn { get; set; }
 		}
 
 		public class JsonConvertContext : DbContext
@@ -58,6 +67,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 						.HasColumnName("NameLocalized_JSON")
 						.HasConversion(v => JsonConvert.SerializeObject(v),
 							v => JsonConvert.DeserializeObject<LocalizedString>(v));
+					entity.Property(e => e.CrashEnum).HasColumnType("tinyint");
+					entity.Property(e => e.GuidColumn).HasColumnType("uniqueidentifier");
 				});
 			}
 		}
@@ -86,13 +97,15 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 
 			using (var ctx = new JsonConvertContext(_options))
 			{
+				ctx.Database.EnsureDeleted();
 				ctx.Database.EnsureCreated();
 
 				ctx.EventScheduleItems.Delete();
 
 				ctx.EventScheduleItems.Add(new EventScheduleItem()
 				{
-					NameLocalized = new LocalizedString() { English = "English", German = "German", Slovak = "Slovak" }
+					NameLocalized = new LocalizedString() { English = "English", German = "German", Slovak = "Slovak" },
+					GuidColumn = Guid.NewGuid()
 				});
 				ctx.SaveChanges();
 
@@ -103,7 +116,9 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 					.Select(p => new
 					{
 						p.Id,
-						p.NameLocalized
+						p.NameLocalized,
+						p.CrashEnum,
+						p.GuidColumn
 					}).FirstOrDefault();
 				
 				Assert.That(item.NameLocalized.English, Is.EqualTo("English"));
