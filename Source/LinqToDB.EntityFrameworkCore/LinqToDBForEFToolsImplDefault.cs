@@ -39,6 +39,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using DataProvider.SQLite;
 	using DataProvider.SqlServer;
 	using DataProvider.SqlCe;
+	using LinqToDB.EntityFrameworkCore.Internal;
 
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	/// <summary>
@@ -290,7 +291,7 @@ namespace LinqToDB.EntityFrameworkCore
 		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string connectionString)
 		{
 			if (!string.IsNullOrEmpty(connectionString))
-				return DataConnection.GetDataProvider("System.Data.SqlClient", connectionString);
+				return DataConnection.GetDataProvider(LinqToDBCompatibilityTools.GetSqlServerAssemblyName(), connectionString);
 
 			string providerName;
 			switch (version)
@@ -307,11 +308,14 @@ namespace LinqToDB.EntityFrameworkCore
 				case SqlServerVersion.v2012:
 					providerName = ProviderName.SqlServer2012;
 					break;
+				case SqlServerVersion.v2017:
+					providerName = ProviderName.SqlServer2017;
+					break;
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
 
-			return new SqlServerDataProvider(providerName, version);
+			return LinqToDBCompatibilityTools.CreateSqlServerDataProvider(providerName, version);
 		}
 
 		protected virtual IDataProvider CreatePostgreSqlProvider(PostgreSQLVersion version, string connectionString)
@@ -392,7 +396,7 @@ namespace LinqToDB.EntityFrameworkCore
 			foreach (var clrType in types)
 			{
 				// skipping enums
-				if (clrType.IsEnum)
+				if (LinqToDBCompatibilityTools.IsEnum(clrType))
 					continue;
 
 				var currentType = mappingSchema.GetDataType(clrType);
@@ -532,7 +536,7 @@ namespace LinqToDB.EntityFrameworkCore
 					{
 						var ue = (UnaryExpression)ex;
 
-						if (!ue.Operand.Type.IsEnumEx())
+						if (!LinqToDBCompatibilityTools.IsEnum(ue.Operand.Type))
 							return Unwrap(ue.Operand);
 
 						break;
@@ -732,7 +736,7 @@ namespace LinqToDB.EntityFrameworkCore
 									var props = navigationPath.Split('.');
 									for (int i = 0; i < props.Length; i++)
 									{
-										var propertyInfo = memberExpression.Type.GetPropertyEx(props[i]);
+										var propertyInfo = LinqToDBCompatibilityTools.GetPropertyInfo(memberExpression.Type,props[i]);
 										if (propertyInfo != null)
 											memberExpression = Expression.MakeMemberAccess(memberExpression, propertyInfo);
 									}
