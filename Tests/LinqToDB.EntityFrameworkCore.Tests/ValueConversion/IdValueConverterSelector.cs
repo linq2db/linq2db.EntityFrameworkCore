@@ -6,7 +6,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests.ValueConversion
 {
 	public sealed class IdValueConverterSelector : ValueConverterSelector
 	{
-		public IdValueConverterSelector([System.Diagnostics.CodeAnalysis.NotNull] ValueConverterSelectorDependencies dependencies) : base(dependencies)
+		public IdValueConverterSelector(ValueConverterSelectorDependencies dependencies) : base(dependencies)
 		{
 		}
 
