@@ -289,10 +289,20 @@ namespace LinqToDB.EntityFrameworkCore
 
 		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string connectionString)
 		{
-			if (!string.IsNullOrEmpty(connectionString))
-				return DataConnection.GetDataProvider("System.Data.SqlClient", connectionString);
-
 			string providerName;
+
+			if (!string.IsNullOrEmpty(connectionString))
+			{
+
+				if (typeof(DataConnection).Assembly.GetName().Version.Major >= 3)
+					providerName = "Microsoft.Data.SqlClient";
+				else
+					//TODO: Remove after switching to linq2db 3.0
+					providerName = "System.Data.SqlClient";
+
+				return DataConnection.GetDataProvider(providerName, connectionString);
+			}
+
 			switch (version)
 			{
 				case SqlServerVersion.v2000:
@@ -532,7 +542,7 @@ namespace LinqToDB.EntityFrameworkCore
 					{
 						var ue = (UnaryExpression)ex;
 
-						if (!ue.Operand.Type.IsEnumEx())
+						if (!ue.Operand.Type.IsEnum)
 							return Unwrap(ue.Operand);
 
 						break;
@@ -732,7 +742,7 @@ namespace LinqToDB.EntityFrameworkCore
 									var props = navigationPath.Split('.');
 									for (int i = 0; i < props.Length; i++)
 									{
-										var propertyInfo = memberExpression.Type.GetPropertyEx(props[i]);
+										var propertyInfo = memberExpression.Type.GetProperty(props[i]);
 										if (propertyInfo != null)
 											memberExpression = Expression.MakeMemberAccess(memberExpression, propertyInfo);
 									}
