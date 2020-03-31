@@ -262,14 +262,16 @@ namespace LinqToDB.EntityFrameworkCore
 			if (transaction != null)
 			{
 				var dbTrasaction = transaction.GetDbTransaction();
-				if (provider.IsCompatibleConnection(dbTrasaction.Connection))
+				// TODO: we need API for testing current connection
+				//if (provider.IsCompatibleConnection(dbTrasaction.Connection))
 					dc = new LinqToDBForEFToolsDataConnection(context, provider, dbTrasaction, context.Model, TransformExpression);
 			}
 
 			if (dc == null)
 			{
 				var dbConnection = context.Database.GetDbConnection();
-				if (provider.IsCompatibleConnection(dbConnection))
+				// TODO: we need API for testing current connection
+				if (true /*provider.IsCompatibleConnection(dbConnection)*/)
 					dc = new LinqToDBForEFToolsDataConnection(context, provider, dbConnection, context.Model, TransformExpression);
 				else
 				{
@@ -318,14 +320,17 @@ namespace LinqToDB.EntityFrameworkCore
 			if (transaction != null)
 			{
 				var dbTransaction = transaction.GetDbTransaction();
-				if (provider.IsCompatibleConnection(dbTransaction.Connection))
-					dc = new LinqToDBForEFToolsDataConnection(context, provider, dbTransaction, context.Model, TransformExpression);
+
+				// TODO: we need API for testing current connection
+				// if (provider.IsCompatibleConnection(dbTransaction.Connection))
+				dc = new LinqToDBForEFToolsDataConnection(context, provider, dbTransaction, context.Model, TransformExpression);
 			}
 
 			if (dc == null)
 			{
 				var dbConnection = context.Database.GetDbConnection();
-				if (provider.IsCompatibleConnection(dbConnection))
+				// TODO: we need API for testing current connection
+				if (true /*provider.IsCompatibleConnection(dbConnection)*/)
 					dc = new LinqToDBForEFToolsDataConnection(context, provider, context.Database.GetDbConnection(), context.Model, TransformExpression);
 				else
 				{

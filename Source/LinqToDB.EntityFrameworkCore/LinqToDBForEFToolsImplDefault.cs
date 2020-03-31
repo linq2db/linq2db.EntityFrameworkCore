@@ -28,6 +28,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Metadata;
 	using Extensions;
 	using SqlQuery;
+	using Reflection;
 	using Common.Internal.Cache;
 
 	using DataProvider;
@@ -157,7 +158,7 @@ namespace LinqToDB.EntityFrameworkCore
 					case ProviderName.PostgreSQL:
 						return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
 					case ProviderName.SQLite:
-						return new SQLiteDataProvider();
+						return new SQLiteDataProvider(provInfo.ProviderName);
 					case ProviderName.Firebird:
 						return new FirebirdDataProvider();
 					case ProviderName.DB2:
@@ -167,7 +168,7 @@ namespace LinqToDB.EntityFrameworkCore
 					case ProviderName.DB2zOS:
 						return new DB2DataProvider(ProviderName.DB2, DB2Version.zOS);
 					case ProviderName.Oracle:
-						return new OracleDataProvider();
+						return new OracleDataProvider(provInfo.ProviderName, OracleVersion.v11);
 					case ProviderName.SqlCe:
 						return new SqlCeDataProvider();
 					//case ProviderName.Access:
@@ -293,12 +294,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			if (!string.IsNullOrEmpty(connectionString))
 			{
-
-				if (typeof(DataConnection).Assembly.GetName().Version.Major >= 3)
-					providerName = "Microsoft.Data.SqlClient";
-				else
-					//TODO: Remove after switching to linq2db 3.0
-					providerName = "System.Data.SqlClient";
+				providerName = "Microsoft.Data.SqlClient";
 
 				return DataConnection.GetDataProvider(providerName, connectionString);
 			}
@@ -451,8 +447,8 @@ namespace LinqToDB.EntityFrameworkCore
 							Expression.New(DataParameterConstructor,
 								Expression.Constant("Conv", typeof(string)),
 								valueExpression,
-								Expression.Constant(dataType.DataType, typeof(DataType)),
-								Expression.Constant(dataType.DbType,   typeof(string))
+								Expression.Constant(dataType.Type.DataType, typeof(DataType)),
+								Expression.Constant(dataType.Type.DbType,   typeof(string))
 							), fromParam);
 
 						mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
@@ -493,8 +489,6 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static readonly MethodInfo GetTableMethodInfo =
 			MemberHelper.MethodOf<IDataContext>(dc => dc.GetTable<object>()).GetGenericMethodDefinition();
-
-		static readonly MethodInfo LoadWithMethodInfo = MemberHelper.MethodOf(() => LinqExtensions.LoadWith<int>(null, null)).GetGenericMethodDefinition();
 
 		static readonly MethodInfo WhereMethodInfo =
 			MemberHelper.MethodOf<IQueryable<object>>(q => q.Where(p => true)).GetGenericMethodDefinition();
@@ -752,14 +746,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 						if (memberExpression != param)
 						{
-							if (memberExpression.Type != typeof(object))
-							{
-								memberExpression = Expression.Convert(memberExpression, typeof(object));
-							}
-
 							var loadWithLambda = Expression.Lambda(memberExpression, param);
 
-							newExpr = Expression.Call(null, LoadWithMethodInfo.MakeGenericMethod(entityType), newExpr,
+							newExpr = Expression.Call(null, Methods.LinqToDB.LoadWith.MakeGenericMethod(entityType, memberExpression.Type), newExpr,
 								Expression.Quote(loadWithLambda));
 						}
 					}

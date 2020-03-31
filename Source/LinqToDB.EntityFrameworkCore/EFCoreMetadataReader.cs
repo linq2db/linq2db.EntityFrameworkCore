@@ -243,13 +243,15 @@ namespace LinqToDB.EntityFrameworkCore
 
 				if (!methodInfo.IsGenericMethodDefinition && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
 				{
-					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource.FindMapping(type));
+					var value = Expression.Constant(DefaultValue.GetValue(type), type);
+
+					var objExpr = new SqlTransparentExpression(value, _mappingSource?.FindMapping(type));
 					var parameterInfos = methodInfo.GetParameters();
 					var parametersArray = parameterInfos
 						.Select(p =>
 							(SqlExpression)new SqlTransparentExpression(
 								Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType),
-								_mappingSource.FindMapping(p.ParameterType))).ToArray();
+								_mappingSource?.FindMapping(p.ParameterType))).ToArray();
 
 					var newExpression = _dependencies.MethodCallTranslatorProvider.Translate(_model, objExpr, methodInfo, parametersArray);
 					if (newExpression != null)
@@ -280,7 +282,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 				if ((propInfo.GetMethod?.IsStatic != true) && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
 				{
-					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource.FindMapping(propInfo));
+					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource?.FindMapping(propInfo));
 
 					var newExpression = _dependencies.MemberTranslatorProvider.Translate(objExpr, propInfo, propInfo.GetMemberType());
 					if (newExpression != null)
