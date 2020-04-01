@@ -1,0 +1,30 @@
+﻿using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
+{
+	public class CategoriesMap : BaseEntityMap<Category>
+	{
+		public override void Configure(EntityTypeBuilder<Category> builder)
+		{
+			base.Configure(builder);
+
+			builder.HasKey(e => e.CategoryId);
+
+			builder.HasIndex(e => e.CategoryName)
+				.HasName("CategoryName");
+
+			builder.Property(e => e.CategoryId).HasColumnName("CategoryID")
+				.ValueGeneratedNever();
+
+			builder.Property(e => e.CategoryName)
+				.IsRequired()
+				.HasMaxLength(15);
+
+			builder.Property(e => e.Description).HasColumnType("ntext");
+
+			builder.Property(e => e.Picture).HasColumnType("image");
+		}
+	}
+}
