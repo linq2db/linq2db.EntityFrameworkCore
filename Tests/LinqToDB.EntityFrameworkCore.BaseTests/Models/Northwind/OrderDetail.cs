@@ -1,8 +1,6 @@
-﻿using Northwind.Core.Domain.Entities;
-
-namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
+﻿namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class OrderDetail
+    public class OrderDetail : BaseEntity
     {
         public int OrderId { get; set; }
         public int ProductId { get; set; }

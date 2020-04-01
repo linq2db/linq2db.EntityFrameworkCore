@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using Northwind.Core.Domain.Entities;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {

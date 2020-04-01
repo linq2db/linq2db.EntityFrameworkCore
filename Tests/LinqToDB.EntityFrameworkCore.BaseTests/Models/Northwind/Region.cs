@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using Northwind.Core.Domain.Entities;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public partial class Region
+    public partial class Region : BaseEntity
     {
         public Region()
         {

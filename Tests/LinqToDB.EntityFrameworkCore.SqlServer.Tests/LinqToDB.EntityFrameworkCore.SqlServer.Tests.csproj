@@ -21,10 +21,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Models\Northwind.Mapping\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\LinqToDB.EntityFrameworkCore.BaseTests\LinqToDB.EntityFrameworkCore.BaseTests.csproj" />
 	</ItemGroup>
 

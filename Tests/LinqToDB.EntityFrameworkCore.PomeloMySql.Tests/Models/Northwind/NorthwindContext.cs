@@ -1,8 +1,6 @@
 ﻿using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping;
 using Microsoft.EntityFrameworkCore;
-using Northwind.Core.Domain;
-using Northwind.Core.Domain.Entities;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 {

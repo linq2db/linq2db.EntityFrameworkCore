@@ -3,7 +3,7 @@
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class CustomerQuery
+    public class CustomerQuery : BaseEntity
     {
         public string CompanyName { get; set; }
         public int OrderCount { get; set; }

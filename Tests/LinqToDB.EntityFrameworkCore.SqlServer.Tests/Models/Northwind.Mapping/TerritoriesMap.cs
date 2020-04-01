@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 {
-    public class TerritoriesMap : IEntityTypeConfiguration<Territory>
+    public class TerritoriesMap : BaseEntityMap<Territory>
     {
-        public void Configure(EntityTypeBuilder<Territory> builder)
+	    public override void Configure(EntityTypeBuilder<Territory> builder)
         {
+	        base.Configure(builder);
+
             builder.HasKey(e => e.TerritoryId)
                     .IsClustered(false);
 

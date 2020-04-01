@@ -4,10 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 {
-    public class CustomersMap : IEntityTypeConfiguration<Customer>
+    public class CustomersMap : BaseEntityMap<Customer>
     {
-        public void Configure(EntityTypeBuilder<Customer> builder)
+	    public override void Configure(EntityTypeBuilder<Customer> builder)
         {
+	        base.Configure(builder);
 
             builder.HasKey(e => e.CustomerId);
 

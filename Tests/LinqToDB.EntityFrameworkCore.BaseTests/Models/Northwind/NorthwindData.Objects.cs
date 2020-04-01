@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Northwind.Core.Domain.Entities;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
@@ -2109,7 +2108,8 @@ Winchester Way",
                     UnitsInStock = 0,
                     UnitsOnOrder = 0,
                     ReorderLevel = 0,
-                    Discontinued = true
+                    Discontinued = true,
+					IsDeleted = true
                 },
                 new Product
                 {

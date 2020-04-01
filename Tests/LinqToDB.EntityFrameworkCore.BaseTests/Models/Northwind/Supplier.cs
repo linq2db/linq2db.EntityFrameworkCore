@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using Northwind.Core.Domain.Entities;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class Supplier
+    public class Supplier : BaseEntity
     {
         public Supplier()
         {

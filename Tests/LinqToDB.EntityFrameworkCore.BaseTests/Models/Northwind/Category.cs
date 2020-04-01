@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
+﻿using System.Collections.Generic;
 
-namespace Northwind.Core.Domain.Entities
+namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class Category
+    public class Category : BaseEntity
     {
         public Category()
         {

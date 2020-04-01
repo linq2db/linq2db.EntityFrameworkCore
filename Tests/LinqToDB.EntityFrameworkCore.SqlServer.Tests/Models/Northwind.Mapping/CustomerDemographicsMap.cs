@@ -1,14 +1,15 @@
 ﻿using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Northwind.Core.Domain.Entities;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 {
-    public class CustomerDemographicsMap : IEntityTypeConfiguration<CustomerDemographics>
+    public class CustomerDemographicsMap : BaseEntityMap<CustomerDemographics>
     {
-        public void Configure(EntityTypeBuilder<CustomerDemographics> builder)
+	    public override void Configure(EntityTypeBuilder<CustomerDemographics> builder)
         {
+	        base.Configure(builder);
+
             builder.HasKey(e => e.CustomerTypeId)
                    .IsClustered(false);
 

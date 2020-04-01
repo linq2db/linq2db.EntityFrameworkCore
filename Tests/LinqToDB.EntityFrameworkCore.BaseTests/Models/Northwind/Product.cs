@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Northwind.Core.Domain.Entities;
+﻿using System.Collections.Generic;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class Product
+    public class Product : BaseEntity
     {
         public Product()
         {

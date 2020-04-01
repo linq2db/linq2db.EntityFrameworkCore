@@ -75,6 +75,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 			LinqExtensions.ExtensionsAdapter = new LinqToDBExtensionsAdapter();
 
+			// Set linq2db to allow multiple queries by default
+			Common.Configuration.Linq.AllowMultipleQuery = true;
+
 			return true;
 		}
 
@@ -275,7 +278,7 @@ namespace LinqToDB.EntityFrameworkCore
 					dc = new LinqToDBForEFToolsDataConnection(context, provider, dbConnection, context.Model, TransformExpression);
 				else
 				{
-					dc = new LinqToDBForEFToolsDataConnection(context, provider, connectionInfo.ConnectionString, context.Model, TransformExpression);
+					//dc = new LinqToDBForEFToolsDataConnection(context, provider, connectionInfo.ConnectionString, context.Model, TransformExpression);
 				}
 			}
 
@@ -334,6 +337,7 @@ namespace LinqToDB.EntityFrameworkCore
 					dc = new LinqToDBForEFToolsDataConnection(context, provider, context.Database.GetDbConnection(), context.Model, TransformExpression);
 				else
 				{
+					/*
 					// special case when we have to create data connection by itself
 					var dataContext = new LinqToDBForEFToolsDataContext(context, provider, connectionInfo.ConnectionString, context.Model, TransformExpression);
 
@@ -344,6 +348,7 @@ namespace LinqToDB.EntityFrameworkCore
 						dataContext.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 						
 					return dataContext;
+					*/
 				}
 			}
 

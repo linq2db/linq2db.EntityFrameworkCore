@@ -2,7 +2,7 @@
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class Shipper
+    public class Shipper : BaseEntity
     {
         public Shipper()
         {

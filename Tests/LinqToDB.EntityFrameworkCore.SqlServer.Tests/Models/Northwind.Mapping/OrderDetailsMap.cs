@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 {
-    public class OrderDetailsMap : IEntityTypeConfiguration<OrderDetail>
+    public class OrderDetailsMap : BaseEntityMap<OrderDetail>
     {
-        public void Configure(EntityTypeBuilder<OrderDetail> builder)
+	    public override void Configure(EntityTypeBuilder<OrderDetail> builder)
         {
+	        base.Configure(builder);
+
             builder.HasKey(e => new { e.OrderId, e.ProductId });
 
              builder.ToTable("Order Details");

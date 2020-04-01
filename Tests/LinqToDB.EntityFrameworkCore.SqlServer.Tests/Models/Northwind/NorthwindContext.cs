@@ -1,8 +1,9 @@
-﻿using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
+﻿using System.Reflection;
+using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping;
+using LinqToDB.Expressions;
+using LinqToDB.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Northwind.Core.Domain;
-using Northwind.Core.Domain.Entities;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 {
@@ -45,8 +46,33 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 
 			builder.Entity<Product>()
 				.HasQueryFilter(e => !IsFilterProducts || e.ProductId > 2);
+
+			ConfigureGlobalQueryFilters(builder);
+		}
+
+		private void ConfigureGlobalQueryFilters(ModelBuilder builder)
+		{
+			foreach (var entityType in builder.Model.GetEntityTypes())
+			{
+				if (typeof(ISoftDelete).IsSameOrParentOf(entityType.ClrType))
+				{
+					var method = ConfigureEntityFilterMethodInfo.MakeGenericMethod(entityType.ClrType);
+					method.Invoke(this, new object?[] { builder });
+				}
+			}
+		}
+
+		private static MethodInfo ConfigureEntityFilterMethodInfo =
+			MemberHelper.MethodOf(() => ((NorthwindContext)null).ConfigureEntityFilter<BaseEntity>(null)).GetGenericMethodDefinition();
+
+		public void ConfigureEntityFilter<TEntity>(ModelBuilder builder)
+		where TEntity: class, ISoftDelete
+		{
+			builder.Entity<TEntity>().HasQueryFilter(e => !IsSoftDeleteFilterEnabled || !e.IsDeleted);
 		}
 
 		public bool IsFilterProducts { get; set; } 
+
+		public bool IsSoftDeleteFilterEnabled { get; set; }
 	}
 }

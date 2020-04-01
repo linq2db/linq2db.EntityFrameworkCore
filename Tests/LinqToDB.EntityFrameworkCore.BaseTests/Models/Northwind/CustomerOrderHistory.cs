@@ -1,7 +1,7 @@
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class CustomerOrderHistory
+    public class CustomerOrderHistory : BaseEntity
     {
         public string ProductName { get; set; }
 

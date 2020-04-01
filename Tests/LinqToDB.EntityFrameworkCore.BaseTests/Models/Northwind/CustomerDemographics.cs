@@ -2,7 +2,7 @@
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class CustomerDemographics
+    public class CustomerDemographics : BaseEntity
     {
         public CustomerDemographics()
         {

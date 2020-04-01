@@ -367,25 +367,31 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public void TestGlobalQueryFilters()
+		public void TestGlobalQueryFilters([Values(true, false)] bool disableFilter)
 		{
 			using (var ctx = CreateContext())
 			{
-				ctx.Database.EnsureCreated();
+				ctx.IsSoftDeleteFilterEnabled = !disableFilter;
 
-				var withoutFilter = ctx.Products.IgnoreQueryFilters().ToLinqToDB().ToArray();
+				var withoutFilterQuery =
+					from p in ctx.Products.IgnoreQueryFilters()
+					join d in ctx.OrderDetails on p.ProductId equals d.ProductId
+					select new { p, d };
 
-				ctx.IsFilterProducts = true;
-				var query = ctx.Products.ToLinqToDB();
+				var efResult      = withoutFilterQuery.ToArray();
+				var linq2dbResult = withoutFilterQuery.ToLinqToDB().ToArray();
 
-				var products = query.ToArray();
+				Assert.AreEqual(efResult.Length, linq2dbResult.Length);
 
-				Assert.AreNotEqual(withoutFilter.Length, products.Length);
+				var withFilterQuery =
+					from p in ctx.Products
+					join d in ctx.OrderDetails on p.ProductId equals d.ProductId
+					select new { p, d };
 
-				ctx.IsFilterProducts = false;
-				products = query.ToArray();
+				efResult      = withFilterQuery.ToArray();
+				linq2dbResult = withFilterQuery.ToLinqToDB().ToArray();
 
-				Assert.AreEqual(withoutFilter.Length, products.Length);
+				Assert.AreEqual(efResult.Length, linq2dbResult.Length);
 			}
 		}
 
@@ -415,6 +421,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			{
 				var query = ctx.Orders
 					.Include(o => o.Employee)
+					.ThenInclude(e => e.EmployeeTerritories)
+					.ThenInclude(et => et.Territory)
 					.Include(o => o.OrderDetails)
 					.ThenInclude(d => d.Product);
 
@@ -430,7 +438,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext())
 			{
 				var query = ctx.Orders
-					.Include("Employee")
+					.Include("Employee.EmployeeTerritories")
 					.Include(o => o.OrderDetails)
 					.ThenInclude(d => d.Product);
 
@@ -439,6 +447,31 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var result = await query.ToLinqToDB().ToArrayAsync();
 			}
 		}
+		[Test]
+		public async Task TestLoadFilter()
+		{
+			using (var ctx = CreateContext())
+			{
+				var query = ctx.Products.Select(p => new
+					{
+						p.ProductName,
+						OrderDetails = p.OrderDetails.Select(od => new
+						{
+							od.Discount,
+							od.Order,
+							od.Product.Supplier.Products
+						})
+					});
+
+				ctx.IsSoftDeleteFilterEnabled = true;
+
+				var expected = await query.ToArrayAsync();
+				var filtered = await query.ToLinqToDB().ToArrayAsync();
+
+				Assert.That(filtered.Length, Is.EqualTo(expected.Length));
+			}
+		}
+
 
 		[Test]
 		public async Task TestGetTable()

@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class CustomerView
+    public class CustomerView : BaseEntity
     {
         public string CompanyName { get; set; }
         public string ContactName { get; set; }
