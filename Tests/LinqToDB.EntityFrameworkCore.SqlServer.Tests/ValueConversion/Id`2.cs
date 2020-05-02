@@ -15,8 +15,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 	
 	public readonly struct Id<TEntity, TKey> : IEquatable<Id<TEntity, TKey>> where TEntity : IEntity<TKey>
 	{
-		public Id(TKey id) => Value = id;
-		public TKey Value { get; }
+		internal Id(TKey id) => Value = id;
+		internal TKey Value { get; }
 		public static implicit operator TKey(Id<TEntity, TKey> id) => id.Value;
 		public override string ToString() => $"{typeof(TEntity).Name}({Value})";
 		public bool Equals(Id<TEntity, TKey> other) => EqualityComparer<TKey>.Default.Equals(Value, other.Value);
