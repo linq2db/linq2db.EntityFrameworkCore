@@ -407,53 +407,53 @@ namespace LinqToDB.EntityFrameworkCore
 					continue;
 
 				var infos = convertorSelector.Select(clrType).ToArray();
-				if (infos.Length > 0)
+				if (infos.Length <= 0) 
+					continue;
+				
+				foreach (var info in infos)
 				{
-					foreach (var info in infos)
+					currentType = mappingSchema.GetDataType(info.ModelClrType);
+					if (currentType != SqlDataType.Undefined)
+						continue;
+
+					var dataType    = mappingSchema.GetDataType(info.ProviderClrType);
+					var fromParam   = Expression.Parameter(clrType, "t");
+
+					var convertExpression = mappingSchema.GetConvertExpression(clrType, info.ProviderClrType, false);
+					var converter         = convertExpression.GetBody(fromParam);
+
+					var valueExpression   = converter;
+
+					if (clrType.IsClass || clrType.IsInterface)
 					{
-						currentType = mappingSchema.GetDataType(info.ModelClrType);
-						if (currentType != SqlDataType.Undefined)
-							continue;
-
-						var dataType    = mappingSchema.GetDataType(info.ProviderClrType);
-						var fromParam   = Expression.Parameter(clrType, "t");
-
-						var convertExpression = mappingSchema.GetConvertExpression(clrType, info.ProviderClrType, false);
-						var converter         = convertExpression.GetBody(fromParam);
-
-						var valueExpression   = converter;
-
-						if (clrType.IsClass || clrType.IsInterface)
-						{
-							valueExpression = Expression.Condition(
-								Expression.Equal(fromParam,
-									Expression.Constant(null, clrType)),
-								Expression.Constant(null, clrType),
-								valueExpression
-							);
-						}
-						else if (typeof(Nullable<>).IsSameOrParentOf(clrType))
-						{
-							valueExpression = Expression.Condition(
-								Expression.Property(fromParam, "HasValue"),
-								Expression.Convert(valueExpression, typeof(object)),
-								Expression.Constant(null, typeof(object))
-							);
-						}
-
-						if (valueExpression.Type != typeof(object))
-							valueExpression = Expression.Convert(valueExpression, typeof(object));
-
-						var convertLambda = Expression.Lambda(
-							Expression.New(DataParameterConstructor,
-								Expression.Constant("Conv", typeof(string)),
-								valueExpression,
-								Expression.Constant(dataType.Type.DataType, typeof(DataType)),
-								Expression.Constant(dataType.Type.DbType,   typeof(string))
-							), fromParam);
-
-						mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
+						valueExpression = Expression.Condition(
+							Expression.Equal(fromParam,
+								Expression.Constant(null, clrType)),
+							Expression.Constant(null, clrType),
+							valueExpression
+						);
 					}
+					else if (typeof(Nullable<>).IsSameOrParentOf(clrType))
+					{
+						valueExpression = Expression.Condition(
+							Expression.Property(fromParam, "HasValue"),
+							Expression.Convert(valueExpression, typeof(object)),
+							Expression.Constant(null, typeof(object))
+						);
+					}
+
+					if (valueExpression.Type != typeof(object))
+						valueExpression = Expression.Convert(valueExpression, typeof(object));
+
+					var convertLambda = Expression.Lambda(
+						Expression.New(DataParameterConstructor,
+							Expression.Constant("Conv", typeof(string)),
+							valueExpression,
+							Expression.Constant(dataType.Type.DataType, typeof(DataType)),
+							Expression.Constant(dataType.Type.DbType,   typeof(string))
+						), fromParam);
+
+					mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
 				}
 			}
 
