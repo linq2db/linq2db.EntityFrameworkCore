@@ -418,29 +418,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 					var dataType    = mappingSchema.GetDataType(info.ProviderClrType);
 					var fromParam   = Expression.Parameter(clrType, "t");
-
 					var convertExpression = mappingSchema.GetConvertExpression(clrType, info.ProviderClrType, false);
-					var converter         = convertExpression.GetBody(fromParam);
-
-					var valueExpression   = converter;
-
-					if (clrType.IsClass || clrType.IsInterface)
-					{
-						valueExpression = Expression.Condition(
-							Expression.Equal(fromParam,
-								Expression.Constant(null, clrType)),
-							Expression.Constant(null, clrType),
-							valueExpression
-						);
-					}
-					else if (typeof(Nullable<>).IsSameOrParentOf(clrType))
-					{
-						valueExpression = Expression.Condition(
-							Expression.Property(fromParam, "HasValue"),
-							Expression.Convert(valueExpression, typeof(object)),
-							Expression.Constant(null, typeof(object))
-						);
-					}
+					var valueExpression = WithNullCheck(convertExpression.GetBody(fromParam), fromParam, clrType);
 
 					if (valueExpression.Type != typeof(object))
 						valueExpression = Expression.Convert(valueExpression, typeof(object));
@@ -456,7 +435,26 @@ namespace LinqToDB.EntityFrameworkCore
 					mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
 				}
 			}
+		}
 
+		private static Expression WithNullCheck(Expression valueExpression, ParameterExpression fromParam, Type result)
+		{
+			if (result.IsClass || result.IsInterface)
+				return Expression.Condition(
+					Expression.Equal(fromParam,
+						Expression.Constant(null, result)),
+					Expression.Constant(null, result),
+					valueExpression
+				);
+
+			if (typeof(Nullable<>).IsSameOrParentOf(result))
+				return Expression.Condition(
+					Expression.Property(fromParam, "HasValue"),
+					Expression.Convert(valueExpression, typeof(object)),
+					Expression.Constant(null, typeof(object))
+				);
+
+			return valueExpression;
 		}
 
 		/// <summary>
