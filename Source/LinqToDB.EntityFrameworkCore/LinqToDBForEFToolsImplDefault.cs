@@ -419,10 +419,7 @@ namespace LinqToDB.EntityFrameworkCore
 					var dataType    = mappingSchema.GetDataType(info.ProviderClrType);
 					var fromParam   = Expression.Parameter(clrType, "t");
 					var convertExpression = mappingSchema.GetConvertExpression(clrType, info.ProviderClrType, false);
-					var valueExpression = WithNullCheck(convertExpression.GetBody(fromParam), fromParam, clrType);
-
-					if (valueExpression.Type != typeof(object))
-						valueExpression = Expression.Convert(valueExpression, typeof(object));
+					var valueExpression = WithConvertToObject(WithNullCheck(convertExpression.GetBody(fromParam), fromParam, clrType));
 
 					var convertLambda = Expression.Lambda(
 						Expression.New(DataParameterConstructor,
@@ -436,6 +433,11 @@ namespace LinqToDB.EntityFrameworkCore
 				}
 			}
 		}
+
+		private static Expression WithConvertToObject(Expression valueExpression) 
+			=> valueExpression.Type != typeof(object) 
+				? Expression.Convert(valueExpression, typeof(object)) 
+				: valueExpression;
 
 		private static Expression WithNullCheck(Expression valueExpression, ParameterExpression fromParam, Type result)
 		{
