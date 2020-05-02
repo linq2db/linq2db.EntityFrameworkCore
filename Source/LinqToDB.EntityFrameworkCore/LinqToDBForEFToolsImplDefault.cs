@@ -423,6 +423,12 @@ namespace LinqToDB.EntityFrameworkCore
 					var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
 
 					mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
+					
+					var converter = info.Create();
+					var sqlConverter = mappingSchema.ValueToSqlConverter;
+					
+					mappingSchema.SetValueToSqlConverter(clrType, (sb, dt, v) 
+						=> sqlConverter.Convert(sb, dt,converter.ConvertToProvider(v)));
 				}
 			}
 		}
