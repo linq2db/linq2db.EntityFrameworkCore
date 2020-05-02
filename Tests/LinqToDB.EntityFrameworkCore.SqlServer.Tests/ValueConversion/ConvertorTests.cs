@@ -72,6 +72,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 				var ltdbin = ctx.Subdivisions.ToLinqToDB()
 					.Where(s => ids.Contains(s.Id)).ToArray();
 				var all  = ctx.Subdivisions.ToLinqToDB().ToArray();
+				Assert.AreEqual(ef[0].Code, ltdb[0].Code);
+				Assert.AreEqual(ef[0].Id, ltdb[0].Id);
 			}
 		}
 	}
