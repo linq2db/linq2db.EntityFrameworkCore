@@ -396,17 +396,17 @@ namespace LinqToDB.EntityFrameworkCore
 				.Distinct()
 				.ToArray();
 
-			foreach (var clrType in types)
+			foreach (var modelType in types)
 			{
 				// skipping enums
-				if (clrType.IsEnum)
+				if (modelType.IsEnum)
 					continue;
 
-				var currentType = mappingSchema.GetDataType(clrType);
+				var currentType = mappingSchema.GetDataType(modelType);
 				if (currentType != SqlDataType.Undefined)
 					continue;
 
-				var infos = convertorSelector.Select(clrType).ToArray();
+				var infos = convertorSelector.Select(modelType).ToArray();
 				if (infos.Length <= 0) 
 					continue;
 				
@@ -416,18 +416,23 @@ namespace LinqToDB.EntityFrameworkCore
 					if (currentType != SqlDataType.Undefined)
 						continue;
 
-					var dataType    = mappingSchema.GetDataType(info.ProviderClrType);
-					var fromParam   = Expression.Parameter(clrType, "t");
-					var convertExpression = mappingSchema.GetConvertExpression(clrType, info.ProviderClrType, false);
-					var valueExpression = WithConvertToObject(WithNullCheck(convertExpression.GetBody(fromParam), fromParam, clrType));
-					var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
-
-					mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
-					
+					var providerType = info.ProviderClrType;
+					var dataType = mappingSchema.GetDataType(providerType);
+					var fromParam = Expression.Parameter(modelType, "t");
+					var toParam = Expression.Parameter(providerType, "t");
 					var converter = info.Create();
 					var sqlConverter = mappingSchema.ValueToSqlConverter;
 					
-					mappingSchema.SetValueToSqlConverter(clrType, (sb, dt, v) 
+					var valueExpression = Expression.Invoke(Expression.Constant(converter.ConvertToProvider), WithConvertToObject(fromParam));
+					var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
+
+					mappingSchema.SetConvertExpression(modelType, typeof(DataParameter), convertLambda, false);
+					mappingSchema.SetConvertExpression(modelType,info.ProviderClrType, 
+						Expression.Lambda(Expression.Convert(valueExpression, providerType), fromParam));
+					mappingSchema.SetConvertExpression(info.ProviderClrType, modelType, 
+						Expression.Lambda(Expression.Convert(Expression.Invoke(Expression.Constant(converter.ConvertFromProvider), WithConvertToObject(toParam)), modelType), toParam));
+
+					mappingSchema.SetValueToSqlConverter(modelType, (sb, dt, v) 
 						=> sqlConverter.Convert(sb, dt,converter.ConvertToProvider(v)));
 				}
 			}
@@ -451,27 +456,7 @@ namespace LinqToDB.EntityFrameworkCore
 			=> valueExpression.Type != typeof(object) 
 				? Expression.Convert(valueExpression, typeof(object)) 
 				: valueExpression;
-
-		private static Expression WithNullCheck(Expression valueExpression, ParameterExpression fromParam, Type result)
-		{
-			if (result.IsClass || result.IsInterface)
-				return Expression.Condition(
-					Expression.Equal(fromParam,
-						Expression.Constant(null, result)),
-					Expression.Constant(null, result),
-					valueExpression
-				);
-
-			if (typeof(Nullable<>).IsSameOrParentOf(result))
-				return Expression.Condition(
-					Expression.Property(fromParam, "HasValue"),
-					Expression.Convert(valueExpression, typeof(object)),
-					Expression.Constant(null, typeof(object))
-				);
-
-			return valueExpression;
-		}
-
+		
 		/// <summary>
 		/// Returns mapping schema using provided EF.Core data model and metadata provider.
 		/// </summary>
