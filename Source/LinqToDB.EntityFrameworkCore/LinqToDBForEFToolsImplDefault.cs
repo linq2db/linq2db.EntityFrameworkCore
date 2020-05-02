@@ -420,19 +420,26 @@ namespace LinqToDB.EntityFrameworkCore
 					var fromParam   = Expression.Parameter(clrType, "t");
 					var convertExpression = mappingSchema.GetConvertExpression(clrType, info.ProviderClrType, false);
 					var valueExpression = WithConvertToObject(WithNullCheck(convertExpression.GetBody(fromParam), fromParam, clrType));
-
-					var convertLambda = Expression.Lambda(
-						Expression.New(DataParameterConstructor,
-							Expression.Constant("Conv", typeof(string)),
-							valueExpression,
-							Expression.Constant(dataType.Type.DataType, typeof(DataType)),
-							Expression.Constant(dataType.Type.DbType,   typeof(string))
-						), fromParam);
+					var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
 
 					mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
 				}
 			}
 		}
+
+		private static LambdaExpression WithToDataParameter(Expression valueExpression, SqlDataType dataType, ParameterExpression fromParam) 
+			=> Expression.Lambda
+			(
+				Expression.New
+				(
+					DataParameterConstructor,
+					Expression.Constant("Conv", typeof(string)),
+					valueExpression,
+					Expression.Constant(dataType.Type.DataType, typeof(DataType)),
+					Expression.Constant(dataType.Type.DbType, typeof(string))
+				), 
+				fromParam
+			);
 
 		private static Expression WithConvertToObject(Expression valueExpression) 
 			=> valueExpression.Type != typeof(object) 
