@@ -412,7 +412,7 @@ namespace LinqToDB.EntityFrameworkCore
 				
 				foreach (var info in infos)
 				{
-					currentType = mappingSchema.GetDataType(info.ModelClrType);
+					currentType = mappingSchema.GetDataType(modelType);
 					if (currentType != SqlDataType.Undefined)
 						continue;
 
