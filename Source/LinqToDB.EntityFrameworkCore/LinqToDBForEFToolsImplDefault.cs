@@ -405,6 +405,8 @@ namespace LinqToDB.EntityFrameworkCore
 					continue;
 
 				MapEFCoreType(modelType);
+				if (modelType.IsValueType && !typeof(Nullable<>).IsSameOrParentOf(modelType))
+					MapEFCoreType(typeof(Nullable<>).MakeGenericType(modelType));
 			}
 
 			void MapEFCoreType(Type modelType)
