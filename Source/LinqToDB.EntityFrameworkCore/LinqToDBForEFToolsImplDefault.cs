@@ -404,13 +404,18 @@ namespace LinqToDB.EntityFrameworkCore
 				if (modelType.IsEnum)
 					continue;
 
+				MapEFCoreType(modelType);
+			}
+
+			void MapEFCoreType(Type modelType)
+			{
 				var currentType = mappingSchema.GetDataType(modelType);
 				if (currentType != SqlDataType.Undefined)
-					continue;
+					return;
 
 				var infos = convertorSelector.Select(modelType).ToArray();
-				if (infos.Length <= 0) 
-					continue;
+				if (infos.Length <= 0)
+					return;
 
 				var info = infos[0];
 				var providerType = info.ProviderClrType;
@@ -418,18 +423,22 @@ namespace LinqToDB.EntityFrameworkCore
 				var fromParam = Expression.Parameter(modelType, "t");
 				var toParam = Expression.Parameter(providerType, "t");
 				var converter = info.Create();
-				
-				var valueExpression = Expression.Invoke(Expression.Constant(converter.ConvertToProvider), WithConvertToObject(fromParam));
+
+				var valueExpression =
+					Expression.Invoke(Expression.Constant(converter.ConvertToProvider), WithConvertToObject(fromParam));
 				var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
 
 				mappingSchema.SetConvertExpression(modelType, typeof(DataParameter), convertLambda, false);
-				mappingSchema.SetConvertExpression(modelType,providerType, 
+				mappingSchema.SetConvertExpression(modelType, providerType,
 					Expression.Lambda(Expression.Convert(valueExpression, providerType), fromParam));
-				mappingSchema.SetConvertExpression(providerType, modelType, 
-					Expression.Lambda(Expression.Convert(Expression.Invoke(Expression.Constant(converter.ConvertFromProvider), WithConvertToObject(toParam)), modelType), toParam));
+				mappingSchema.SetConvertExpression(providerType, modelType,
+					Expression.Lambda(
+						Expression.Convert(
+							Expression.Invoke(Expression.Constant(converter.ConvertFromProvider), WithConvertToObject(toParam)),
+							modelType), toParam));
 
-				mappingSchema.SetValueToSqlConverter(modelType, (sb, dt, v) 
-					=> sqlConverter.Convert(sb, dt,converter.ConvertToProvider(v)));
+				mappingSchema.SetValueToSqlConverter(modelType, (sb, dt, v)
+					=> sqlConverter.Convert(sb, dt, converter.ConvertToProvider(v)));
 			}
 		}
 
