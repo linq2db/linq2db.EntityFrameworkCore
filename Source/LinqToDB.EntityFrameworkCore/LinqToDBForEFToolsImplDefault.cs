@@ -427,9 +427,9 @@ namespace LinqToDB.EntityFrameworkCore
 					var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
 
 					mappingSchema.SetConvertExpression(modelType, typeof(DataParameter), convertLambda, false);
-					mappingSchema.SetConvertExpression(modelType,info.ProviderClrType, 
+					mappingSchema.SetConvertExpression(modelType,providerType, 
 						Expression.Lambda(Expression.Convert(valueExpression, providerType), fromParam));
-					mappingSchema.SetConvertExpression(info.ProviderClrType, modelType, 
+					mappingSchema.SetConvertExpression(providerType, modelType, 
 						Expression.Lambda(Expression.Convert(Expression.Invoke(Expression.Constant(converter.ConvertFromProvider), WithConvertToObject(toParam)), modelType), toParam));
 
 					mappingSchema.SetValueToSqlConverter(modelType, (sb, dt, v) 
