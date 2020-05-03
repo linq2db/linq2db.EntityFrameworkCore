@@ -411,31 +411,25 @@ namespace LinqToDB.EntityFrameworkCore
 				var infos = convertorSelector.Select(modelType).ToArray();
 				if (infos.Length <= 0) 
 					continue;
+
+				var info = infos[0];
+				var providerType = info.ProviderClrType;
+				var dataType = mappingSchema.GetDataType(providerType);
+				var fromParam = Expression.Parameter(modelType, "t");
+				var toParam = Expression.Parameter(providerType, "t");
+				var converter = info.Create();
 				
-				foreach (var info in infos)
-				{
-					currentType = mappingSchema.GetDataType(modelType);
-					if (currentType != SqlDataType.Undefined)
-						continue;
+				var valueExpression = Expression.Invoke(Expression.Constant(converter.ConvertToProvider), WithConvertToObject(fromParam));
+				var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
 
-					var providerType = info.ProviderClrType;
-					var dataType = mappingSchema.GetDataType(providerType);
-					var fromParam = Expression.Parameter(modelType, "t");
-					var toParam = Expression.Parameter(providerType, "t");
-					var converter = info.Create();
-					
-					var valueExpression = Expression.Invoke(Expression.Constant(converter.ConvertToProvider), WithConvertToObject(fromParam));
-					var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
+				mappingSchema.SetConvertExpression(modelType, typeof(DataParameter), convertLambda, false);
+				mappingSchema.SetConvertExpression(modelType,providerType, 
+					Expression.Lambda(Expression.Convert(valueExpression, providerType), fromParam));
+				mappingSchema.SetConvertExpression(providerType, modelType, 
+					Expression.Lambda(Expression.Convert(Expression.Invoke(Expression.Constant(converter.ConvertFromProvider), WithConvertToObject(toParam)), modelType), toParam));
 
-					mappingSchema.SetConvertExpression(modelType, typeof(DataParameter), convertLambda, false);
-					mappingSchema.SetConvertExpression(modelType,providerType, 
-						Expression.Lambda(Expression.Convert(valueExpression, providerType), fromParam));
-					mappingSchema.SetConvertExpression(providerType, modelType, 
-						Expression.Lambda(Expression.Convert(Expression.Invoke(Expression.Constant(converter.ConvertFromProvider), WithConvertToObject(toParam)), modelType), toParam));
-
-					mappingSchema.SetValueToSqlConverter(modelType, (sb, dt, v) 
-						=> sqlConverter.Convert(sb, dt,converter.ConvertToProvider(v)));
-				}
+				mappingSchema.SetValueToSqlConverter(modelType, (sb, dt, v) 
+					=> sqlConverter.Convert(sb, dt,converter.ConvertToProvider(v)));
 			}
 		}
 
