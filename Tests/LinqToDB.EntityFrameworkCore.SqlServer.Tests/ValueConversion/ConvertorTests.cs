@@ -65,15 +65,24 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 					.Where(s => s.Id == 2)
 					.Set(s => s.ParentId, () => new Id<SubDivision, long>(33))
 					.Update();
-
+				
 				var ef   = ctx.Subdivisions.Where(s => s.Id == 1L).ToArray();
 				var ltdb = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == 1L).ToArray();
+				
+				var id = new Nullable<Id<SubDivision, long>>(0L.AsId<SubDivision>());
+				var ltdb2 = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == id).ToArray();
+				
 				var ids = new[] {1L.AsId<SubDivision>(), 2L.AsId<SubDivision>(),};
 				var ltdbin = ctx.Subdivisions.ToLinqToDB()
 					.Where(s => ids.Contains(s.Id)).ToArray();
-				var all  = ctx.Subdivisions.ToLinqToDB().ToArray();
+				
+				var all = ctx.Subdivisions.ToLinqToDB().ToArray();
+				
 				Assert.AreEqual(ef[0].Code, ltdb[0].Code);
 				Assert.AreEqual(ef[0].Id, ltdb[0].Id);
+				
+				Assert.AreEqual(ef[0].Code, ltdb2[0].Code);
+				Assert.AreEqual(ef[0].Id, ltdb2[0].Id);
 			}
 		}
 	}
