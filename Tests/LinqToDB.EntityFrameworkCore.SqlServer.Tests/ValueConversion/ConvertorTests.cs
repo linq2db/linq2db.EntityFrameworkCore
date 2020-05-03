@@ -54,18 +54,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 
 				resut = db.InsertWithInt64Identity(new SubDivision()
 					{ Code = "C3", Id = new Id<SubDivision, long>(2), Name = "N3", PermanentId = Guid.NewGuid() });
-
-				
-				db.GetTable<SubDivision>()
-					.Where(s => s.Id == 1)
-					.Set(s => s.ParentId, new Id<SubDivision, long>(11))
-					.Update();
-
-				db.GetTable<SubDivision>()
-					.Where(s => s.Id == 2)
-					.Set(s => s.ParentId, () => new Id<SubDivision, long>(33))
-					.Update();
-				
+			
 				var ef   = ctx.Subdivisions.Where(s => s.Id == 1L).ToArray();
 				var ltdb = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == 1L).ToArray();
 				
