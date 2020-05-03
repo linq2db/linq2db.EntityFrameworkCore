@@ -396,6 +396,8 @@ namespace LinqToDB.EntityFrameworkCore
 				.Distinct()
 				.ToArray();
 
+			var sqlConverter = mappingSchema.ValueToSqlConverter;
+			
 			foreach (var modelType in types)
 			{
 				// skipping enums
@@ -421,7 +423,6 @@ namespace LinqToDB.EntityFrameworkCore
 					var fromParam = Expression.Parameter(modelType, "t");
 					var toParam = Expression.Parameter(providerType, "t");
 					var converter = info.Create();
-					var sqlConverter = mappingSchema.ValueToSqlConverter;
 					
 					var valueExpression = Expression.Invoke(Expression.Constant(converter.ConvertToProvider), WithConvertToObject(fromParam));
 					var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
