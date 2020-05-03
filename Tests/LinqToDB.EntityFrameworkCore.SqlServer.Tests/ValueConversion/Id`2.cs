@@ -22,5 +22,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 		public bool Equals(Id<TEntity, TKey> other) => EqualityComparer<TKey>.Default.Equals(Value, other.Value);
 		public override bool Equals(object obj) => obj is Id<TEntity, TKey> other && Equals(other);
 		public override int GetHashCode() => EqualityComparer<TKey>.Default.GetHashCode(Value);
+		public static bool operator == (Id<TEntity, TKey> left, Id<TEntity, TKey> right) 
+			=> EqualityComparer<TKey>.Default.Equals(left.Value, right.Value);
+		public static bool operator != (Id<TEntity, TKey> left, Id<TEntity, TKey> right) => !(left == right);
 	}
 }
