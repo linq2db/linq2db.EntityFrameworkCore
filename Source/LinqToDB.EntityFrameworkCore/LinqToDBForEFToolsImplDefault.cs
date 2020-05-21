@@ -750,7 +750,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 									var propName = (string)EvaluateExpression(methodCall.Arguments[1]);
 									var param    = Expression.Parameter(methodCall.Method.GetGenericArguments()[0], "e");
-									var propPath = propName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+									var propPath = propName.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
 									var prop     = (Expression)param;
 									for (int i = 0; i < propPath.Length; i++)
 									{

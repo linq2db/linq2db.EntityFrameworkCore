@@ -64,7 +64,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (property == memberInfo)
 				return true;
 			
-			if (memberInfo.DeclaringType.IsAssignableFrom(property.DeclaringType) 
+			if (memberInfo.DeclaringType?.IsAssignableFrom(property.DeclaringType) == true
 			    && memberInfo.Name == property.Name 
 			    && memberInfo.MemberType == property.MemberType 
 			    && memberInfo.GetMemberType() == property.GetMemberType())
@@ -74,7 +74,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 			return false;
 		}
-		
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		static bool CompareProperty(IProperty property, MemberInfo memberInfo)
 		{
 			return CompareProperty(property.GetIdentifyingMemberInfo(), memberInfo);
