@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
+using LinqToDB.Common;
 using LinqToDB.Tools;
 
 namespace LinqToDB.EntityFrameworkCore
@@ -396,69 +397,73 @@ namespace LinqToDB.EntityFrameworkCore
 				.Distinct()
 				.ToArray();
 
-			foreach (var clrType in types)
+			var sqlConverter = mappingSchema.ValueToSqlConverter;
+			
+			foreach (var modelType in types)
 			{
 				// skipping enums
-				if (clrType.IsEnum)
+				if (modelType.IsEnum)
 					continue;
 
-				var currentType = mappingSchema.GetDataType(clrType);
-				if (currentType != SqlDataType.Undefined)
-					continue;
-
-				var infos = convertorSelector.Select(clrType).ToArray();
-				if (infos.Length > 0)
-				{
-					foreach (var info in infos)
-					{
-						currentType = mappingSchema.GetDataType(info.ModelClrType);
-						if (currentType != SqlDataType.Undefined)
-							continue;
-
-						var dataType    = mappingSchema.GetDataType(info.ProviderClrType);
-						var fromParam   = Expression.Parameter(clrType, "t");
-
-						var convertExpression = mappingSchema.GetConvertExpression(clrType, info.ProviderClrType, false);
-						var converter         = convertExpression.GetBody(fromParam);
-
-						var valueExpression   = converter;
-
-						if (clrType.IsClass || clrType.IsInterface)
-						{
-							valueExpression = Expression.Condition(
-								Expression.Equal(fromParam,
-									Expression.Constant(null, clrType)),
-								Expression.Constant(null, clrType),
-								valueExpression
-							);
-						}
-						else if (typeof(Nullable<>).IsSameOrParentOf(clrType))
-						{
-							valueExpression = Expression.Condition(
-								Expression.Property(fromParam, "HasValue"),
-								Expression.Convert(valueExpression, typeof(object)),
-								Expression.Constant(null, typeof(object))
-							);
-						}
-
-						if (valueExpression.Type != typeof(object))
-							valueExpression = Expression.Convert(valueExpression, typeof(object));
-
-						var convertLambda = Expression.Lambda(
-							Expression.New(DataParameterConstructor,
-								Expression.Constant("Conv", typeof(string)),
-								valueExpression,
-								Expression.Constant(dataType.Type.DataType, typeof(DataType)),
-								Expression.Constant(dataType.Type.DbType,   typeof(string))
-							), fromParam);
-
-						mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
-					}
-				}
+				MapEFCoreType(modelType);
+				if (modelType.IsValueType && !typeof(Nullable<>).IsSameOrParentOf(modelType))
+					MapEFCoreType(typeof(Nullable<>).MakeGenericType(modelType));
 			}
 
+			void MapEFCoreType(Type modelType)
+			{
+				var currentType = mappingSchema.GetDataType(modelType);
+				if (currentType != SqlDataType.Undefined)
+					return;
+
+				var infos = convertorSelector.Select(modelType).ToArray();
+				if (infos.Length <= 0)
+					return;
+
+				var info = infos[0];
+				var providerType = info.ProviderClrType;
+				var dataType = mappingSchema.GetDataType(providerType);
+				var fromParam = Expression.Parameter(modelType, "t");
+				var toParam = Expression.Parameter(providerType, "t");
+				var converter = info.Create();
+
+				var valueExpression =
+					Expression.Invoke(Expression.Constant(converter.ConvertToProvider), WithConvertToObject(fromParam));
+				var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
+
+				mappingSchema.SetConvertExpression(modelType, typeof(DataParameter), convertLambda, false);
+				mappingSchema.SetConvertExpression(modelType, providerType,
+					Expression.Lambda(Expression.Convert(valueExpression, providerType), fromParam));
+				mappingSchema.SetConvertExpression(providerType, modelType,
+					Expression.Lambda(
+						Expression.Convert(
+							Expression.Invoke(Expression.Constant(converter.ConvertFromProvider), WithConvertToObject(toParam)),
+							modelType), toParam));
+
+				mappingSchema.SetValueToSqlConverter(modelType, (sb, dt, v)
+					=> sqlConverter.Convert(sb, dt, converter.ConvertToProvider(v)));
+			}
 		}
 
+		private static LambdaExpression WithToDataParameter(Expression valueExpression, SqlDataType dataType, ParameterExpression fromParam) 
+			=> Expression.Lambda
+			(
+				Expression.New
+				(
+					DataParameterConstructor,
+					Expression.Constant("Conv", typeof(string)),
+					valueExpression,
+					Expression.Constant(dataType.Type.DataType, typeof(DataType)),
+					Expression.Constant(dataType.Type.DbType, typeof(string))
+				), 
+				fromParam
+			);
+
+		private static Expression WithConvertToObject(Expression valueExpression) 
+			=> valueExpression.Type != typeof(object) 
+				? Expression.Convert(valueExpression, typeof(object)) 
+				: valueExpression;
+		
 		/// <summary>
 		/// Returns mapping schema using provided EF.Core data model and metadata provider.
 		/// </summary>
@@ -488,42 +493,41 @@ namespace LinqToDB.EntityFrameworkCore
 			return context?.GetService<IDbContextOptions>();
 		}
 
-		static readonly MethodInfo GetTableMethodInfo =
-			MemberHelper.MethodOf<IDataContext>(dc => dc.GetTable<object>()).GetGenericMethodDefinition();
+		static readonly MethodInfo GetTableMethodInfo = MemberHelper.MethodOfGeneric<IDataContext>(dc => dc.GetTable<object>());
 
-		static readonly MethodInfo EnumerableWhereMethodInfo =
-			MemberHelper.MethodOf<IEnumerable<object>>(q => q.Where(p => true)).GetGenericMethodDefinition();
+		static readonly MethodInfo EnumerableWhereMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.Where(p => true));
 
-		static readonly MethodInfo EnumerableToListMethodInfo =
-			MemberHelper.MethodOf<IEnumerable<object>>(q => q.ToList()).GetGenericMethodDefinition();
+		static readonly MethodInfo FromSqlOnQueryableMethodInfo =
+			typeof(RelationalQueryableExtensions).GetMethods(BindingFlags.Static|BindingFlags.NonPublic).Single(x => x.Name == "FromSqlOnQueryable").GetGenericMethodDefinition();
 
-		static readonly MethodInfo IgnoreQueryFiltersMethodInfo =
-			MemberHelper.MethodOf<IQueryable<object>>(q => q.IgnoreQueryFilters()).GetGenericMethodDefinition();
+		static readonly MethodInfo EnumerableToListMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.ToList());
 
-		static readonly MethodInfo IncludeMethodInfo =
-			MemberHelper.MethodOf<IQueryable<object>>(q => q.Include(o => o.ToString())).GetGenericMethodDefinition();
+		static readonly MethodInfo IgnoreQueryFiltersMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.IgnoreQueryFilters());
 
-		static readonly MethodInfo IncludeMethodInfoString =
-			MemberHelper.MethodOf<IQueryable<object>>(q => q.Include(string.Empty)).GetGenericMethodDefinition();
+		static readonly MethodInfo IncludeMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.Include(o => o.ToString()));
+
+		static readonly MethodInfo IncludeMethodInfoString = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.Include(string.Empty));
 
 		static readonly MethodInfo ThenIncludeMethodInfo =
-			MemberHelper.MethodOf<IIncludableQueryable<object, object>>(q => q.ThenInclude<object, object, object>(null)).GetGenericMethodDefinition();
+			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, object>>(q => q.ThenInclude<object, object, object>(null));
 
 		static readonly MethodInfo ThenIncludeEnumerableMethodInfo =
-			MemberHelper.MethodOf<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null)).GetGenericMethodDefinition();
+			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null));
 
 
-		static readonly MethodInfo FirstMethodInfo =
-			MemberHelper.MethodOf<IEnumerable<object>>(q => q.First()).GetGenericMethodDefinition();
+		static readonly MethodInfo FirstMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.First());
 
-		static readonly MethodInfo AsNoTrackingMethodInfo =
-			MemberHelper.MethodOf<IQueryable<object>>(q => q.AsNoTracking()).GetGenericMethodDefinition();
+		static readonly MethodInfo AsNoTrackingMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsNoTracking());
 
-		static readonly MethodInfo EFProperty =
-			MemberHelper.MethodOf(() => EF.Property<object>(1, "")).GetGenericMethodDefinition();
+		static readonly MethodInfo EFProperty = MemberHelper.MethodOfGeneric(() => EF.Property<object>(1, ""));
 
 		static readonly MethodInfo
 			L2DBProperty = typeof(Sql).GetMethod(nameof(Sql.Property)).GetGenericMethodDefinition();
+
+		static readonly MethodInfo L2DBFromSqlMethodInfo = 
+			MemberHelper.MethodOfGeneric<IDataContext>(dc => dc.FromSql<object>(new Common.RawSqlString()));
+
+		static readonly ConstructorInfo RawSqlStringConstructor = MemberHelper.ConstructorOf(() => new Common.RawSqlString(""));
 
 		static readonly ConstructorInfo DataParameterConstructor = MemberHelper.ConstructorOf(() => new DataParameter("", "", DataType.Undefined, ""));
 
@@ -746,7 +750,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 									var propName = (string)EvaluateExpression(methodCall.Arguments[1]);
 									var param    = Expression.Parameter(methodCall.Method.GetGenericArguments()[0], "e");
-									var propPath = propName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+									var propPath = propName.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
 									var prop     = (Expression)param;
 									for (int i = 0; i < propPath.Length; i++)
 									{
@@ -786,6 +790,15 @@ namespace LinqToDB.EntityFrameworkCore
 							}
 
 							break;
+						}
+
+						if (generic == FromSqlOnQueryableMethodInfo)
+						{
+							//convert the arguments from the FromSqlOnQueryable method from EF, to a L2DB FromSql call
+							return Expression.Call(null, L2DBFromSqlMethodInfo.MakeGenericMethod(methodCall.Method.GetGenericArguments()[0]),
+								Expression.Constant(dc), 
+								Expression.New(RawSqlStringConstructor, methodCall.Arguments[1]),
+								methodCall.Arguments[2]);
 						}
 
 						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type))
