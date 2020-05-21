@@ -31,7 +31,13 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 			if (key != providerClrType)
 				yield break;
 
-			var ct = typeof(IdValueConverter<,>).MakeGenericType(key, t[0]);
+			var ct =
+				
+				key == typeof(long)
+				? typeof(IdValueConverter<>).MakeGenericType(t[0])
+				: 
+				
+				typeof(IdValueConverter<,>).MakeGenericType(key, t[0]);
 			yield return new ValueConverterInfo
 			(
 				modelClrType, 

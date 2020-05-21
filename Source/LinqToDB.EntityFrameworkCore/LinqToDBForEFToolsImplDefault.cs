@@ -396,69 +396,73 @@ namespace LinqToDB.EntityFrameworkCore
 				.Distinct()
 				.ToArray();
 
-			foreach (var clrType in types)
+			var sqlConverter = mappingSchema.ValueToSqlConverter;
+			
+			foreach (var modelType in types)
 			{
 				// skipping enums
-				if (clrType.IsEnum)
+				if (modelType.IsEnum)
 					continue;
 
-				var currentType = mappingSchema.GetDataType(clrType);
-				if (currentType != SqlDataType.Undefined)
-					continue;
-
-				var infos = convertorSelector.Select(clrType).ToArray();
-				if (infos.Length > 0)
-				{
-					foreach (var info in infos)
-					{
-						currentType = mappingSchema.GetDataType(info.ModelClrType);
-						if (currentType != SqlDataType.Undefined)
-							continue;
-
-						var dataType    = mappingSchema.GetDataType(info.ProviderClrType);
-						var fromParam   = Expression.Parameter(clrType, "t");
-
-						var convertExpression = mappingSchema.GetConvertExpression(clrType, info.ProviderClrType, false);
-						var converter         = convertExpression.GetBody(fromParam);
-
-						var valueExpression   = converter;
-
-						if (clrType.IsClass || clrType.IsInterface)
-						{
-							valueExpression = Expression.Condition(
-								Expression.Equal(fromParam,
-									Expression.Constant(null, clrType)),
-								Expression.Constant(null, clrType),
-								valueExpression
-							);
-						}
-						else if (typeof(Nullable<>).IsSameOrParentOf(clrType))
-						{
-							valueExpression = Expression.Condition(
-								Expression.Property(fromParam, "HasValue"),
-								Expression.Convert(valueExpression, typeof(object)),
-								Expression.Constant(null, typeof(object))
-							);
-						}
-
-						if (valueExpression.Type != typeof(object))
-							valueExpression = Expression.Convert(valueExpression, typeof(object));
-
-						var convertLambda = Expression.Lambda(
-							Expression.New(DataParameterConstructor,
-								Expression.Constant("Conv", typeof(string)),
-								valueExpression,
-								Expression.Constant(dataType.Type.DataType, typeof(DataType)),
-								Expression.Constant(dataType.Type.DbType,   typeof(string))
-							), fromParam);
-
-						mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
-					}
-				}
+				MapEFCoreType(modelType);
+				if (modelType.IsValueType && !typeof(Nullable<>).IsSameOrParentOf(modelType))
+					MapEFCoreType(typeof(Nullable<>).MakeGenericType(modelType));
 			}
 
+			void MapEFCoreType(Type modelType)
+			{
+				var currentType = mappingSchema.GetDataType(modelType);
+				if (currentType != SqlDataType.Undefined)
+					return;
+
+				var infos = convertorSelector.Select(modelType).ToArray();
+				if (infos.Length <= 0)
+					return;
+
+				var info = infos[0];
+				var providerType = info.ProviderClrType;
+				var dataType = mappingSchema.GetDataType(providerType);
+				var fromParam = Expression.Parameter(modelType, "t");
+				var toParam = Expression.Parameter(providerType, "t");
+				var converter = info.Create();
+
+				var valueExpression =
+					Expression.Invoke(Expression.Constant(converter.ConvertToProvider), WithConvertToObject(fromParam));
+				var convertLambda = WithToDataParameter(valueExpression, dataType, fromParam);
+
+				mappingSchema.SetConvertExpression(modelType, typeof(DataParameter), convertLambda, false);
+				mappingSchema.SetConvertExpression(modelType, providerType,
+					Expression.Lambda(Expression.Convert(valueExpression, providerType), fromParam));
+				mappingSchema.SetConvertExpression(providerType, modelType,
+					Expression.Lambda(
+						Expression.Convert(
+							Expression.Invoke(Expression.Constant(converter.ConvertFromProvider), WithConvertToObject(toParam)),
+							modelType), toParam));
+
+				mappingSchema.SetValueToSqlConverter(modelType, (sb, dt, v)
+					=> sqlConverter.Convert(sb, dt, converter.ConvertToProvider(v)));
+			}
 		}
 
+		private static LambdaExpression WithToDataParameter(Expression valueExpression, SqlDataType dataType, ParameterExpression fromParam) 
+			=> Expression.Lambda
+			(
+				Expression.New
+				(
+					DataParameterConstructor,
+					Expression.Constant("Conv", typeof(string)),
+					valueExpression,
+					Expression.Constant(dataType.Type.DataType, typeof(DataType)),
+					Expression.Constant(dataType.Type.DbType, typeof(string))
+				), 
+				fromParam
+			);
+
+		private static Expression WithConvertToObject(Expression valueExpression) 
+			=> valueExpression.Type != typeof(object) 
+				? Expression.Convert(valueExpression, typeof(object)) 
+				: valueExpression;
+		
 		/// <summary>
 		/// Returns mapping schema using provided EF.Core data model and metadata provider.
 		/// </summary>
