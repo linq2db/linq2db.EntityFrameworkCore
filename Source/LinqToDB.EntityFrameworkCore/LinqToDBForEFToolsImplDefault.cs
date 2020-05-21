@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
+using LinqToDB.Common;
 using LinqToDB.Tools;
 
 namespace LinqToDB.EntityFrameworkCore
@@ -492,42 +493,41 @@ namespace LinqToDB.EntityFrameworkCore
 			return context?.GetService<IDbContextOptions>();
 		}
 
-		static readonly MethodInfo GetTableMethodInfo =
-			MemberHelper.MethodOf<IDataContext>(dc => dc.GetTable<object>()).GetGenericMethodDefinition();
+		static readonly MethodInfo GetTableMethodInfo = MemberHelper.MethodOfGeneric<IDataContext>(dc => dc.GetTable<object>());
 
-		static readonly MethodInfo EnumerableWhereMethodInfo =
-			MemberHelper.MethodOf<IEnumerable<object>>(q => q.Where(p => true)).GetGenericMethodDefinition();
+		static readonly MethodInfo EnumerableWhereMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.Where(p => true));
 
-		static readonly MethodInfo EnumerableToListMethodInfo =
-			MemberHelper.MethodOf<IEnumerable<object>>(q => q.ToList()).GetGenericMethodDefinition();
+		static readonly MethodInfo FromSqlOnQueryableMethodInfo =
+			typeof(RelationalQueryableExtensions).GetMethods(BindingFlags.Static|BindingFlags.NonPublic).Single(x => x.Name == "FromSqlOnQueryable").GetGenericMethodDefinition();
 
-		static readonly MethodInfo IgnoreQueryFiltersMethodInfo =
-			MemberHelper.MethodOf<IQueryable<object>>(q => q.IgnoreQueryFilters()).GetGenericMethodDefinition();
+		static readonly MethodInfo EnumerableToListMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.ToList());
 
-		static readonly MethodInfo IncludeMethodInfo =
-			MemberHelper.MethodOf<IQueryable<object>>(q => q.Include(o => o.ToString())).GetGenericMethodDefinition();
+		static readonly MethodInfo IgnoreQueryFiltersMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.IgnoreQueryFilters());
 
-		static readonly MethodInfo IncludeMethodInfoString =
-			MemberHelper.MethodOf<IQueryable<object>>(q => q.Include(string.Empty)).GetGenericMethodDefinition();
+		static readonly MethodInfo IncludeMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.Include(o => o.ToString()));
+
+		static readonly MethodInfo IncludeMethodInfoString = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.Include(string.Empty));
 
 		static readonly MethodInfo ThenIncludeMethodInfo =
-			MemberHelper.MethodOf<IIncludableQueryable<object, object>>(q => q.ThenInclude<object, object, object>(null)).GetGenericMethodDefinition();
+			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, object>>(q => q.ThenInclude<object, object, object>(null));
 
 		static readonly MethodInfo ThenIncludeEnumerableMethodInfo =
-			MemberHelper.MethodOf<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null)).GetGenericMethodDefinition();
+			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null));
 
 
-		static readonly MethodInfo FirstMethodInfo =
-			MemberHelper.MethodOf<IEnumerable<object>>(q => q.First()).GetGenericMethodDefinition();
+		static readonly MethodInfo FirstMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.First());
 
-		static readonly MethodInfo AsNoTrackingMethodInfo =
-			MemberHelper.MethodOf<IQueryable<object>>(q => q.AsNoTracking()).GetGenericMethodDefinition();
+		static readonly MethodInfo AsNoTrackingMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsNoTracking());
 
-		static readonly MethodInfo EFProperty =
-			MemberHelper.MethodOf(() => EF.Property<object>(1, "")).GetGenericMethodDefinition();
+		static readonly MethodInfo EFProperty = MemberHelper.MethodOfGeneric(() => EF.Property<object>(1, ""));
 
 		static readonly MethodInfo
 			L2DBProperty = typeof(Sql).GetMethod(nameof(Sql.Property)).GetGenericMethodDefinition();
+
+		static readonly MethodInfo L2DBFromSqlMethodInfo = 
+			MemberHelper.MethodOfGeneric<IDataContext>(dc => dc.FromSql<object>(new Common.RawSqlString()));
+
+		static readonly ConstructorInfo RawSqlStringConstructor = MemberHelper.ConstructorOf(() => new Common.RawSqlString(""));
 
 		static readonly ConstructorInfo DataParameterConstructor = MemberHelper.ConstructorOf(() => new DataParameter("", "", DataType.Undefined, ""));
 
@@ -790,6 +790,15 @@ namespace LinqToDB.EntityFrameworkCore
 							}
 
 							break;
+						}
+
+						if (generic == FromSqlOnQueryableMethodInfo)
+						{
+							//convert the arguments from the FromSqlOnQueryable method from EF, to a L2DB FromSql call
+							return Expression.Call(null, L2DBFromSqlMethodInfo.MakeGenericMethod(methodCall.Method.GetGenericArguments()[0]),
+								Expression.Constant(dc), 
+								Expression.New(RawSqlStringConstructor, methodCall.Arguments[1]),
+								methodCall.Arguments[2]);
 						}
 
 						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type))

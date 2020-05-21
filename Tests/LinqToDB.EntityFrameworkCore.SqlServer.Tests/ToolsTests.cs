@@ -537,6 +537,62 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
+		[Test]
+		public async Task FromSqlRaw()
+		{
+			using (var ctx = CreateContext())
+			{
+				var id = 1;
+				var query = ctx.Categories.FromSqlRaw("SELECT * FROM [dbo].[Categories] WHERE CategoryId = {0}", id);
+
+
+				var efResult = await query.ToArrayAsyncEF();
+				var linq2dbResult = await query.ToArrayAsyncLinqToDB();
+			}
+		}
+
+		[Test]
+		public async Task FromSqlRaw2()
+		{
+			using (var ctx = CreateContext())
+			{
+				var id = 1;
+				var query = from c1 in ctx.Categories
+					from c2 in ctx.Categories.FromSqlRaw("SELECT * FROM [dbo].[Categories] WHERE CategoryId = {0}", id)
+					select c2;
+
+				var efResult = await query.ToArrayAsyncEF();
+				var linq2dbResult = await query.ToArrayAsyncLinqToDB();
+			}
+		}
+
+		[Test]
+		public async Task FromSqlInterpolated()
+		{
+			using (var ctx = CreateContext())
+			{
+				var id = 1;
+				var query = ctx.Categories.FromSqlInterpolated($"SELECT * FROM [dbo].[Categories] WHERE CategoryId = {id}");
+
+				var efResult = await query.ToArrayAsyncEF();
+				var linq2dbResult = await query.ToArrayAsyncLinqToDB();
+			}
+		}
+
+		[Test]
+		public async Task FromSqlInterpolated2()
+		{
+			using (var ctx = CreateContext())
+			{
+				var id = 1;
+				var query = from c1 in ctx.Categories
+					from c2 in ctx.Categories.FromSqlInterpolated($"SELECT * FROM [dbo].[Categories] WHERE CategoryId = {id}")
+					select c2;
+
+				var efResult = await query.ToArrayAsyncEF();
+				var linq2dbResult = await query.ToArrayAsyncLinqToDB();
+			}
+		}
 
 	}
 }
