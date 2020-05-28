@@ -67,9 +67,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
-		private NorthwindContext CreateContext()
+		private NorthwindContext CreateContext(bool enableFilter)
 		{
 			var ctx = new NorthwindContext(_options);
+			ctx.IsSoftDeleteFilterEnabled = enableFilter;
 			if (ctx.Database.EnsureCreated())
 			{
 
@@ -108,9 +109,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public void TestToList()
+		public void TestToList([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			using (var db = ctx.CreateLinqToDbConnection())
 			{
 				var items = db.GetTable<Order>()
@@ -120,9 +121,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public void TestShadowProperty()
+		public void TestShadowProperty([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ctx.Products.Select(p => new
 				{
@@ -140,9 +141,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public void TestCallback()
+		public void TestCallback([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ProductQuery(ctx)
 					.Where(pd => pd.ProductName.StartsWith("a"));
@@ -153,9 +154,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 
 		[Test]
-		public void TestContextRetrieving()
+		public void TestContextRetrieving([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ProductQuery(ctx)
 					.ToLinqToDB()
@@ -164,9 +165,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public void TestDelete()
+		public void TestDelete([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ProductQuery(ctx)
 					.Where(pd => pd.ProductName.StartsWith("a"));
@@ -174,9 +175,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public void TestNestingFunctions()
+		public void TestNestingFunctions([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query =
 					from pd in ProductQuery(ctx)
@@ -201,7 +202,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public void TestFunctions()
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(false))
 			{
 				var query = from p in ctx.Orders
 					//where EF.Functions.Like(p., "a%") || true
@@ -233,9 +234,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public async Task TestTransaction()
+		public async Task TestTransaction([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				using (var transaction = ctx.Database.BeginTransaction())
 				using (var db = ctx.CreateLinqToDbConnection())
@@ -256,9 +257,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public void TestView()
+		public void TestView([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			using (var db = ctx.CreateLinqToDbConnection())
 			{
 				var query = ProductQuery(ctx)
@@ -271,9 +272,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 
 		[Test]
-		public void TestTransformation()
+		public void TestTransformation([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query =
 					from p in ctx.Products
@@ -289,9 +290,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public void TestDemo2()
+		public void TestDemo2([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query =
 					from p in ctx.Products
@@ -310,7 +311,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public void TestKey()
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(false))
 			{
 				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
@@ -330,7 +331,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public void TestAssociations()
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(false))
 			{
 				var dependencies = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
@@ -350,7 +351,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public void TestIdentityColumn()
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(false))
 			{
 				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
@@ -366,21 +367,20 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
+		[Repeat(2)]
 		[Test]
-		public void TestGlobalQueryFilters([Values(true, false)] bool disableFilter)
+		public void TestGlobalQueryFilters([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
-				ctx.IsSoftDeleteFilterEnabled = !disableFilter;
-
 				var withoutFilterQuery =
 					from p in ctx.Products.IgnoreQueryFilters()
 					join d in ctx.OrderDetails on p.ProductId equals d.ProductId
 					select new { p, d };
-
+				
 				var efResult      = withoutFilterQuery.ToArray();
 				var linq2dbResult = withoutFilterQuery.ToLinqToDB().ToArray();
-
+				
 				Assert.AreEqual(efResult.Length, linq2dbResult.Length);
 
 				var withFilterQuery =
@@ -388,22 +388,22 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					join d in ctx.OrderDetails on p.ProductId equals d.ProductId
 					select new { p, d };
 
-				efResult      = withFilterQuery.ToArray();
-				linq2dbResult = withFilterQuery.ToLinqToDB().ToArray();
+				var efResult2  = withFilterQuery.ToArray();
+				var linq2dbResult2 = withFilterQuery.ToLinqToDB().ToArray();
 
-				Assert.AreEqual(efResult.Length, linq2dbResult.Length);
+				Assert.AreEqual(efResult2.Length, linq2dbResult2.Length);
 			}
 		}
 
 
 		[Test]
-		public async Task TestAsyncMethods()
+		public async Task TestAsyncMethods([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ctx.Products.AsQueryable().Where(p => p.ProductName.Contains("a"));
 
-				var expected = await query.ToArrayAsync();
+				var expectedArray = await query.ToArrayAsync();
 				var expectedDictionary = await query.ToDictionaryAsync(p => p.ProductId);
 				var expectedAny = await query.AnyAsync();
 
@@ -415,9 +415,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public async Task TestInclude()
+		public async Task TestInclude([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ctx.Orders
 					.Include(o => o.Employee)
@@ -433,9 +433,36 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public async Task TestIncludeString()
+		public async Task TestEager([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
+			{
+				var query = ctx.Orders.Select(o => new
+				{
+					Employee = o.Employee,
+					EmployeeTerritories = o.Employee.EmployeeTerritories.Select(et => new
+					{
+						EmployeeTerritory = et,
+						Territory = et.Territory
+					}),
+
+					OrderDetails = o.OrderDetails.Select(od => new
+					{
+						OrderDetail = od,
+						od.Product
+					})
+				});
+
+				var expected = await query.ToArrayAsync();
+
+				var result = await query.ToLinqToDB().ToArrayAsync();
+			}
+		}
+
+		[Test]
+		public async Task TestIncludeString([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ctx.Orders
 					.Include("Employee.EmployeeTerritories")
@@ -448,9 +475,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 		[Test]
-		public async Task TestLoadFilter()
+		public async Task TestLoadFilter([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ctx.Products.Select(p => new
 					{
@@ -474,9 +501,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 
 		[Test]
-		public async Task TestGetTable()
+		public async Task TestGetTable([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ctx.GetTable<Customer>()
 					.Where(o => o.City != null);
@@ -505,11 +532,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public async Task TestContinuousQueries()
+		public async Task TestContinuousQueries([Values(true, false)] bool enableFilter)
 		{
-			Common.Configuration.Linq.AllowMultipleQuery = true;
-
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ctx.Orders
 					.Include(o => o.OrderDetails)
@@ -517,22 +542,43 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					.ThenInclude(p => p.OrderDetails);
 
 				var expected = await query.ToArrayAsync();
-				var result = await query.ToLinqToDB().ToArrayAsync();
+				var result   = await query.ToLinqToDB().ToArrayAsync();
 			}
-
 		}
 
 		[Test]
-		public async Task TestSetUpdate()
+		public async Task TestChangeTracker([Values(true, false)] bool enableFilter)
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(enableFilter))
+			{
+				var query = ctx.Orders
+					.Include(o => o.OrderDetails)
+					.ThenInclude(d => d.Product)
+					.ThenInclude(p => p.OrderDetails);
+				
+				// var efResult = await query.ToArrayAsync();
+				var result = await query.ToLinqToDB().ToArrayAsync();
+
+				var orderDetail = result[0].OrderDetails.First();
+				orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
+
+				ctx.ChangeTracker.DetectChanges();
+				var changedEntry = ctx.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).Single();
+				ctx.SaveChanges();
+			}
+		}
+
+		[Test]
+		public async Task TestSetUpdate([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
 			{
 				var customer = await ctx.Customers.FirstOrDefaultAsync();
 
 				var updatable = ctx.Customers.Where(c => c.CustomerId == customer.CustomerId)
 					.Set(c => c.CompanyName, customer.CompanyName);
 
-				var affected = updatable
+				var affected = await updatable
 					.UpdateAsync();
 			}
 		}
@@ -540,7 +586,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public async Task FromSqlRaw()
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(false))
 			{
 				var id = 1;
 				var query = ctx.Categories.FromSqlRaw("SELECT * FROM [dbo].[Categories] WHERE CategoryId = {0}", id);
@@ -554,7 +600,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public async Task FromSqlRaw2()
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(false))
 			{
 				var id = 1;
 				var query = from c1 in ctx.Categories
@@ -569,12 +615,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public async Task FromSqlInterpolated()
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(false))
 			{
 				var id = 1;
 				var query = ctx.Categories.FromSqlInterpolated($"SELECT * FROM [dbo].[Categories] WHERE CategoryId = {id}");
 
-				var efResult = await query.ToArrayAsyncEF();
+				var efResult = await query.AsNoTracking().ToArrayAsyncEF();
 				var linq2dbResult = await query.ToArrayAsyncLinqToDB();
 			}
 		}
@@ -582,15 +628,15 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public async Task FromSqlInterpolated2()
 		{
-			using (var ctx = CreateContext())
+			using (var ctx = CreateContext(false))
 			{
 				var id = 1;
 				var query = from c1 in ctx.Categories
 					from c2 in ctx.Categories.FromSqlInterpolated($"SELECT * FROM [dbo].[Categories] WHERE CategoryId = {id}")
 					select c2;
 
-				var efResult = await query.ToArrayAsyncEF();
-				var linq2dbResult = await query.ToArrayAsyncLinqToDB();
+				var efResult = await query.AsNoTracking().ToArrayAsyncEF();
+				var linq2dbResult = await query.AsNoTracking().ToArrayAsyncLinqToDB();
 			}
 		}
 

@@ -474,11 +474,18 @@ namespace LinqToDB.EntityFrameworkCore
 		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader,
 			IValueConverterSelector convertorSelector)
 		{
-			var result = _schemaCache.GetOrCreate(Tuple.Create(model, metadataReader, convertorSelector), e =>
-			{
-				e.SlidingExpiration = TimeSpan.FromHours(1); 
-				return CreateMappingSchema(model, metadataReader, convertorSelector);
-			});
+			var result = _schemaCache.GetOrCreate(
+				Tuple.Create(
+					model,
+					metadataReader,
+					convertorSelector,
+					EnableChangeTracker
+				),
+				e =>
+				{
+					e.SlidingExpiration = TimeSpan.FromHours(1);
+					return CreateMappingSchema(model, metadataReader, convertorSelector);
+				});
 
 			return result;
 		}
@@ -693,6 +700,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public virtual Expression TransformExpression(Expression expression, IDataContext dc, DbContext ctx, IModel model)
 		{
 			var ignoreQueryFilters = false;
+			var tracking = true;
 
 			Expression LocalTransform(Expression e)
 			{
@@ -730,7 +738,10 @@ namespace LinqToDB.EntityFrameworkCore
 									isTunnel = true;
 								}
 								else if (generic == AsNoTrackingMethodInfo)
+								{
 									isTunnel = true;
+									tracking = false;
+								}
 								else if (generic == IncludeMethodInfo)
 								{
 									var method =
@@ -767,7 +778,7 @@ namespace LinqToDB.EntityFrameworkCore
 								else if (generic == ThenIncludeMethodInfo)
 								{
 									var method =
-										Methods.LinqToDB.ThenLoadSingle.MakeGenericMethod(methodCall.Method
+										Methods.LinqToDB.ThenLoadFromSingle.MakeGenericMethod(methodCall.Method
 											.GetGenericArguments());
 
 									return Expression.Call(method,
@@ -777,7 +788,7 @@ namespace LinqToDB.EntityFrameworkCore
 								else if (generic == ThenIncludeEnumerableMethodInfo)
 								{
 									var method =
-										Methods.LinqToDB.ThenLoadMultiple.MakeGenericMethod(methodCall.Method
+										Methods.LinqToDB.ThenLoadFromMany.MakeGenericMethod(methodCall.Method
 											.GetGenericArguments());
 
 									return Expression.Call(method,
@@ -830,10 +841,17 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var newExpression = expression.Transform(e => LocalTransform(e));
 
-			if (!ignoreQueryFilters)
+			if (ignoreQueryFilters)
 			{
-				var ignoredExpressions = new HashSet<Expression>();
-				newExpression = ApplyQueryFilters(newExpression, ignoredExpressions, dc, ctx, model);
+				var elementType = newExpression.Type.GetGenericArguments()[0];
+				newExpression = Expression.Call(Methods.LinqToDB.IgnoreFilters.MakeGenericMethod(elementType),
+					newExpression, Expression.NewArrayInit(typeof(Type)));
+			}
+
+			if (dc is LinqToDBForEFToolsDataConnection dataConnection)
+			{
+				// ReSharper disable once ConditionIsAlwaysTrueOrFalse
+				dataConnection.Tracking = tracking;
 			}
 
 			return newExpression;
@@ -1317,11 +1335,6 @@ namespace LinqToDB.EntityFrameworkCore
 			var coreOptions = options?.FindExtension<CoreOptionsExtension>();
 
 			var logger = coreOptions?.LoggerFactory?.CreateLogger("LinqToDB");
-			if (logger != null)
-			{
-				if (DataConnection.TraceSwitch.Level == TraceLevel.Off)
-					DataConnection.TurnTraceSwitchOn();
-			}
 
 			return logger;
 		}
@@ -1335,6 +1348,12 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Gets or sets default provider version for PostgreSQL Server. Set to <see cref="PostgreSQLVersion.v93"/> dialect.
 		/// </summary>
 		public static PostgreSQLVersion PostgreSqlDefaultVersion { get; set; } = PostgreSQLVersion.v93;
+
+		/// <summary>
+		/// Enables attaching entities to change tracker.
+		/// Entities will be attached only if AsNoTracking() is not used in query and DbContext is configured to track entities. 
+		/// </summary>
+		public virtual bool EnableChangeTracker { get; set; } = true;
 
 	}
 }
