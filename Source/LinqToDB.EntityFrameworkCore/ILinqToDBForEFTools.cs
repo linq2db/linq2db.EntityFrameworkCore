@@ -112,5 +112,12 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="info"></param>
 		/// <param name="logger"></param>
 		void LogConnectionTrace(TraceInfo info, ILogger logger);
+
+		/// <summary>
+		/// Enables attaching entities to change tracker.
+		/// Entities will be attached only if AsNoTracking() is not used in query and DbContext is configured to track entities. 
+		/// </summary>
+		bool EnableChangeTracker { get; set; }
+		
 	}
 }

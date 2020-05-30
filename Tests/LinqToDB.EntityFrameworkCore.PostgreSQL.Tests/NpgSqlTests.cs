@@ -23,7 +23,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NpgSqlEnititesContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=test_ef_data;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
+			optionsBuilder.UseNpgsql("Server=localhost;Port=5433;Database=test_ef_data;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;

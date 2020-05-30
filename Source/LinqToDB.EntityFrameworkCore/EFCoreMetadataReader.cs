@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using LinqToDB.Expressions;
+using LinqToDB.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -46,6 +48,52 @@ namespace LinqToDB.EntityFrameworkCore
 				if (typeof(T) == typeof(TableAttribute))
 				{
 					return new[] { (T)(Attribute)new TableAttribute(et.GetTableName()) { Schema = et.GetSchema() } };
+				}
+				if (typeof(T) == typeof(QueryFilterAttribute))
+				{
+					var filter = et.GetQueryFilter();
+
+					if (filter != null)
+					{
+						var queryParam   = Expression.Parameter(typeof(IQueryable<>).MakeGenericType(type), "q");
+						var dcParam      = Expression.Parameter(typeof(IDataContext), "dc");
+						var contextProp  = Expression.Property(Expression.Convert(dcParam, typeof(LinqToDBForEFToolsDataConnection)), "Context");
+						var filterBody   = filter.Body.Transform(e =>
+						{
+							switch (e)
+							{
+								case ConstantExpression cnt:
+								{
+									if (typeof(DbContext).IsSameOrParentOf(cnt.Type))
+									{
+										Expression newExpr = contextProp;
+										if (newExpr.Type != cnt.Type)
+											newExpr = Expression.Convert(newExpr, cnt.Type);
+										return newExpr;
+									}
+									break;
+								}
+							}
+
+							return e;
+						});
+
+						// we have found dependency, check for compatibility
+
+						var filterLambda = Expression.Lambda(filterBody, filter.Parameters[0]);
+						Expression body  = Expression.Call(Methods.Queryable.Where.MakeGenericMethod(type), queryParam, filterLambda);
+
+						var checkType = filter.Body != filterBody;
+						if (checkType)
+						{
+							body = Expression.Condition(
+								Expression.TypeIs(dcParam, typeof(LinqToDBForEFToolsDataConnection)), body, queryParam);
+						}
+
+						var lambda       = Expression.Lambda(body, queryParam, dcParam);
+
+						return new[] { (T) (Attribute) new QueryFilterAttribute { FilterFunc = lambda.Compile() } };
+					}
 				}
 			}
 
