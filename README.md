@@ -141,10 +141,8 @@ Below is a list of providers, that should work right now:
 - SQL Server CE
 
 # Know limitations
-- No Eager loading
 - No Lazy loading
 - No way to work with in-memory database
-- `Include` function supported with limitations
 
 # Help! It doesn't work!
 
