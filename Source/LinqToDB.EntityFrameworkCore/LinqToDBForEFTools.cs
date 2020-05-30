@@ -509,5 +509,16 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			return Implementation.GetCurrentContext(query);
 		}
+
+		/// <summary>
+		/// Enables attaching entities to change tracker.
+		/// Entities will be attached only if AsNoTracking() is not used in query and DbContext is configured to track entities. 
+		/// </summary>
+		public static bool EnableChangeTracker 
+		{ 
+			get => Implementation.EnableChangeTracker;
+			set => Implementation.EnableChangeTracker = true;
+		}
+
 	}
 }

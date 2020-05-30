@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -16,9 +19,16 @@ namespace LinqToDB.EntityFrameworkCore
 
 	public class LinqToDBForEFToolsDataConnection : DataConnection, IExpressionPreprocessor
 	{
-		readonly DbContext _context;
 		readonly IModel _model;
 		readonly Func<Expression, IDataContext, DbContext, IModel, Expression> _transformFunc;
+
+		private IEntityType _lastEntityType;
+		private Type        _lastType;
+		private IStateManager _stateManager;
+
+		public bool         Tracking { get; set; }
+
+		public DbContext Context { get; }
 
 		public LinqToDBForEFToolsDataConnection(
 			[CanBeNull] DbContext     context,
@@ -27,9 +37,11 @@ namespace LinqToDB.EntityFrameworkCore
 			            IModel        model,
 			Func<Expression, IDataContext, DbContext, IModel, Expression> transformFunc) : base(dataProvider, connectionString)
 		{
-			_context       = context;
-			_model         = model;
-			_transformFunc = transformFunc;
+			Context          = context;
+			_model           = model;
+			_transformFunc   = transformFunc;
+			if (LinqToDBForEFTools.EnableChangeTracker)
+				OnEntityCreated += OnEntityCreatedHandler;
 		}
 
 		public LinqToDBForEFToolsDataConnection(
@@ -40,9 +52,11 @@ namespace LinqToDB.EntityFrameworkCore
 			Func<Expression, IDataContext, DbContext, IModel, Expression> transformFunc
 			) : base(dataProvider, transaction)
 		{
-			_context       = context;
-			_model         = model;
-			_transformFunc = transformFunc;
+			Context          = context;
+			_model           = model;
+			_transformFunc   = transformFunc;
+			if (LinqToDBForEFTools.EnableChangeTracker)
+				OnEntityCreated += OnEntityCreatedHandler;
 		}
 
 		public LinqToDBForEFToolsDataConnection(
@@ -52,16 +66,43 @@ namespace LinqToDB.EntityFrameworkCore
 			            IModel        model,
 			Func<Expression, IDataContext, DbContext, IModel, Expression> transformFunc) : base(dataProvider, connection)
 		{
-			_context       = context;
-			_model         = model;
-			_transformFunc = transformFunc;
+			Context          = context;
+			_model           = model;
+			_transformFunc   = transformFunc;
+			if (LinqToDBForEFTools.EnableChangeTracker)
+				OnEntityCreated += OnEntityCreatedHandler;
 		}
 
 		public Expression ProcessExpression(Expression expression)
 		{
 			if (_transformFunc == null)
 				return expression;
-			return _transformFunc(expression, this, _context, _model);
+			return _transformFunc(expression, this, Context, _model);
 		}
+
+		private void OnEntityCreatedHandler(EntityCreatedEventArgs args)
+		{
+			if (!LinqToDBForEFTools.EnableChangeTracker 
+			    || !Tracking 
+			    || Context.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.NoTracking)
+				return;
+
+			var type = args.Entity.GetType();
+			if (_lastType != type)
+			{
+				_lastType       = type;
+				_lastEntityType = Context.Model.FindEntityType(type);
+			}
+
+			if (_lastEntityType == null)
+				return;
+
+			if (_stateManager == null)
+				_stateManager = Context.GetService<IStateManager>();
+
+			var entry   = _stateManager.StartTrackingFromQuery(_lastEntityType, args.Entity, ValueBuffer.Empty);
+			args.Entity = entry.Entity;
+		}
+
 	}
 }
