@@ -22,7 +22,7 @@
 * [Use CTE in LINQ queries](https://linq2db.github.io/articles/sql/CTE.html)
 * [MERGE statement support](https://linq2db.github.io/articles/sql/merge/Merge-API-Description.html)
 * Table hints
-* Full Window functions support
+* [Full Window functions support](https://linq2db.github.io/articles/sql/Window-Functions-(Analytic-Functions).html)
 * Fast [BulkCopy](https://linq2db.github.io/articles/sql/Bulk-Copy.html) of millions records
 * Native SQL operations for updating, deleting, inserting records via LINQ query
 * Temporary Tables support
