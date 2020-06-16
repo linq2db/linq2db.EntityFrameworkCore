@@ -111,6 +111,9 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (property == memberInfo)
 				return true;
+
+			if (property == null)
+				return false;
 			
 			if (memberInfo.DeclaringType?.IsAssignableFrom(property.DeclaringType) == true
 			    && memberInfo.Name == property.Name 
@@ -214,9 +217,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 					return associations.Select(a => (T)(Attribute)a).ToArray();
 				}
-			}
-
-			if (typeof(T) == typeof(Sql.ExpressionAttribute))
+			} 
+			else if (typeof(T) == typeof(Sql.ExpressionAttribute))
 			{
 				// Search for translator first
 				if (_dependencies != null)
@@ -260,8 +262,45 @@ namespace LinqToDB.EntityFrameworkCore
 					}).ToArray();
 				}
 			}
+			else if (typeof(T) == typeof(ValueConverterAttribute))
+			{
+				var et = _model?.FindEntityType(type);
+				if (et != null)
+				{
+					var props = et.GetProperties();
+					var prop  = props.FirstOrDefault(p => CompareProperty(p, memberInfo));
+
+					var converter = prop?.GetValueConverter();
+					if (converter != null)
+					{
+						var valueConverterAttribute = new ValueConverterAttribute
+						{
+							ValueConverter = new ValueConverter(converter.ConvertToProviderExpression,
+								converter.ConvertFromProviderExpression, false)
+						};
+						return new T[] { (T) (Attribute) valueConverterAttribute };
+					}
+				}
+			}
 
 			return Array.Empty<T>();
+		}
+
+		class ValueConverter : IValueConverter
+		{
+			public ValueConverter(
+				LambdaExpression convertToProviderExpression,
+				LambdaExpression convertFromProviderExpression, bool handlesNulls)
+			{
+				FromProviderExpression = convertFromProviderExpression;
+				ToProviderExpression   = convertToProviderExpression;
+				HandlesNulls           = handlesNulls;
+			}
+
+			public bool             HandlesNulls           { get; }
+			public LambdaExpression FromProviderExpression { get; }
+			public LambdaExpression ToProviderExpression   { get; }
+		
 		}
 
 		class SqlTransparentExpression : SqlExpression
@@ -329,7 +368,9 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				EFCoreExpressionAttribute result = null;
 
-				if ((propInfo.GetMethod?.IsStatic != true) && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
+				if ((propInfo.GetMethod?.IsStatic != true) 
+				    && !(mi is DynamicColumnInfo) 
+				    && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
 				{
 					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource?.FindMapping(propInfo));
 
