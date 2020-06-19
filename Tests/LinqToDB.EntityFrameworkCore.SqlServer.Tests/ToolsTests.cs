@@ -59,7 +59,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			var str = $"SET IDENTITY_INSERT {tableName} " + (isOn ? "ON" : "OFF");
 			try
 			{
-				ctx.Database.ExecuteSqlCommand(str);
+				ctx.Database.ExecuteSqlRaw(str);
 			}
 			catch (Exception)
 			{
