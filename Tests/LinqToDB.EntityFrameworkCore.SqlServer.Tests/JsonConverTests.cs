@@ -90,11 +90,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			LinqToDBForEFTools.Initialize();
 			
-			// converting from string, because usually JSON is stored as string, but it depends on DataProvider
-			Mapping.MappingSchema.Default.SetConverter<string, LocalizedString>(v => JsonConvert.DeserializeObject<LocalizedString>(v));
-
-			// here we told linq2db how to pass converted value as DataParameter.
-			Mapping.MappingSchema.Default.SetConverter<LocalizedString, DataParameter>(v => new DataParameter("", JsonConvert.SerializeObject(v), LinqToDB.DataType.NVarChar));
+			// // converting from string, because usually JSON is stored as string, but it depends on DataProvider
+			// Mapping.MappingSchema.Default.SetConverter<string, LocalizedString>(v => JsonConvert.DeserializeObject<LocalizedString>(v));
+			//
+			// // here we told linq2db how to pass converted value as DataParameter.
+			// Mapping.MappingSchema.Default.SetConverter<LocalizedString, DataParameter>(v => new DataParameter("", JsonConvert.SerializeObject(v), LinqToDB.DataType.NVarChar));
 
 			using (var ctx = new JsonConvertContext(_options))
 			{
