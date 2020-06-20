@@ -157,7 +157,6 @@ Below is a list of providers, that should work right now:
 # Know limitations
 - No Lazy loading
 - No way to work with in-memory database
-- `HasConversion` for properties currently not supported. Can be done via linq2db's `MappingSchema.Default.SetConverter()` function.
 
 # Help! It doesn't work!
 
