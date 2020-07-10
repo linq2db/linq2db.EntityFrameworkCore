@@ -14,7 +14,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		}
 
 		public override ISqlExpression GetExpression(IDataContext dataContext, SelectQuery query,
-				Expression expression, Func<Expression, ISqlExpression> converter)
+				Expression expression, Func<Expression, ColumnDescriptor?, ISqlExpression> converter)
 		{
 			var knownExpressions = new List<Expression>();
 			if (expression.NodeType == ExpressionType.Call)
@@ -38,7 +38,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 					var idx = int.Parse(v);
 
 					if (pams[idx] == null)
-						pams[idx] = converter(knownExpressions[idx]);
+						pams[idx] = converter(knownExpressions[idx], null);
 
 					return v;
 				});

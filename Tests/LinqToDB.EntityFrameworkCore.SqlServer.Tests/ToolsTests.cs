@@ -474,6 +474,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var result = await query.ToLinqToDB().ToArrayAsync();
 			}
 		}
+
 		[Test]
 		public async Task TestLoadFilter([Values(true, false)] bool enableFilter)
 		{
@@ -498,7 +499,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				Assert.That(filtered.Length, Is.EqualTo(expected.Length));
 			}
 		}
-
 
 		[Test]
 		public async Task TestGetTable([Values(true, false)] bool enableFilter)

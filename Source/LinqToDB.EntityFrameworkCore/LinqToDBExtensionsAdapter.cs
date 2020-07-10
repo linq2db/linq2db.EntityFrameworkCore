@@ -14,6 +14,9 @@ namespace LinqToDB.EntityFrameworkCore
 	/// </summary>
 	public class LinqToDBExtensionsAdapter : IExtensionsAdapter
 	{
+		public IAsyncEnumerable<TSource> AsAsyncEnumerable<TSource>(IQueryable<TSource> source)
+			=> EntityFrameworkQueryableExtensions.AsAsyncEnumerable(source);
+
 		public Task ForEachAsync<TSource>(
 			IQueryable<TSource> source,
 			Action<TSource>     action,
