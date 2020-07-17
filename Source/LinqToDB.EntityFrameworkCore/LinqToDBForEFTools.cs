@@ -517,7 +517,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public static bool EnableChangeTracker 
 		{ 
 			get => Implementation.EnableChangeTracker;
-			set => Implementation.EnableChangeTracker = true;
+			set => Implementation.EnableChangeTracker = value;
 		}
 
 	}
