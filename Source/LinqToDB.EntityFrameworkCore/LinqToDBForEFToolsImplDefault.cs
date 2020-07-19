@@ -534,6 +534,9 @@ namespace LinqToDB.EntityFrameworkCore
 		static readonly MethodInfo L2DBFromSqlMethodInfo = 
 			MemberHelper.MethodOfGeneric<IDataContext>(dc => dc.FromSql<object>(new Common.RawSqlString()));
 
+		static readonly MethodInfo L2DBRemoveOrderByMethodInfo = 
+			MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.RemoveOrderBy());
+
 		static readonly ConstructorInfo RawSqlStringConstructor = MemberHelper.ConstructorOf(() => new Common.RawSqlString(""));
 
 		static readonly ConstructorInfo DataParameterConstructor = MemberHelper.ConstructorOf(() => new DataParameter("", "", DataType.Undefined, ""));
@@ -700,7 +703,8 @@ namespace LinqToDB.EntityFrameworkCore
 		public virtual Expression TransformExpression(Expression expression, IDataContext dc, DbContext ctx, IModel model)
 		{
 			var ignoreQueryFilters = false;
-			var tracking = true;
+			var tracking           = true;
+			var ignoreTracking     = false;
 
 			Expression LocalTransform(Expression e)
 			{
@@ -795,6 +799,12 @@ namespace LinqToDB.EntityFrameworkCore
 										methodCall.Arguments.Select(a => a.Transform(l => LocalTransform(l)))
 											.ToArray());
 								}
+								else if (generic == L2DBRemoveOrderByMethodInfo)
+								{
+									// This is workaround. EagerLoading runs query again with RemoveOrderBy method.
+									// it is only one possible way now how to detect nested query. 
+									ignoreTracking = true;
+								}
 
 								if (isTunnel)
 									return methodCall.Arguments[0].Transform(l => LocalTransform(l));
@@ -848,7 +858,7 @@ namespace LinqToDB.EntityFrameworkCore
 					newExpression, Expression.NewArrayInit(typeof(Type)));
 			}
 
-			if (dc is LinqToDBForEFToolsDataConnection dataConnection)
+			if (!ignoreTracking && dc is LinqToDBForEFToolsDataConnection dataConnection)
 			{
 				// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 				dataConnection.Tracking = tracking;

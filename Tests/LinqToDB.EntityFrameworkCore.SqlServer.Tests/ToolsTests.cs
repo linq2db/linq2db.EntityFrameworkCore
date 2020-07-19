@@ -569,6 +569,61 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
+		public async Task TestChangeTrackerDisabled1([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				var query = ctx.Orders
+					.Include(o => o.OrderDetails)
+					.ThenInclude(d => d.Product)
+					.ThenInclude(p => p.OrderDetails)
+					.AsNoTracking();
+
+				// var efResult = await query.ToArrayAsync();
+				var result = await query.ToLinqToDB().ToArrayAsync();
+
+				var orderDetail = result[0].OrderDetails.First();
+				orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
+
+				ctx.ChangeTracker.DetectChanges();
+				var changedEntry = ctx.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).SingleOrDefault();
+				Assert.AreEqual(changedEntry, null);
+				ctx.SaveChanges();
+			}
+		}
+
+		[Test]
+		public async Task TestChangeTrackerDisabled2([Values(true, false)] bool enableFilter)
+		{
+			LinqToDBForEFTools.EnableChangeTracker = false;
+			try
+			{
+				using (var ctx = CreateContext(enableFilter))
+				{
+					var query = ctx.Orders
+						.Include(o => o.OrderDetails)
+						.ThenInclude(d => d.Product)
+						.ThenInclude(p => p.OrderDetails);
+
+					// var efResult = await query.ToArrayAsync();
+					var result = await query.ToLinqToDB().ToArrayAsync();
+
+					var orderDetail = result[0].OrderDetails.First();
+					orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
+
+					ctx.ChangeTracker.DetectChanges();
+					var changedEntry = ctx.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).SingleOrDefault();
+					Assert.AreEqual(changedEntry, null);
+					ctx.SaveChanges();
+				}
+			}
+			finally
+			{
+				LinqToDBForEFTools.EnableChangeTracker = true;
+			}
+		}
+
+		[Test]
 		public async Task TestSetUpdate([Values(true, false)] bool enableFilter)
 		{
 			using (var ctx = CreateContext(enableFilter))
