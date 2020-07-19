@@ -93,13 +93,13 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				_implementation = value ?? throw new ArgumentNullException(nameof(value));
 				_metadataReaders.Clear();
-				_defaultMeadataReader = new Lazy<IMetadataReader>(() => Implementation.CreateMetadataReader(null, null, null));
+				_defaultMetadataReader = new Lazy<IMetadataReader>(() => Implementation.CreateMetadataReader(null, null, null));
 			}
 		}
 
 		static readonly ConcurrentDictionary<IModel, IMetadataReader> _metadataReaders = new ConcurrentDictionary<IModel, IMetadataReader>();
 
-		static Lazy<IMetadataReader> _defaultMeadataReader;
+		static Lazy<IMetadataReader> _defaultMetadataReader;
 
 		/// <summary>
 		/// Clears internal caches
@@ -129,7 +129,7 @@ namespace LinqToDB.EntityFrameworkCore
 			RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource)
 		{
 			if (model == null)
-				return _defaultMeadataReader.Value;
+				return _defaultMetadataReader.Value;
 
 			return _metadataReaders.GetOrAdd(model, m => Implementation.CreateMetadataReader(model, dependencies, mappingSource));
 		}

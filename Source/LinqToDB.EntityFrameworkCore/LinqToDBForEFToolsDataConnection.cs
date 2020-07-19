@@ -22,13 +22,13 @@ namespace LinqToDB.EntityFrameworkCore
 		readonly IModel _model;
 		readonly Func<Expression, IDataContext, DbContext, IModel, Expression> _transformFunc;
 
-		private IEntityType _lastEntityType;
-		private Type        _lastType;
+		private IEntityType   _lastEntityType;
+		private Type          _lastType;
 		private IStateManager _stateManager;
 
-		public bool         Tracking { get; set; }
+		public bool      Tracking { get; set; }
 
-		public DbContext Context { get; }
+		public DbContext Context  { get; }
 
 		public LinqToDBForEFToolsDataConnection(
 			[CanBeNull] DbContext     context,
