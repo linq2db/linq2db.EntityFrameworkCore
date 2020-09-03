@@ -14,7 +14,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		}
 
 		public override ISqlExpression GetExpression(IDataContext dataContext, SelectQuery query,
-				Expression expression, Func<Expression, ColumnDescriptor?, ISqlExpression> converter)
+				Expression expression, Func<Expression, ColumnDescriptor, ISqlExpression> converter)
 		{
 			var knownExpressions = new List<Expression>();
 			if (expression.NodeType == ExpressionType.Call)
