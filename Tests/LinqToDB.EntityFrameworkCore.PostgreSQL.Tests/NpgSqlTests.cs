@@ -6,7 +6,7 @@ using LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.NpgSqlEntities;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 
-namespace LinqToDB.EntityFrameworkCore.Tests
+namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 {
 	public class NpgSqlTests : TestsBase
 	{
