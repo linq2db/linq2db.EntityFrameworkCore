@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
-
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -390,6 +390,9 @@ namespace LinqToDB.EntityFrameworkCore
 			return dc;
 		}
 
+
+		static ConcurrentDictionary<Type, Func<DbConnection, string>> _connectionStringExtractors = new ConcurrentDictionary<Type, Func<DbConnection, string>>();
+
 		/// <summary>
 		/// Extracts database connection information from EF.Core provider data.
 		/// </summary>
@@ -398,7 +401,26 @@ namespace LinqToDB.EntityFrameworkCore
 		public static EFConnectionInfo GetConnectionInfo(EFProviderInfo info)
 		{
 			var connection = info.Connection;
-			var connectionString = connection?.ConnectionString;
+			string connectionString = null;
+			if (connection != null)
+			{
+				var connectionStringFunc = _connectionStringExtractors.GetOrAdd(connection.GetType(), t =>
+				{
+					// NpgSQL workaround
+					var originalProp = t.GetProperty("OriginalConnectionString", BindingFlags.Instance | BindingFlags.NonPublic);
+					                                     
+					if (originalProp == null)
+						return c => c.ConnectionString;
+
+					var parameter = Expression.Parameter(typeof(DbConnection), "c");
+					var lambda = Expression.Lambda<Func<DbConnection, string>>(
+						Expression.MakeMemberAccess(Expression.Convert(parameter, t), originalProp), parameter);
+
+					return lambda.Compile();
+				});
+
+				connectionString = connectionStringFunc(connection);
+			}
 
 			if (connection != null && connectionString != null)
 				return new EFConnectionInfo { Connection = connection, ConnectionString = connectionString };

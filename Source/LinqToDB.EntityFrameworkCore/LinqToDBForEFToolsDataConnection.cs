@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Linq;
 using System.Linq.Expressions;
 
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -100,7 +101,33 @@ namespace LinqToDB.EntityFrameworkCore
 			if (_stateManager == null)
 				_stateManager = Context.GetService<IStateManager>();
 
-			var entry   = _stateManager.StartTrackingFromQuery(_lastEntityType, args.Entity, ValueBuffer.Empty);
+
+			// It is a real pain to register entity in change tracker
+			//
+			InternalEntityEntry entry = null;
+
+			foreach (var key in _lastEntityType.GetKeys())
+			{
+				//TODO: Find faster way
+				var keyArray = key.Properties.Where(p => p.PropertyInfo != null || p.FieldInfo != null).Select(p =>
+					p.PropertyInfo != null
+						? p.PropertyInfo.GetValue(args.Entity)
+						: p.FieldInfo.GetValue(args.Entity)).ToArray();
+
+				if (keyArray.Length == key.Properties.Count)
+				{
+					entry = _stateManager.TryGetEntry(key, keyArray);
+
+					if (entry != null)
+						break;
+				}
+			}
+
+			if (entry == null)
+			{
+				entry = _stateManager.StartTrackingFromQuery(_lastEntityType, args.Entity, ValueBuffer.Empty);
+			}
+
 			args.Entity = entry.Entity;
 		}
 
