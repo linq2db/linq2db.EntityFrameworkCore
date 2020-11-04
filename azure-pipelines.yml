@@ -2,7 +2,8 @@ variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
   assemblyVersion: 3.7.0
-  nugetVersion: 3.7.0
+  nugetVersion31: 3.7.0
+  nugetVersion50: 5.0.0
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
@@ -35,7 +36,8 @@ stages:
     pool:
       vmImage: 'windows-2019'
     variables:
-      packageVersion: $(nugetVersion)
+      packageVersion31: $(nugetVersion31)
+      packageVersion50: $(nugetVersion50)
     displayName: 'Build'
 
     steps:
@@ -54,28 +56,45 @@ stages:
         msbuildArguments: '/t:Restore;Rebuild -m'
       displayName: Build Solution
 
-    - powershell: echo "##vso[task.setvariable variable=packageVersion]$(packageVersion)-rc.$(Build.BuildId)"
+    - powershell: echo "##vso[task.setvariable variable=packageVersion31]$(packageVersion31)-rc.$(Build.BuildId)"
       condition: and(ne(variables['Build.SourceBranchName'], 'release'), ne(variables['Build.SourceBranchName'], 'release.1'), ne(variables['Build.SourceBranchName'], 'release.2'))
-      displayName: Set nuget RC version for non-release branch
+      displayName: Set nuget RC version for non-release branch (3.1)
+
+    - powershell: echo "##vso[task.setvariable variable=packageVersion50]$(packageVersion50)-rc.$(Build.BuildId)"
+      condition: and(ne(variables['Build.SourceBranchName'], 'release'), ne(variables['Build.SourceBranchName'], 'release.1'), ne(variables['Build.SourceBranchName'], 'release.2'))
+      displayName: Set nuget RC version for non-release branch (5.0)
 
     - task: PowerShell@2
       inputs:
         filePath: '$(Build.SourcesDirectory)/NuGet/BuildNuspecs.ps1'
         workingDirectory: '$(Build.SourcesDirectory)'
-        arguments: -path $(Build.SourcesDirectory)/NuGet/linq2db.EntityFrameworkCore.nuspec -version $(packageVersion) -branch $(Build.SourceBranchName)
-      displayName: Generate nuspec
+        arguments: -path $(Build.SourcesDirectory)/NuGet/linq2db.EntityFrameworkCore.3.1.nuspec -version $(packageVersion31) -branch $(Build.SourceBranchName)
+      displayName: Generate 3.1 nuspec
+
+    - task: PowerShell@2
+      inputs:
+        filePath: '$(Build.SourcesDirectory)/NuGet/BuildNuspecs.ps1'
+        workingDirectory: '$(Build.SourcesDirectory)'
+        arguments: -path $(Build.SourcesDirectory)/NuGet/linq2db.EntityFrameworkCore.5.0.nuspec -version $(packageVersion50) -branch $(Build.SourceBranchName)
+      displayName: Generate 5.0 nuspec
 
     - task: NuGetToolInstaller@0
       inputs:
-        versionSpec: '5.4.x'
+        versionSpec: '5.x'
         workingDirectory: $(Build.SourcesDirectory)/NuGet
       displayName: Install nuget
 
     - task: CmdLine@2
       inputs:
-        script: 'nuget Pack linq2db.EntityFrameworkCore.nuspec -OutputDirectory built'
+        script: 'nuget Pack linq2db.EntityFrameworkCore.3.1.nuspec -OutputDirectory built'
         workingDirectory: $(Build.SourcesDirectory)/NuGet
-      displayName: Build nuget
+      displayName: Build 3.1 nuget
+
+    - task: CmdLine@2
+      inputs:
+        script: 'nuget Pack linq2db.EntityFrameworkCore.5.0.nuspec -OutputDirectory built'
+        workingDirectory: $(Build.SourcesDirectory)/NuGet
+      displayName: Build 5.0 nuget
 
     - task: PublishBuildArtifacts@1
       inputs:
@@ -92,7 +111,6 @@ stages:
       displayName: Publish to Azure Artifacts feed
       condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.SourceBranchName'], 'version1'), eq(variables['Build.SourceBranchName'], 'version2')))
 
-# apikey exires around 31/07/2020
     - task: NuGetCommand@2
       inputs:
         command: 'push'
