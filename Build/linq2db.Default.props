@@ -3,7 +3,7 @@
 		<Version>3.7.0</Version>
 
 		<Description>Allows to execute Linq to DB (linq2db) queries in Entity Framework Core DbContext.</Description>
-		<Title>Linq to DB (linq2db) extensions for Entity Framework Core</Title>
+		<Title>Linq to DB (linq2db) extensions for Entity Framework Core 5.0</Title>
 		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<Authors>Svyatoslav Danyliv, Igor Tkachev, Dmitry Lukashenko, Ilya Chudin</Authors>
 		<Product>Linq to DB</Product>

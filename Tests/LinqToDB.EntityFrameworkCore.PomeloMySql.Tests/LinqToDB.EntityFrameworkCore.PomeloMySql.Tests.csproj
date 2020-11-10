@@ -2,23 +2,15 @@
 
 	<Import Project="..\..\Build\linq2db.Tests.props" />
 
-	<PropertyGroup>
-		<TargetFrameworks>netcoreapp3.1</TargetFrameworks>
-	</PropertyGroup>
-	
 	<ItemGroup>
 	  <Compile Remove="Models\UniversalEntities\**" />
 	  <EmbeddedResource Remove="Models\UniversalEntities\**" />
 	  <None Remove="Models\UniversalEntities\**" />
 	</ItemGroup>
 
-	<ItemGroup Condition="$(TargetFramework) == 'netcoreapp3.1'">
-		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.4" />
+	<ItemGroup>
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.0-alpha.1" />
 	</ItemGroup>
-
-	<!--<ItemGroup Condition="$(TargetFramework) == 'net5.0'">
-		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.1" />
-	</ItemGroup>-->
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.csproj" />

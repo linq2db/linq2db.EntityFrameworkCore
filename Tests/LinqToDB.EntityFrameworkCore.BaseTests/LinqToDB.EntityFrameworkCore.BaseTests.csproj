@@ -8,16 +8,10 @@
 	  <None Remove="Models\UniversalEntities\**" />
 	</ItemGroup>
 
-	<ItemGroup Condition="$(TargetFramework) == 'netcoreapp3.1'">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.9" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.9" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.9" />
-	</ItemGroup>
-
-	<ItemGroup Condition="$(TargetFramework) == 'net5.0'">
-		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.0-rc.2.20475.6" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0-rc.2.20475.5" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0-rc.2.20475.5" />
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

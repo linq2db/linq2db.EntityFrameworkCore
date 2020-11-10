@@ -24,8 +24,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{4BCDB6FB
 	ProjectSection(SolutionItems) = preProject
 		NuGet\BuildNuspecs.ps1 = NuGet\BuildNuspecs.ps1
 		NuGet\icon.png = NuGet\icon.png
-		NuGet\linq2db.EntityFrameworkCore.3.1.nuspec = NuGet\linq2db.EntityFrameworkCore.3.1.nuspec
-		NuGet\linq2db.EntityFrameworkCore.5.0.nuspec = NuGet\linq2db.EntityFrameworkCore.5.0.nuspec
+		NuGet\linq2db.EntityFrameworkCore.nuspec = NuGet\linq2db.EntityFrameworkCore.nuspec
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToDB.EntityFrameworkCore.BaseTests", "Tests\LinqToDB.EntityFrameworkCore.BaseTests\LinqToDB.EntityFrameworkCore.BaseTests.csproj", "{71CBC83D-C406-4EB3-8AFC-88C0ECA9C0E8}"
