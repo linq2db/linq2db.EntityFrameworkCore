@@ -20,7 +20,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 					.ReplaceService<IValueConverterSelector, IdValueConverterSelector>()
 					.UseLoggerFactory(TestUtils.LoggerFactory)
 					.EnableSensitiveDataLogging()
-					.UseNpgsql("Server=localhost;Port=5433;Database=SampleTests;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
+					.UseNpgsql("Server=DBHost;Port=5432;Database=TestData;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
 					.Options);
 			_efContext.Database.EnsureDeleted();
 			_efContext.Database.EnsureCreated();
@@ -76,6 +76,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 				.Assert(e => e.First().Details.First().Details.Count().Should().Be(2));
 
 		[Test]
+		[Ignore("Association bug")]
 		public void TestManyToManyIncludeTrackerPoison([Values] bool l2db)
 			=> _efContext
 				.Arrange(c => InsertDefaults(CreateLinqToDbContext(c)))
