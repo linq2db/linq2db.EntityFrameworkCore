@@ -7,6 +7,7 @@ using System.Reflection;
 using LinqToDB.Expressions;
 using LinqToDB.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Query;
@@ -32,12 +33,18 @@ namespace LinqToDB.EntityFrameworkCore
 		private readonly RelationalSqlTranslatingExpressionVisitorDependencies _dependencies;
 		private readonly IRelationalTypeMappingSource _mappingSource;
 		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute>();
+		private readonly IDiagnosticsLogger<DbLoggerCategory.Query> _logger;
 
-		public EFCoreMetadataReader(IModel model, RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource)
+		public EFCoreMetadataReader(IModel model, 
+			RelationalSqlTranslatingExpressionVisitorDependencies dependencies, 
+			IRelationalTypeMappingSource mappingSource, 
+			IDiagnosticsLogger<DbLoggerCategory.Query> logger
+			)
 		{
 			_model = model;
 			_dependencies = dependencies;
 			_mappingSource = mappingSource;
+			_logger = logger;
 		}
 
 		public T[] GetAttributes<T>(Type type, bool inherit = true) where T : Attribute
@@ -189,7 +196,7 @@ namespace LinqToDB.EntityFrameworkCore
 					foreach (var navigation in navigations)
 					{
 						var fk = navigation.ForeignKey;
-						if (fk.PrincipalEntityType == et)
+						if (!navigation.IsOnDependent)
 						{
 							var thisKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
 							var otherKey = string.Join(",", fk.Properties.Select(p => p.Name));
@@ -312,7 +319,7 @@ namespace LinqToDB.EntityFrameworkCore
 				Expression = expression;
 			}
 
-			public override void Print(ExpressionPrinter expressionPrinter)
+			protected override void Print(ExpressionPrinter expressionPrinter)
 			{
 				expressionPrinter.Print(Expression);
 			}
@@ -341,7 +348,7 @@ namespace LinqToDB.EntityFrameworkCore
 								Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType),
 								_mappingSource?.FindMapping(p.ParameterType))).ToArray();
 
-					var newExpression = _dependencies.MethodCallTranslatorProvider.Translate(_model, objExpr, methodInfo, parametersArray);
+					var newExpression = _dependencies.MethodCallTranslatorProvider.Translate(_model, objExpr, methodInfo, parametersArray, _logger);
 					if (newExpression != null)
 					{
 						if (!methodInfo.IsStatic)
@@ -374,7 +381,7 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource?.FindMapping(propInfo));
 
-					var newExpression = _dependencies.MemberTranslatorProvider.Translate(objExpr, propInfo, propInfo.GetMemberType());
+					var newExpression = _dependencies.MemberTranslatorProvider.Translate(objExpr, propInfo, propInfo.GetMemberType(), _logger);
 					if (newExpression != null)
 					{
 						var parametersArray = new Expression[] { objExpr };

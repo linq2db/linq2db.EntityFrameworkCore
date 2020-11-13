@@ -6,6 +6,7 @@ using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Pomelo.EntityFrameworkCore.MySql.Storage;
 
 namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 {
@@ -25,8 +26,8 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
 			optionsBuilder.UseMySql(
-				"Server=DBHost;Port=3306;Database=test_ef_data;Uid=root;Pwd=TestPassword;charset=utf8;",
-				builder => builder.ServerVersion(Version.Parse("4.5.7"), ServerType.MySql));
+				"Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;",
+				builder => builder.ServerVersion(ServerVersion.Default));
 
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 

@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using JetBrains.Annotations;
 using LinqToDB.Common;
 using LinqToDB.Tools;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -356,9 +357,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>LINQ To DB metadata provider for specified EF.Core model.</returns>
 		public virtual IMetadataReader CreateMetadataReader(IModel model,
 			RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-			IRelationalTypeMappingSource mappingSource)
+			IRelationalTypeMappingSource mappingSource, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
 		{
-			return new EFCoreMetadataReader(model, dependencies, mappingSource);
+			return new EFCoreMetadataReader(model, dependencies, mappingSource, logger);
 		}
 
 		/// <summary>
@@ -500,15 +501,6 @@ namespace LinqToDB.EntityFrameworkCore
 			return context?.GetService<IDbContextOptions>();
 		}
 
-		static readonly MethodInfo GetTableMethodInfo = MemberHelper.MethodOfGeneric<IDataContext>(dc => dc.GetTable<object>());
-
-		static readonly MethodInfo EnumerableWhereMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.Where(p => true));
-
-		static readonly MethodInfo FromSqlOnQueryableMethodInfo =
-			typeof(RelationalQueryableExtensions).GetMethods(BindingFlags.Static|BindingFlags.NonPublic).Single(x => x.Name == "FromSqlOnQueryable").GetGenericMethodDefinition();
-
-		static readonly MethodInfo EnumerableToListMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.ToList());
-
 		static readonly MethodInfo IgnoreQueryFiltersMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.IgnoreQueryFilters());
 
 		static readonly MethodInfo IncludeMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.Include(o => o.ToString()));
@@ -520,9 +512,6 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static readonly MethodInfo ThenIncludeEnumerableMethodInfo =
 			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null));
-
-
-		static readonly MethodInfo FirstMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.First());
 
 		static readonly MethodInfo AsNoTrackingMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsNoTracking());
 
@@ -714,12 +703,24 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					case ExpressionType.Constant:
 					{
-						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type))
+						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type))
 						{
 							var entityType = e.Type.GenericTypeArguments[0];
 							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(entityType), Expression.Constant(dc));
-
 							return newExpr;
+						}
+
+						break;
+					}
+
+					case ExpressionType.MemberAccess:
+					{
+						if (typeof(DbSet<>).IsSameOrParentOf(e.Type))
+						{
+							var ma    = (MemberExpression)e;
+							var query = (IQueryable)EvaluateExpression(ma);
+
+							return LocalTransform(query.Expression);
 						}
 
 						break;
@@ -813,15 +814,6 @@ namespace LinqToDB.EntityFrameworkCore
 							break;
 						}
 
-						if (generic == FromSqlOnQueryableMethodInfo)
-						{
-							//convert the arguments from the FromSqlOnQueryable method from EF, to a L2DB FromSql call
-							return Expression.Call(null, L2DBFromSqlMethodInfo.MakeGenericMethod(methodCall.Method.GetGenericArguments()[0]),
-								Expression.Constant(dc), 
-								Expression.New(RawSqlStringConstructor, methodCall.Arguments[1]),
-								methodCall.Arguments[2]);
-						}
-
 						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type))
 						{
 							// Invoking function to evaluate EF's Subquery located in function
@@ -844,6 +836,28 @@ namespace LinqToDB.EntityFrameworkCore
 
 						break;
 					}
+
+					case ExpressionType.Extension:
+					{
+						if (e is FromSqlQueryRootExpression fromSqlQueryRoot)
+						{
+							//convert the arguments from the FromSqlOnQueryable method from EF, to a L2DB FromSql call
+							return Expression.Call(null,
+								L2DBFromSqlMethodInfo.MakeGenericMethod(fromSqlQueryRoot.EntityType.ClrType),
+								Expression.Constant(dc),
+								Expression.New(RawSqlStringConstructor, Expression.Constant(fromSqlQueryRoot.Sql)),
+								fromSqlQueryRoot.Argument);
+						}
+						else if (e is QueryRootExpression queryRoot)
+						{
+							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(queryRoot.EntityType.ClrType), Expression.Constant(dc));
+							return newExpr;
+						}
+
+
+						break;
+					}
+
 				}
 
 				return e;
@@ -998,7 +1012,7 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 			else if (typeof(IEnumerable<>).MakeGenericType(entityType).IsSameOrParentOf(expression.Type))
 			{
-				expression = Expression.Call(EnumerableWhereMethodInfo.MakeGenericMethod(entityType), expression,
+				expression = Expression.Call(Methods.Enumerable.Where.MakeGenericMethod(entityType), expression,
 					filterExpression);
 			}
 
@@ -1068,7 +1082,7 @@ namespace LinqToDB.EntityFrameworkCore
 									if (typeof(ICollection<>).IsSameOrParentOf(e.Type))
 									{
 										filtered = Expression.Call(
-											EnumerableToListMethodInfo.MakeGenericMethod(navigationType), filtered);
+											Methods.Enumerable.ToList.MakeGenericMethod(navigationType), filtered);
 									}
 									else if (e.Type.IsArray)
 									{

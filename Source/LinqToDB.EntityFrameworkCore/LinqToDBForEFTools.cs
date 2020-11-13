@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,6 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -93,7 +95,7 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				_implementation = value ?? throw new ArgumentNullException(nameof(value));
 				_metadataReaders.Clear();
-				_defaultMetadataReader = new Lazy<IMetadataReader>(() => Implementation.CreateMetadataReader(null, null, null));
+				_defaultMetadataReader = new Lazy<IMetadataReader>(() => Implementation.CreateMetadataReader(null, null, null, null));
 			}
 		}
 
@@ -124,14 +126,15 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model instance. Could be <c>null</c>.</param>
 		/// <param name="dependencies"></param>
 		/// <param name="mappingSource"></param>
+		/// <param name="logger"></param>
 		/// <returns>LINQ To DB metadata provider.</returns>
 		public static IMetadataReader GetMetadataReader([JetBrains.Annotations.CanBeNull] IModel model,
-			RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource)
+			RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
 		{
 			if (model == null)
 				return _defaultMetadataReader.Value;
 
-			return _metadataReaders.GetOrAdd(model, m => Implementation.CreateMetadataReader(model, dependencies, mappingSource));
+			return _metadataReaders.GetOrAdd(model, m => Implementation.CreateMetadataReader(model, dependencies, mappingSource, logger));
 		}
 
 		/// <summary>
@@ -218,13 +221,15 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="convertorSelector">EF Core registry for type conversion.</param>
 		/// <param name="dependencies"></param>
 		/// <param name="mappingSource"></param>
+		/// <param name="logger"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		public static MappingSchema GetMappingSchema(IModel model,
 			IValueConverterSelector convertorSelector,
 			RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-			IRelationalTypeMappingSource mappingSource)
+			IRelationalTypeMappingSource mappingSource,
+			IDiagnosticsLogger<DbLoggerCategory.Query> logger)
 		{
-			return Implementation.GetMappingSchema(model, GetMetadataReader(model, dependencies, mappingSource), convertorSelector);
+			return Implementation.GetMappingSchema(model, GetMetadataReader(model, dependencies, mappingSource, logger), convertorSelector);
 		}
 
 		/// <summary>
@@ -284,16 +289,28 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var logger = CreateLogger(info.Options);
 			if (logger != null)
-				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+			{
+				EnableTracing(dc, logger);
+			}
 
 			var dependencies  = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSource = context.GetService<IRelationalTypeMappingSource>();
 			var converters    = context.GetService<IValueConverterSelector>();
-			var mappingSchema = GetMappingSchema(context.Model, converters, dependencies, mappingSource);
+			var dLogger       = context.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+			var mappingSchema = GetMappingSchema(context.Model, converters, dependencies, mappingSource, dLogger);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
 			return dc;
+		}
+
+		private static TraceSwitch _defaultTraceSwitch =
+			new TraceSwitch("DataConnection", "DataConnection trace switch", TraceLevel.Info.ToString());
+
+		static void EnableTracing(DataConnection dc, ILogger logger)
+		{
+			dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+			dc.TraceSwitchConnection = _defaultTraceSwitch;
 		}
 
 		public static ILogger CreateLogger(IDbContextOptions options)
@@ -317,7 +334,8 @@ namespace LinqToDB.EntityFrameworkCore
 			var dependencies   = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSource  = context.GetService<IRelationalTypeMappingSource>();
 			var converters     = context.GetService<IValueConverterSelector>();
-			var mappingSchema  = GetMappingSchema(context.Model, converters, dependencies, mappingSource);
+			var dLogger        = context.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+			var mappingSchema  = GetMappingSchema(context.Model, converters, dependencies, mappingSource, dLogger);
 			var logger         = CreateLogger(info.Options);
 
 			if (transaction != null)
@@ -356,7 +374,9 @@ namespace LinqToDB.EntityFrameworkCore
 				dc.AddMappingSchema(mappingSchema);
 
 			if (logger != null)
-				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+			{
+				EnableTracing(dc, logger);
+			}
 
 			return dc;
 		}
@@ -377,13 +397,17 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var dc = new LinqToDBForEFToolsDataConnection(context, dataProvider, connectionInfo.ConnectionString, context.Model, TransformExpression);
 			var logger = CreateLogger(info.Options);
+
 			if (logger != null)
-				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+			{
+				EnableTracing(dc, logger);
+			}
 
 			var dependencies  = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSource = context.GetService<IRelationalTypeMappingSource>();
 			var converters    = context.GetService<IValueConverterSelector>();
-			var mappingSchema = GetMappingSchema(context.Model, converters, dependencies, mappingSource);
+			var dLogger       = context.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+			var mappingSchema = GetMappingSchema(context.Model, converters, dependencies, mappingSource, dLogger);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
@@ -472,11 +496,13 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var logger = CreateLogger(info.Options);
 			if (logger != null)
-				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+			{
+				EnableTracing(dc, logger);
+			}
 
 			if (model != null)
 			{
-				var mappingSchema = GetMappingSchema(model, null, null, null);
+				var mappingSchema = GetMappingSchema(model, null, null, null, null);
 				if (mappingSchema != null)
 					dc.AddMappingSchema(mappingSchema);
 			}

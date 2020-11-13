@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
@@ -40,8 +41,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="dependencies"></param>
 		/// <param name="mappingSource"></param>
+		/// <param name="logger"></param>
 		/// <returns>LINQ To DB metadata provider for specified EF.Core model. Can return <c>null</c>.</returns>
-		IMetadataReader CreateMetadataReader(IModel model, RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource);
+		IMetadataReader CreateMetadataReader(IModel model, RelationalSqlTranslatingExpressionVisitorDependencies dependencies, 
+			IRelationalTypeMappingSource mappingSource,
+			IDiagnosticsLogger<DbLoggerCategory.Query> logger);
 
 		/// <summary>
 		/// Creates mapping schema using provided EF.Core data model and metadata provider.
