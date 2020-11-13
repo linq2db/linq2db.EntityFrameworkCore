@@ -8,6 +8,7 @@ using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -278,6 +279,24 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			{
 				var query =
 					from p in ctx.Products
+					from c in ctx.Categories.InnerJoin(c => c.CategoryId == p.CategoryId)
+					select new
+					{
+						Product = p,
+						Ctegory = c
+					};
+
+				var items = query.ToLinqToDB().ToArray();
+			}
+		}
+
+		[Test]
+		public void TestTransformationTable([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				var query =
+					from p in ctx.Products
 					from c in ctx.Categories.ToLinqToDBTable().InnerJoin(c => c.CategoryId == p.CategoryId)
 					select new
 					{
@@ -290,7 +309,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public void TestDemo2([Values(true, false)] bool enableFilter)
+		public void TestDemo2([Values(true, false)] bool enableFilter, [Values] bool cacheCheck)
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
@@ -316,7 +335,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
 				var converters    = ctx.GetService<IValueConverterSelector>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource);
+				var dLogger       = ctx.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource, dLogger);
 				
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
@@ -336,7 +356,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var dependencies = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
 				var converters    = ctx.GetService<IValueConverterSelector>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, null);
+				var dLogger = ctx.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, null, dLogger);
 				
 				var associationOrder = ms.GetAttribute<AssociationAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.Orders));
@@ -356,7 +377,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
 				var converters    = ctx.GetService<IValueConverterSelector>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource);
+				var dLogger       = ctx.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource, dLogger);
 				
 				var identity = ms.GetAttribute<ColumnAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
