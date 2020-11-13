@@ -705,9 +705,9 @@ namespace LinqToDB.EntityFrameworkCore
 					{
 						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type))
 						{
-							var query = (IQueryable)EvaluateExpression(e);
-
-							return LocalTransform(query.Expression);
+							var entityType = e.Type.GenericTypeArguments[0];
+							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(entityType), Expression.Constant(dc));
+							return newExpr;
 						}
 
 						break;

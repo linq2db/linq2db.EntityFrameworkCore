@@ -309,7 +309,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
-		public void TestDemo2([Values(true, false)] bool enableFilter, [Values] bool cacheCheck)
+		public void TestDemo2([Values(true, false)] bool enableFilter)
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
@@ -642,6 +642,28 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			finally
 			{
 				LinqToDBForEFTools.EnableChangeTracker = true;
+			}
+		}
+
+		[Test]
+		public void NavigationProperties()
+		{
+			using (var ctx = CreateContext(false))
+			{
+				var query =
+					from o in ctx.Orders
+					from od in o.OrderDetails
+					select new
+					{
+						ProductOrderDetails = od.Product.OrderDetails.Select(d => new {d.OrderId, d.ProductId, d.Quantity }).ToArray(),
+						OrderDetail = new { od.OrderId, od.ProductId, od.Quantity },
+						Product = new { od.Product.ProductId, od.Product.ProductName }
+					};
+
+				var efResult   = query.ToArray();
+				var l2dbResult = query.ToLinqToDB().ToArray();
+				
+				AreEqualWithComparer(efResult, l2dbResult);
 			}
 		}
 

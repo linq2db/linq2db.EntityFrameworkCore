@@ -196,7 +196,7 @@ namespace LinqToDB.EntityFrameworkCore
 					foreach (var navigation in navigations)
 					{
 						var fk = navigation.ForeignKey;
-						if (fk.PrincipalEntityType == et)
+						if (!navigation.IsOnDependent)
 						{
 							var thisKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
 							var otherKey = string.Join(",", fk.Properties.Select(p => p.Name));

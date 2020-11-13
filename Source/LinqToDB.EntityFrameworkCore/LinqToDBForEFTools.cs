@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -288,7 +289,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var logger = CreateLogger(info.Options);
 			if (logger != null)
-				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+			{
+				EnableTracing(dc, logger);
+			}
 
 			var dependencies  = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSource = context.GetService<IRelationalTypeMappingSource>();
@@ -299,6 +302,15 @@ namespace LinqToDB.EntityFrameworkCore
 				dc.AddMappingSchema(mappingSchema);
 
 			return dc;
+		}
+
+		private static TraceSwitch _defaultTraceSwitch =
+			new TraceSwitch("DataConnection", "DataConnection trace switch", TraceLevel.Info.ToString());
+
+		static void EnableTracing(DataConnection dc, ILogger logger)
+		{
+			dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+			dc.TraceSwitchConnection = _defaultTraceSwitch;
 		}
 
 		public static ILogger CreateLogger(IDbContextOptions options)
@@ -362,7 +374,9 @@ namespace LinqToDB.EntityFrameworkCore
 				dc.AddMappingSchema(mappingSchema);
 
 			if (logger != null)
-				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+			{
+				EnableTracing(dc, logger);
+			}
 
 			return dc;
 		}
@@ -383,8 +397,11 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var dc = new LinqToDBForEFToolsDataConnection(context, dataProvider, connectionInfo.ConnectionString, context.Model, TransformExpression);
 			var logger = CreateLogger(info.Options);
+
 			if (logger != null)
-				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+			{
+				EnableTracing(dc, logger);
+			}
 
 			var dependencies  = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
 			var mappingSource = context.GetService<IRelationalTypeMappingSource>();
@@ -479,7 +496,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var logger = CreateLogger(info.Options);
 			if (logger != null)
-				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
+			{
+				EnableTracing(dc, logger);
+			}
 
 			if (model != null)
 			{
