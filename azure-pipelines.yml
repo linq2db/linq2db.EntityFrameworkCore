@@ -32,6 +32,12 @@ stages:
 
     steps:
 
+    - task: UseDotNet@2
+      displayName: 'Install .net 5'
+      inputs:
+        packageType: sdk
+        version: 5.x
+
     - task: PowerShell@2
       inputs:
         filePath: '$(Build.SourcesDirectory)/Build/SetVersion.ps1'
