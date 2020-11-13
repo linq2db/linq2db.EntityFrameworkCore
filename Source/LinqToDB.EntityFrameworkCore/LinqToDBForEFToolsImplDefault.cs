@@ -502,12 +502,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static readonly MethodInfo GetTableMethodInfo = MemberHelper.MethodOfGeneric<IDataContext>(dc => dc.GetTable<object>());
 
-		static readonly MethodInfo EnumerableWhereMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.Where(p => true));
-
 		static readonly MethodInfo FromSqlOnQueryableMethodInfo =
 			typeof(RelationalQueryableExtensions).GetMethods(BindingFlags.Static|BindingFlags.NonPublic).Single(x => x.Name == "FromSqlOnQueryable").GetGenericMethodDefinition();
-
-		static readonly MethodInfo EnumerableToListMethodInfo = MemberHelper.MethodOfGeneric<IEnumerable<object>>(q => q.ToList());
 
 		static readonly MethodInfo IgnoreQueryFiltersMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.IgnoreQueryFilters());
 
@@ -714,12 +710,24 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					case ExpressionType.Constant:
 					{
-						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type))
+						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type))
 						{
 							var entityType = e.Type.GenericTypeArguments[0];
 							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(entityType), Expression.Constant(dc));
-
 							return newExpr;
+						}
+
+						break;
+					}
+
+					case ExpressionType.MemberAccess:
+					{
+						if (typeof(DbSet<>).IsSameOrParentOf(e.Type))
+						{
+							var ma    = (MemberExpression)e;
+							var query = (IQueryable)EvaluateExpression(ma);
+
+							return LocalTransform(query.Expression);
 						}
 
 						break;
@@ -998,7 +1006,7 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 			else if (typeof(IEnumerable<>).MakeGenericType(entityType).IsSameOrParentOf(expression.Type))
 			{
-				expression = Expression.Call(EnumerableWhereMethodInfo.MakeGenericMethod(entityType), expression,
+				expression = Expression.Call(Methods.Enumerable.Where.MakeGenericMethod(entityType), expression,
 					filterExpression);
 			}
 
@@ -1068,7 +1076,7 @@ namespace LinqToDB.EntityFrameworkCore
 									if (typeof(ICollection<>).IsSameOrParentOf(e.Type))
 									{
 										filtered = Expression.Call(
-											EnumerableToListMethodInfo.MakeGenericMethod(navigationType), filtered);
+											Methods.Enumerable.ToList.MakeGenericMethod(navigationType), filtered);
 									}
 									else if (e.Type.IsArray)
 									{
