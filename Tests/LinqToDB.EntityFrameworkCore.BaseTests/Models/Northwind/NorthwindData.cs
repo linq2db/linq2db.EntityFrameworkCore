@@ -8,8 +8,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using LinqToDB.Tools;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
@@ -176,10 +178,19 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 
             private class ShadowStateAccessRewriter : ExpressionVisitor
             {
-                protected override Expression VisitMethodCall(MethodCallExpression expression)
+	            static Expression RemoveConvert(Expression expr)
+	            {
+		            while (expr?.NodeType.In(ExpressionType.Convert, ExpressionType.ConvertChecked) == true)
+		            {
+			            expr = ((UnaryExpression) expr).Operand;
+		            }
+					return expr;
+	            }
+
+				protected override Expression VisitMethodCall(MethodCallExpression expression)
                     => expression.Method.IsEFPropertyMethod()
                         ? Expression.Property(
-                            expression.Arguments[0].RemoveConvert(),
+                            RemoveConvert(expression.Arguments[0]),
                             Expression.Lambda<Func<string>>(expression.Arguments[1]).Compile().Invoke())
                         : base.VisitMethodCall(expression);
             }
