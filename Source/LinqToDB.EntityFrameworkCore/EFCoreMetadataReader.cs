@@ -189,16 +189,30 @@ namespace LinqToDB.EntityFrameworkCore
 					foreach (var navigation in navigations)
 					{
 						var fk = navigation.ForeignKey;
-
-						var thisKey = string.Join(",", fk.Properties.Select(p => p.Name));
-						var otherKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
-						associations.Add(new AssociationAttribute
+						if (!navigation.IsDependentToPrincipal())
 						{
-							ThisKey = thisKey,
-							OtherKey = otherKey,
-							CanBeNull = !fk.IsRequired,
-							IsBackReference = fk.PrincipalEntityType != et
-						});
+							var thisKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
+							var otherKey = string.Join(",", fk.Properties.Select(p => p.Name));
+							associations.Add(new AssociationAttribute
+							{
+								ThisKey = thisKey,
+								OtherKey = otherKey,
+								CanBeNull = !fk.IsRequired,
+								IsBackReference = false
+							});
+						}
+						else
+						{
+							var thisKey = string.Join(",", fk.Properties.Select(p => p.Name));
+							var otherKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
+							associations.Add(new AssociationAttribute
+							{
+								ThisKey = thisKey,
+								OtherKey = otherKey,
+								CanBeNull = !fk.IsRequired,
+								IsBackReference = true
+							});
+						}
 					}
 
 					return associations.Select(a => (T)(Attribute)a).ToArray();

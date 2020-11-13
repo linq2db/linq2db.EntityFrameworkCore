@@ -76,7 +76,6 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 				.Assert(e => e.First().Details.First().Details.Count().Should().Be(2));
 
 		[Test]
-		[Ignore("Association bug")]
 		public void TestManyToManyIncludeTrackerPoison([Values] bool l2db)
 			=> _efContext
 				.Arrange(c => InsertDefaults(CreateLinqToDbContext(c)))
