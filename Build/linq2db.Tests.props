@@ -1,6 +1,7 @@
 ﻿<Project>
 	<PropertyGroup>
-		<TargetFrameworks>net5.0</TargetFrameworks>
+		<!--<TargetFrameworks>net5.0</TargetFrameworks>-->
+		<TargetFrameworks>netcoreapp3.1</TargetFrameworks>
 	</PropertyGroup>
 
 	<ItemGroup>
