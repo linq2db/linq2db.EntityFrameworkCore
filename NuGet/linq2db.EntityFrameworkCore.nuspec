@@ -22,9 +22,9 @@
 	</metadata>
 
 	<files>
-		<file src="..\Source\LinqToDB.EntityFrameworkCore\bin\Release\*\linq2db.EntityFrameworkCore.pdb" target="lib\" />
-		<file src="..\Source\LinqToDB.EntityFrameworkCore\bin\Release\*\linq2db.EntityFrameworkCore.xml" target="lib\" />
-		<file src="..\Source\LinqToDB.EntityFrameworkCore\bin\Release\*\linq2db.EntityFrameworkCore.dll" target="lib\" />
+		<file src="..\Source\LinqToDB.EntityFrameworkCore\bin\Release\**\linq2db.EntityFrameworkCore.pdb" target="lib\" />
+		<file src="..\Source\LinqToDB.EntityFrameworkCore\bin\Release\**\linq2db.EntityFrameworkCore.xml" target="lib\" />
+		<file src="..\Source\LinqToDB.EntityFrameworkCore\bin\Release\**\linq2db.EntityFrameworkCore.dll" target="lib\" />
 
 		<file src="..\MIT-LICENSE.txt" />
 		
