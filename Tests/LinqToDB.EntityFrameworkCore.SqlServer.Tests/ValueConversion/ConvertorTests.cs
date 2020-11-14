@@ -19,8 +19,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 			{
 			}
 
-			[DatabaseGenerated(DatabaseGeneratedOption.Identity)] 	
-			public virtual DbSet<SubDivision> Subdivisions { get; set; }
+			[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+			public virtual DbSet<SubDivision> Subdivisions { get; set; } = null!;
 		}
 
 		public ConvertorTests()
