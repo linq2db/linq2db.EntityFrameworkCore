@@ -13,16 +13,16 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Gets or sets database connection instance.
 		/// </summary>
-		public DbConnection Connection { get; set; }
+		public DbConnection? Connection { get; set; }
 
 		/// <summary>
 		/// Gets or sets EF.Core context instance.
 		/// </summary>
-		public DbContext Context { get; set; }
+		public DbContext? Context { get; set; }
 
 		/// <summary>
 		/// Gets or sets EF.Core context options instance.
 		/// </summary>
-		public IDbContextOptions Options { get; set; }
+		public IDbContextOptions? Options { get; set; }
 	}
 }

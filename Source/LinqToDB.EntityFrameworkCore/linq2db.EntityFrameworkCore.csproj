@@ -3,9 +3,16 @@
 	<Import Project="..\..\Build\linq2db.Default.props" />
 
 	<PropertyGroup>
+		<Description>Allows to execute Linq to DB (linq2db) queries in Entity Framework Core DbContext.</Description>
+		<Title>Linq to DB (linq2db) extensions for Entity Framework Core</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
+
 		<TargetFrameworks>netstandard2.1</TargetFrameworks>
 		<RootNamespace>LinqToDB.EntityFrameworkCore</RootNamespace>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\linq2db.EntityFrameworkCore.xml</DocumentationFile>
+
+		<!--EF1001: use of internal EF API-->
+		<NoWarn>EF1001</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

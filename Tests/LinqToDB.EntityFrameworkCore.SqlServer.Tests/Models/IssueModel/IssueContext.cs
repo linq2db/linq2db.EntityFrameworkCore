@@ -10,7 +10,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 {
 	public class IssueContext : DbContext
 	{
-		public DbSet<Issue73Entity> Issue73Entities { get; set; }
+		public DbSet<Issue73Entity> Issue73Entities { get; set; } = null!;
 
 		public IssueContext(DbContextOptions options) : base(options)
 		{

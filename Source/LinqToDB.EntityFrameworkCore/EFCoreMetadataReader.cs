@@ -29,17 +29,17 @@ namespace LinqToDB.EntityFrameworkCore
 	/// </summary>
 	internal class EFCoreMetadataReader : IMetadataReader
 	{
-		readonly IModel _model;
-		private readonly RelationalSqlTranslatingExpressionVisitorDependencies _dependencies;
-		private readonly IRelationalTypeMappingSource _mappingSource;
-		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute>();
-		private readonly IDiagnosticsLogger<DbLoggerCategory.Query> _logger;
+		readonly IModel? _model;
+		private readonly RelationalSqlTranslatingExpressionVisitorDependencies? _dependencies;
+		private readonly IRelationalTypeMappingSource? _mappingSource;
+		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?>();
+		private readonly IDiagnosticsLogger<DbLoggerCategory.Query>? _logger;
 
-		public EFCoreMetadataReader(IModel model, 
-			RelationalSqlTranslatingExpressionVisitorDependencies dependencies, 
-			IRelationalTypeMappingSource mappingSource, 
-			IDiagnosticsLogger<DbLoggerCategory.Query> logger
-			)
+		public EFCoreMetadataReader(
+			IModel? model,
+			RelationalSqlTranslatingExpressionVisitorDependencies? dependencies,
+			IRelationalTypeMappingSource? mappingSource,
+			IDiagnosticsLogger<DbLoggerCategory.Query>? logger)
 		{
 			_model = model;
 			_dependencies = dependencies;
@@ -114,7 +114,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return Array.Empty<T>();
 		}
 
-		static bool CompareProperty(MemberInfo property, MemberInfo memberInfo)
+		static bool CompareProperty(MemberInfo? property, MemberInfo memberInfo)
 		{
 			if (property == memberInfo)
 				return true;
@@ -133,13 +133,11 @@ namespace LinqToDB.EntityFrameworkCore
 			return false;
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		static bool CompareProperty(IProperty property, MemberInfo memberInfo)
 		{
 			return CompareProperty(property.GetIdentifyingMemberInfo(), memberInfo);
 		}
 		
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
 			if (typeof(Expression).IsSameOrParentOf(type)) 
@@ -164,9 +162,11 @@ namespace LinqToDB.EntityFrameworkCore
 								                  .FirstOrDefault(v => CompareProperty(v.p, memberInfo))?.index ?? 0;
 						}
 
+						var storeObjectId = StoreObjectIdentifier.Create(et, StoreObjectType.Table);
+
 						return new T[]{(T)(Attribute) new ColumnAttribute
 						{
-							Name            = prop.GetColumnName(),
+							Name            = prop.GetColumnName(storeObjectId!.Value),
 							Length          = prop.GetMaxLength() ?? 0,
 							CanBeNull       = prop.IsNullable,
 							DbType          = prop.GetColumnType(),
@@ -314,7 +314,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			public Expression Expression { get; }
 
-			public SqlTransparentExpression(Expression expression, RelationalTypeMapping typeMapping) : base(expression.Type, typeMapping)
+			public SqlTransparentExpression(Expression expression, RelationalTypeMapping? typeMapping) : base(expression.Type, typeMapping)
 			{
 				Expression = expression;
 			}
@@ -325,16 +325,16 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 		}
 
-		private Sql.ExpressionAttribute GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
+		private Sql.ExpressionAttribute? GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
 
-			methodInfo = (MethodInfo) type.GetMemberEx(methodInfo) ?? methodInfo;
+			methodInfo = (MethodInfo?) type.GetMemberEx(methodInfo) ?? methodInfo;
 
 			var found = _calculatedExtensions.GetOrAdd(methodInfo, mi =>
 			{
-				EFCoreExpressionAttribute result = null;
+				EFCoreExpressionAttribute? result = null;
 
 				if (!methodInfo.IsGenericMethodDefinition && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
 				{
@@ -364,19 +364,19 @@ namespace LinqToDB.EntityFrameworkCore
 			return found;
 		}
 
-		private Sql.ExpressionAttribute GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
+		private Sql.ExpressionAttribute? GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
 
-			propInfo = (PropertyInfo) type.GetMemberEx(propInfo) ?? propInfo;
+			propInfo = (PropertyInfo?) type.GetMemberEx(propInfo) ?? propInfo;
 
 			var found = _calculatedExtensions.GetOrAdd(propInfo, mi =>
 			{
-				EFCoreExpressionAttribute result = null;
+				EFCoreExpressionAttribute? result = null;
 
-				if ((propInfo.GetMethod?.IsStatic != true) 
-				    && !(mi is DynamicColumnInfo) 
+				if ((propInfo.GetMethod?.IsStatic != true)
+				    && !(mi is DynamicColumnInfo)
 				    && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
 				{
 					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource?.FindMapping(propInfo));
@@ -397,7 +397,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		private static EFCoreExpressionAttribute ConvertToExpressionAttribute(MemberInfo memberInfo, Expression newExpression, Expression[] parameters)
 		{
-			string PrepareExpressionText(Expression expr)
+			string PrepareExpressionText(Expression? expr)
 			{
 				var idx = Array.IndexOf(parameters, expr);
 				if (idx >= 0)
