@@ -63,8 +63,8 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		public virtual void WriteMessage(LogLevel logLevel, string logName, int eventId, string message, Exception exception)
 		{
-			var format = Options!.FormatterName;
-			Debug.Assert(format == ConsoleFormatterNames.Simple || format == ConsoleFormatterNames.Systemd);
+			var format = Options!.Format;
+			Debug.Assert(format >= ConsoleLoggerFormat.Default && format <= ConsoleLoggerFormat.Systemd);
 
 			var logBuilder = _logBuilder;
 			_logBuilder = null;
@@ -75,11 +75,11 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			}
 
 			LogMessageEntry entry;
-			if (format == ConsoleFormatterNames.Simple)
+			if (format == ConsoleLoggerFormat.Default)
 			{
 				entry = CreateDefaultLogMessage(logBuilder, logLevel, logName, eventId, message, exception);
 			}
-			else if (format == ConsoleFormatterNames.Systemd)
+			else if (format == ConsoleLoggerFormat.Systemd)
 			{
 				entry = CreateSystemdLogMessage(logBuilder, logLevel, logName, eventId, message, exception);
 			}
@@ -154,9 +154,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 				logBuilder.AppendLine(exception.ToString());
 			}
 
-#pragma warning disable CS0618 // Type or member is obsolete
 			var timestampFormat = Options!.TimestampFormat;
-#pragma warning restore CS0618 // Type or member is obsolete
 
 			return new LogMessageEntry(
 				message: logBuilder.ToString(),
@@ -182,9 +180,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			logBuilder.Append(logLevelString);
 
 			// timestamp
-#pragma warning disable CS0618 // Type or member is obsolete
 			var timestampFormat = Options!.TimestampFormat;
-#pragma warning restore CS0618 // Type or member is obsolete
 			if (timestampFormat != null)
 			{
 				logBuilder.Append(DateTime.Now.ToString(timestampFormat));
@@ -282,9 +278,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		private ConsoleColors GetLogLevelConsoleColors(LogLevel logLevel)
 		{
-#pragma warning disable CS0618 // Type or member is obsolete
 			if (Options!.DisableColors)
-#pragma warning restore CS0618 // Type or member is obsolete
 			{
 				return new ConsoleColors(null, null);
 			}
@@ -313,9 +307,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		private void GetScopeInformation(StringBuilder stringBuilder, bool multiLine)
 		{
 			var scopeProvider = ScopeProvider;
-#pragma warning disable CS0618 // Type or member is obsolete
 			if (Options!.IncludeScopes && scopeProvider != null)
-#pragma warning restore CS0618 // Type or member is obsolete
 			{
 				var initialLength = stringBuilder.Length;
 

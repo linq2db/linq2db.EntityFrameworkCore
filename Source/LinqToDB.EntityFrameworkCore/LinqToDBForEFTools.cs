@@ -127,8 +127,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="dependencies"></param>
 		/// <param name="mappingSource"></param>
 		/// <returns>LINQ To DB metadata provider.</returns>
-		public static IMetadataReader GetMetadataReader(IModel? model,
-			RelationalSqlTranslatingExpressionVisitorDependencies? dependencies, IRelationalTypeMappingSource? mappingSource)
+		public static IMetadataReader? GetMetadataReader(
+			IModel? model,
+			RelationalSqlTranslatingExpressionVisitorDependencies? dependencies,
+			IRelationalTypeMappingSource? mappingSource)
 		{
 			if (model == null)
 				return _defaultMetadataReader.Value;

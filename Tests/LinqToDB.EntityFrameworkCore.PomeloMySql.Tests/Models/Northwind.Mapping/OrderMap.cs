@@ -12,22 +12,22 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 				builder.HasKey(e => e.OrderId);
 
 				builder.HasIndex(e => e.CustomerId)
-					.HasDatabaseName("CustomersOrders");
+					.HasName("CustomersOrders");
 
 				builder.HasIndex(e => e.EmployeeId)
-					.HasDatabaseName("EmployeesOrders");
+					.HasName("EmployeesOrders");
 
 				builder.HasIndex(e => e.OrderDate)
-					.HasDatabaseName("OrderDate");
+					.HasName("OrderDate");
 
 				builder.HasIndex(e => e.ShipPostalCode)
-					.HasDatabaseName("ShipPostalCode");
+					.HasName("ShipPostalCode");
 
 				builder.HasIndex(e => e.ShipVia)
-					.HasDatabaseName("ShippersOrders");
+					.HasName("ShippersOrders");
 
 				builder.HasIndex(e => e.ShippedDate)
-					.HasDatabaseName("ShippedDate");
+					.HasName("ShippedDate");
 
 				builder.Property(e => e.OrderId).HasColumnName("OrderID")
 					.ValueGeneratedNever();

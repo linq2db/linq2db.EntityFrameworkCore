@@ -31,7 +31,7 @@ namespace LinqToDB.EntityFrameworkCore
 		readonly IModel? _model;
 		private readonly RelationalSqlTranslatingExpressionVisitorDependencies? _dependencies;
 		private readonly IRelationalTypeMappingSource? _mappingSource;
-		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute>();
+		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?>();
 
 		public EFCoreMetadataReader(IModel? model, RelationalSqlTranslatingExpressionVisitorDependencies? dependencies, IRelationalTypeMappingSource? mappingSource)
 		{
@@ -126,13 +126,11 @@ namespace LinqToDB.EntityFrameworkCore
 			return false;
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		static bool CompareProperty(IProperty property, MemberInfo memberInfo)
 		{
 			return CompareProperty(property.GetIdentifyingMemberInfo(), memberInfo);
 		}
 		
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
 			if (typeof(Expression).IsSameOrParentOf(type)) 

@@ -102,12 +102,9 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 			foreach (var entity in modelBuilder.Model.GetEntityTypes())
 			{
 				entity.SetTableName(entity.GetTableName().ToSnakeCase());
-				var storeObjectId = StoreObjectIdentifier.Create(entity,  StoreObjectType.Table);
 
 				foreach (var property in entity.GetProperties())
-				{
-					property.SetColumnName(property.GetColumnName(storeObjectId!.Value).ToSnakeCase());
-				}
+					property.SetColumnName(property.GetColumnName().ToSnakeCase());
 
 				foreach (var key in entity.GetKeys()) 
 					key.SetName(key.GetName().ToSnakeCase());
@@ -116,7 +113,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 					key.SetConstraintName(key.GetConstraintName().ToSnakeCase());
 
 				foreach (var index in entity.GetIndexes()) 
-					index.SetDatabaseName(index.GetDatabaseName().ToSnakeCase());
+					index.SetName(index.GetName().ToSnakeCase());
 			}
 			return modelBuilder;
 		}

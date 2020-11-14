@@ -10,6 +10,8 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>LinqToDB.EntityFrameworkCore</RootNamespace>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\linq2db.EntityFrameworkCore.xml</DocumentationFile>
+
+		<NoWarn>EF1001</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -13,10 +13,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
              builder.ToTable("Order Details");
 
             builder.HasIndex(e => e.OrderId)
-                .HasDatabaseName("OrdersOrder_Details");
+                .HasName("OrdersOrder_Details");
 
             builder.HasIndex(e => e.ProductId)
-                .HasDatabaseName("ProductsOrder_Details");
+                .HasName("ProductsOrder_Details");
 
             builder.Property(e => e.OrderId).HasColumnName("OrderID");
 

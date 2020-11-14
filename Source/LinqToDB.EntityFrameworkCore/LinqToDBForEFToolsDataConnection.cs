@@ -49,10 +49,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
-			DbContext?     context,
-			[NotNull]   IDataProvider dataProvider,
-			[NotNull]   string        connectionString,
-			            IModel?       model,
+			DbContext?    context,
+			IDataProvider dataProvider,
+			string        connectionString,
+			IModel?       model,
 			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc) : base(dataProvider, connectionString)
 		{
 			Context          = context;
@@ -71,10 +71,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
-			DbContext?      context,
-			[NotNull]   IDataProvider  dataProvider,
-			[NotNull]   IDbTransaction transaction,
-			            IModel?        model,
+			DbContext?     context,
+			IDataProvider  dataProvider,
+			IDbTransaction transaction,
+			IModel?        model,
 			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc
 			) : base(dataProvider, transaction)
 		{
@@ -94,10 +94,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
-			DbContext?     context,
-			[NotNull]   IDataProvider dataProvider,
-			[NotNull]   IDbConnection connection,
-			            IModel?       model,
+			DbContext?    context,
+			IDataProvider dataProvider,
+			IDbConnection connection,
+			IModel?       model,
 			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc) : base(dataProvider, connection)
 		{
 			Context          = context;
