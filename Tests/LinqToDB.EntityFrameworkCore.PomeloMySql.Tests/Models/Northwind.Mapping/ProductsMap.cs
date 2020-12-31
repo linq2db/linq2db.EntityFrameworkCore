@@ -43,12 +43,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 			builder.Property(e => e.UnitsOnOrder).HasDefaultValue((short)0);
 
 			builder.HasOne(d => d.Category)
-				.WithMany(p => p.Products)
+				.WithMany(p => p!.Products)
 				.HasForeignKey(d => d.CategoryId)
 				.HasConstraintName("FK_Products_Categories");
 
 			builder.HasOne(d => d.Supplier)
-				.WithMany(p => p.Products)
+				.WithMany(p => p!.Products)
 				.HasForeignKey(d => d.SupplierId)
 				.HasConstraintName("FK_Products_Suppliers");
 		}

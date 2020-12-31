@@ -1,11 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<Import Project="..\..\Build\linq2db.Default.props" />
 
 	<PropertyGroup>
+		<Description>Allows to execute Linq to DB (linq2db) queries in Entity Framework Core DbContext.</Description>
+		<Title>Linq to DB (linq2db) extensions for Entity Framework Core</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
+
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>LinqToDB.EntityFrameworkCore</RootNamespace>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\linq2db.EntityFrameworkCore.xml</DocumentationFile>
+
+		<NoWarn>EF1001</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFrameworks>netcoreapp3.1</TargetFrameworks>
-	</PropertyGroup>
+	<Import Project="..\..\Build\linq2db.Tests.props" />
 
 	<ItemGroup>
 	  <Compile Remove="Models\UniversalEntities\**" />
@@ -15,12 +13,6 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.10" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.10" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.10" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.0" />
-		<PackageReference Include="NUnit3TestAdapter" Version="3.17.0">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="NUnit" Version="3.12.0" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -9,8 +9,8 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
             CustomerCustomerDemo = new HashSet<CustomerCustomerDemo>();
         }
 
-        public string CustomerTypeId { get; set; }
-        public string CustomerDesc { get; set; }
+        public string  CustomerTypeId { get; set; } = null!;
+        public string? CustomerDesc { get; set; }
 
         public ICollection<CustomerCustomerDemo> CustomerCustomerDemo { get; set; }
     }
