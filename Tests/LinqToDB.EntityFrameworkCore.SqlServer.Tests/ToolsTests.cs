@@ -104,9 +104,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		public class VwProductAndDescription
 		{
 			public int ProductId { get; set; }
-			public string Name { get; set; }
-			public string ProductModel { get; set; }
-			public string Description { get; set; }
+			public string Name { get; set; } = null!;
+			public string ProductModel { get; set; } = null!;
+			public string Description { get; set; } = null!;
 		}
 
 		[Test]
@@ -225,7 +225,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 						DiffMinute2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate.Value),
 						DiffSecond1 = EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate),
 						DiffSecond2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate.Value),
-						DiffMillisecond1 = EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate.Value.AddMilliseconds(100)),
+						DiffMillisecond1 = EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate!.Value.AddMilliseconds(100)),
 						DiffMillisecond2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate.Value.AddMilliseconds(100)),
 					};
 
@@ -342,7 +342,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
 
 				Assert.NotNull(customerPk);
-				Assert.AreEqual(true, customerPk.IsPrimaryKey);
+				Assert.AreEqual(true, customerPk!.IsPrimaryKey);
 				Assert.AreEqual(0, customerPk.PrimaryKeyOrder);
 
 			}
@@ -363,7 +363,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					MemberHelper.MemberOf<Customer>(c => c.Orders));
 
 				Assert.NotNull(associationOrder);
-				Assert.That(associationOrder.ThisKey, Is.EqualTo("CustomerId"));
+				Assert.That(associationOrder!.ThisKey, Is.EqualTo("CustomerId"));
 				Assert.That(associationOrder.OtherKey, Is.EqualTo("CustomerId"));
 			}
 		}
@@ -442,7 +442,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ctx.Orders
-					.Include(o => o.Employee)
+					.Include(o => o.Employee!)
 					.ThenInclude(e => e.EmployeeTerritories)
 					.ThenInclude(et => et.Territory)
 					.Include(o => o.OrderDetails)
@@ -462,7 +462,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var query = ctx.Orders.Select(o => new
 				{
 					Employee = o.Employee,
-					EmployeeTerritories = o.Employee.EmployeeTerritories.Select(et => new
+					EmployeeTerritories = o.Employee!.EmployeeTerritories.Select(et => new
 					{
 						EmployeeTerritory = et,
 						Territory = et.Territory
@@ -509,7 +509,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 						{
 							od.Discount,
 							od.Order,
-							od.Product.Supplier.Products
+							od.Product.Supplier!.Products
 						})
 					});
 

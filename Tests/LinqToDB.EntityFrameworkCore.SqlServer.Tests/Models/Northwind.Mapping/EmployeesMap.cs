@@ -13,10 +13,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 			builder.HasKey(e => e.EmployeeId);
 
 			builder.HasIndex(e => e.LastName)
-				.HasName("LastName");
+				.HasDatabaseName("LastName");
 
 			builder.HasIndex(e => e.PostalCode)
-				.HasName("PostalCode");
+				.HasDatabaseName("PostalCode");
 
 			builder.Property(e => e.EmployeeId).HasColumnName("EmployeeID")
 				.ValueGeneratedNever();
@@ -58,7 +58,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 			builder.Property(e => e.TitleOfCourtesy).HasMaxLength(25);
 
 			builder.HasOne(d => d.ReportsToNavigation)
-				.WithMany(p => p.InverseReportsToNavigation)
+				.WithMany(p => p!.InverseReportsToNavigation)
 				.HasForeignKey(d => d.ReportsTo)
 				.HasConstraintName("FK_Employees_Employees");
 		}

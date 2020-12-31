@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
@@ -10,7 +11,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 		{
 		}
 
-		public override IEnumerable<ValueConverterInfo> Select(Type modelClrType, Type providerClrType = null)
+		public override IEnumerable<ValueConverterInfo> Select(Type modelClrType, Type? providerClrType = null)
 		{
 			var baseConverters = base.Select(modelClrType, providerClrType);
 			foreach (var converter in baseConverters)
@@ -40,11 +41,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 				typeof(IdValueConverter<,>).MakeGenericType(key, t[0]);
 			yield return new ValueConverterInfo
 			(
-				modelClrType, 
-				providerClrType, 
-				i => (ValueConverter)Activator.CreateInstance(ct, i.MappingHints)
+				modelClrType,
+				providerClrType,
+				i => (ValueConverter)Activator.CreateInstance(ct, i.MappingHints)!
 			);
 
-			static Type Unwrap(Type type) => type == null ? null : Nullable.GetUnderlyingType(type) ?? type;
+			[return: NotNullIfNotNull("type")]
+			static Type? Unwrap(Type? type) => type == null ? null : Nullable.GetUnderlyingType(type) ?? type;
 		}
 	}}

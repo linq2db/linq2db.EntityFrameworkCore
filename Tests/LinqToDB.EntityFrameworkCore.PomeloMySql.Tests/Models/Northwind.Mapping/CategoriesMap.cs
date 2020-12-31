@@ -12,7 +12,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 			builder.HasKey(e => e.CategoryId);
 
 			builder.HasIndex(e => e.CategoryName)
-				.HasName("CategoryName");
+				.HasDatabaseName("CategoryName");
 
 			builder.Property(e => e.CategoryId).HasColumnName("CategoryID")
 				.ValueGeneratedNever();

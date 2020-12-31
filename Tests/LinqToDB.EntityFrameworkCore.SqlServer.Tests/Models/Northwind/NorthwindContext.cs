@@ -9,19 +9,19 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 {
 	public class NorthwindContext : DbContext
 	{
-		public DbSet<Category> Categories { get; set; }
-		public DbSet<CustomerCustomerDemo> CustomerCustomerDemo { get; set; }
-		public DbSet<CustomerDemographics> CustomerDemographics { get; set; }
-		public DbSet<Customer> Customers { get; set; }
-		public DbSet<Employee> Employees { get; set; }
-		public DbSet<EmployeeTerritory> EmployeeTerritories { get; set; }
-		public DbSet<OrderDetail> OrderDetails { get; set; }
-		public DbSet<Order> Orders { get; set; }
-		public DbSet<Product> Products { get; set; }
-		public DbSet<Region> Region { get; set; }
-		public DbSet<Shipper> Shippers { get; set; }
-		public DbSet<Supplier> Suppliers { get; set; }
-		public DbSet<Territory> Territories { get; set; }
+		public DbSet<Category> Categories { get; set; } = null!;
+		public DbSet<CustomerCustomerDemo> CustomerCustomerDemo { get; set; } = null!;
+		public DbSet<CustomerDemographics> CustomerDemographics { get; set; } = null!;
+		public DbSet<Customer> Customers { get; set; } = null!;
+		public DbSet<Employee> Employees { get; set; } = null!;
+		public DbSet<EmployeeTerritory> EmployeeTerritories { get; set; } = null!;
+		public DbSet<OrderDetail> OrderDetails { get; set; } = null!;
+		public DbSet<Order> Orders { get; set; } = null!;
+		public DbSet<Product> Products { get; set; } = null!;
+		public DbSet<Region> Region { get; set; } = null!;
+		public DbSet<Shipper> Shippers { get; set; } = null!;
+		public DbSet<Supplier> Suppliers { get; set; } = null!;
+		public DbSet<Territory> Territories { get; set; } = null!;
 
 		public NorthwindContext(DbContextOptions options) : base(options)
 		{
@@ -63,7 +63,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 		}
 
 		private static MethodInfo ConfigureEntityFilterMethodInfo =
-			MemberHelper.MethodOf(() => ((NorthwindContext)null).ConfigureEntityFilter<BaseEntity>(null)).GetGenericMethodDefinition();
+			MemberHelper.MethodOf(() => ((NorthwindContext)null!).ConfigureEntityFilter<BaseEntity>(null!)).GetGenericMethodDefinition();
 
 		public void ConfigureEntityFilter<TEntity>(ModelBuilder builder)
 		where TEntity: class, ISoftDelete

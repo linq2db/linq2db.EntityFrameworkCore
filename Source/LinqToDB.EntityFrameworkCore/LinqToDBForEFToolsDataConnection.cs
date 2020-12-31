@@ -13,30 +13,47 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LinqToDB.EntityFrameworkCore
 {
-
+	using System.Diagnostics.CodeAnalysis;
 	using Data;
 	using DataProvider;
 	using Linq;
 
+	/// <summary>
+	/// linq2db EF.Core data connection.
+	/// </summary>
 	public class LinqToDBForEFToolsDataConnection : DataConnection, IExpressionPreprocessor
 	{
-		readonly IModel _model;
-		readonly Func<Expression, IDataContext, DbContext, IModel, Expression> _transformFunc;
+		readonly IModel? _model;
+		readonly Func<Expression, IDataContext, DbContext?, IModel?, Expression>? _transformFunc;
 
-		private IEntityType   _lastEntityType;
-		private Type          _lastType;
-		private IStateManager _stateManager;
+		private IEntityType?   _lastEntityType;
+		private Type?          _lastType;
+		private IStateManager? _stateManager;
 
+		/// <summary>
+		/// Change tracker enable flag.
+		/// </summary>
 		public bool      Tracking { get; set; }
 
-		public DbContext Context  { get; }
+		/// <summary>
+		/// EF.Core database context.
+		/// </summary>
+		public DbContext? Context  { get; }
 
+		/// <summary>
+		/// Creates new instance of data connection.
+		/// </summary>
+		/// <param name="context">EF.Core database context.</param>
+		/// <param name="dataProvider">linq2db database provider.</param>
+		/// <param name="connectionString">Connection string.</param>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
-			[CanBeNull] DbContext     context,
-			[NotNull]   IDataProvider dataProvider, 
-			[NotNull]   string        connectionString, 
-			            IModel        model,
-			Func<Expression, IDataContext, DbContext, IModel, Expression> transformFunc) : base(dataProvider, connectionString)
+			DbContext?     context,
+			[NotNull]   IDataProvider dataProvider,
+			[NotNull]   string        connectionString,
+			            IModel?       model,
+			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc) : base(dataProvider, connectionString)
 		{
 			Context          = context;
 			_model           = model;
@@ -45,12 +62,20 @@ namespace LinqToDB.EntityFrameworkCore
 				OnEntityCreated += OnEntityCreatedHandler;
 		}
 
+		/// <summary>
+		/// Creates new instance of data connection.
+		/// </summary>
+		/// <param name="context">EF.Core database context.</param>
+		/// <param name="dataProvider">linq2db database provider.</param>
+		/// <param name="transaction">Database transaction.</param>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
-			[CanBeNull] DbContext      context,
-			[NotNull]   IDataProvider  dataProvider, 
+			DbContext?      context,
+			[NotNull]   IDataProvider  dataProvider,
 			[NotNull]   IDbTransaction transaction,
-			            IModel         model,
-			Func<Expression, IDataContext, DbContext, IModel, Expression> transformFunc
+			            IModel?        model,
+			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc
 			) : base(dataProvider, transaction)
 		{
 			Context          = context;
@@ -60,12 +85,20 @@ namespace LinqToDB.EntityFrameworkCore
 				OnEntityCreated += OnEntityCreatedHandler;
 		}
 
+		/// <summary>
+		/// Creates new instance of data connection.
+		/// </summary>
+		/// <param name="context">EF.Core database context.</param>
+		/// <param name="dataProvider">linq2db database provider.</param>
+		/// <param name="connection">Database connection instance.</param>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
-			[CanBeNull] DbContext     context,
-			[NotNull]   IDataProvider dataProvider, 
-			[NotNull]   IDbConnection connection, 
-			            IModel        model,
-			Func<Expression, IDataContext, DbContext, IModel, Expression> transformFunc) : base(dataProvider, connection)
+			DbContext?     context,
+			[NotNull]   IDataProvider dataProvider,
+			[NotNull]   IDbConnection connection,
+			            IModel?       model,
+			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc) : base(dataProvider, connection)
 		{
 			Context          = context;
 			_model           = model;
@@ -74,6 +107,11 @@ namespace LinqToDB.EntityFrameworkCore
 				OnEntityCreated += OnEntityCreatedHandler;
 		}
 
+		/// <summary>
+		/// Converts expression using convert function, passed to context.
+		/// </summary>
+		/// <param name="expression">Expression to convert.</param>
+		/// <returns>Converted expression.</returns>
 		public Expression ProcessExpression(Expression expression)
 		{
 			if (_transformFunc == null)
@@ -83,9 +121,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 		private void OnEntityCreatedHandler(EntityCreatedEventArgs args)
 		{
-			if (!LinqToDBForEFTools.EnableChangeTracker 
+			if (!LinqToDBForEFTools.EnableChangeTracker
 			    || !Tracking 
-			    || Context.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.NoTracking)
+			    || Context!.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.NoTracking)
 				return;
 
 			var type = args.Entity.GetType();
@@ -104,7 +142,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			// It is a real pain to register entity in change tracker
 			//
-			InternalEntityEntry entry = null;
+			InternalEntityEntry? entry = null;
 
 			foreach (var key in _lastEntityType.GetKeys())
 			{

@@ -11,13 +11,13 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 			builder.HasKey(e => e.ProductId);
 
 			builder.HasIndex(e => e.CategoryId)
-				.HasName("CategoryID");
+				.HasDatabaseName("CategoryID");
 
 			builder.HasIndex(e => e.ProductName)
-				.HasName("ProductName");
+				.HasDatabaseName("ProductName");
 
 			builder.HasIndex(e => e.SupplierId)
-				.HasName("SuppliersProducts");
+				.HasDatabaseName("SuppliersProducts");
 
 			builder.Property(e => e.ProductId).HasColumnName("ProductID")
 				.ValueGeneratedNever();
@@ -43,12 +43,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 			builder.Property(e => e.UnitsOnOrder).HasDefaultValueSql("((0))");
 
 			builder.HasOne(d => d.Category)
-				.WithMany(p => p.Products)
+				.WithMany(p => p!.Products)
 				.HasForeignKey(d => d.CategoryId)
 				.HasConstraintName("FK_Products_Categories");
 
 			builder.HasOne(d => d.Supplier)
-				.WithMany(p => p.Products)
+				.WithMany(p => p!.Products)
 				.HasForeignKey(d => d.SupplierId)
 				.HasConstraintName("FK_Products_Suppliers");
 		}

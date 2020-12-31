@@ -43,6 +43,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using DataProvider.SQLite;
 	using DataProvider.SqlServer;
 	using DataProvider.SqlCe;
+	using System.Diagnostics.CodeAnalysis;
 
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	/// <summary>
@@ -53,14 +54,14 @@ namespace LinqToDB.EntityFrameworkCore
 	{
 		class ProviderKey
 		{
-			public ProviderKey(string providerName, string connectionString)
+			public ProviderKey(string? providerName, string? connectionString)
 			{
 				ProviderName = providerName;
 				ConnectionString = connectionString;
 			}
 
-			string ProviderName { get; }
-			string ConnectionString { get; }
+			string? ProviderName { get; }
+			string? ConnectionString { get; }
 
 			#region Equality members
 
@@ -69,7 +70,7 @@ namespace LinqToDB.EntityFrameworkCore
 				return string.Equals(ProviderName, other.ProviderName) && string.Equals(ConnectionString, other.ConnectionString);
 			}
 
-			public override bool Equals(object obj)
+			public override bool Equals(object? obj)
 			{
 				if (obj is null) return false;
 				if (ReferenceEquals(this, obj)) return true;
@@ -97,6 +98,9 @@ namespace LinqToDB.EntityFrameworkCore
 			});
 
 
+		/// <summary>
+		/// Force clear of internal caches.
+		/// </summary>
 		public virtual void ClearCaches()
 		{
 			_knownProviders.Clear();
@@ -120,6 +124,11 @@ namespace LinqToDB.EntityFrameworkCore
 			});
 		}
 
+		/// <summary>
+		/// Converts EF.Core provider settings to linq2db provider settings.
+		/// </summary>
+		/// <param name="providerInfo">EF.Core provider settings.</param>
+		/// <returns>linq2db provider settings.</returns>
 		protected virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(EFProviderInfo providerInfo)
 		{
 			var provInfo = new LinqToDBProviderInfo();
@@ -143,6 +152,13 @@ namespace LinqToDB.EntityFrameworkCore
 			return provInfo;
 		}
 
+		/// <summary>
+		/// Creates instance of linq2db database provider.
+		/// </summary>
+		/// <param name="providerInfo">EF.Core provider settings.</param>
+		/// <param name="provInfo">linq2db provider settings.</param>
+		/// <param name="connectionInfo">EF.Core connection settings.</param>
+		/// <returns>linq2db database provider.</returns>
 		protected virtual IDataProvider CreateLinqToDbDataProvider(EFProviderInfo providerInfo, LinqToDBProviderInfo provInfo,
 			EFConnectionInfo connectionInfo)
 		{
@@ -182,7 +198,12 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 		}
 
-		protected virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(DatabaseFacade database)
+		/// <summary>
+		/// Creates linq2db provider settings object from <see cref="DatabaseFacade"/> instance.
+		/// </summary>
+		/// <param name="database">EF.Core database information object.</param>
+		/// <returns>linq2db provider settings.</returns>
+		protected virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(DatabaseFacade database)
 		{
 			switch (database.ProviderName)
 			{
@@ -233,7 +254,12 @@ namespace LinqToDB.EntityFrameworkCore
 			return null;
 		}
 
-		protected virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(DbConnection connection)
+		/// <summary>
+		/// Creates linq2db provider settings object from <see cref="DbConnection"/> instance.
+		/// </summary>
+		/// <param name="connection">Database connection.</param>
+		/// <returns>linq2db provider settings.</returns>
+		protected virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(DbConnection connection)
 		{
 			switch (connection.GetType().Name)
 			{
@@ -260,7 +286,12 @@ namespace LinqToDB.EntityFrameworkCore
 			return null;
 		}
 
-		protected  virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(RelationalOptionsExtension extensions)
+		/// <summary>
+		/// Creates linq2db provider settings object from <see cref="RelationalOptionsExtension"/> instance.
+		/// </summary>
+		/// <param name="extensions">EF.Core provider options.</param>
+		/// <returns>linq2db provider settings.</returns>
+		protected virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(RelationalOptionsExtension extensions)
 		{
 			switch (extensions.GetType().Name)
 			{
@@ -291,7 +322,13 @@ namespace LinqToDB.EntityFrameworkCore
 			return null;
 		}
 
-		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string connectionString)
+		/// <summary>
+		/// Creates linq2db SQL Server database provider instance.
+		/// </summary>
+		/// <param name="version">SQL Server dialect.</param>
+		/// <param name="connectionString">Connection string.</param>
+		/// <returns>linq2db SQL Server provider instance.</returns>
+		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string? connectionString)
 		{
 			string providerName;
 
@@ -299,7 +336,7 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				providerName = "Microsoft.Data.SqlClient";
 
-				return DataConnection.GetDataProvider(providerName, connectionString);
+				return DataConnection.GetDataProvider(providerName, connectionString)!;
 			}
 
 			switch (version)
@@ -323,10 +360,16 @@ namespace LinqToDB.EntityFrameworkCore
 			return new SqlServerDataProvider(providerName, version);
 		}
 
-		protected virtual IDataProvider CreatePostgreSqlProvider(PostgreSQLVersion version, string connectionString)
+		/// <summary>
+		/// Creates linq2db PostgreSQL database provider instance.
+		/// </summary>
+		/// <param name="version">PostgreSQL dialect.</param>
+		/// <param name="connectionString">Connection string.</param>
+		/// <returns>linq2db PostgreSQL provider instance.</returns>
+		protected virtual IDataProvider CreatePostgreSqlProvider(PostgreSQLVersion version, string? connectionString)
 		{
 			if (!string.IsNullOrEmpty(connectionString))
-				return DataConnection.GetDataProvider(ProviderName.PostgreSQL, connectionString);
+				return DataConnection.GetDataProvider(ProviderName.PostgreSQL, connectionString)!;
 
 			string providerName;
 			switch (version)
@@ -352,12 +395,15 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <see cref="EFCoreMetadataReader"/> metadata provider.
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
-		/// <param name="dependencies"></param>
-		/// <param name="mappingSource"></param>
+		/// <param name="dependencies">EF.Core service dependencies.</param>
+		/// <param name="mappingSource">EF.Core mappings source.</param>
+		/// <param name="logger">EF.Core diagnostics logger.</param>
 		/// <returns>LINQ To DB metadata provider for specified EF.Core model.</returns>
-		public virtual IMetadataReader CreateMetadataReader(IModel model,
-			RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-			IRelationalTypeMappingSource mappingSource, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+		public virtual IMetadataReader CreateMetadataReader(
+			IModel? model,
+			RelationalSqlTranslatingExpressionVisitorDependencies? dependencies,
+			IRelationalTypeMappingSource? mappingSource,
+			IDiagnosticsLogger<DbLoggerCategory.Query>? logger)
 		{
 			return new EFCoreMetadataReader(model, dependencies, mappingSource, logger);
 		}
@@ -369,8 +415,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <param name="convertorSelector"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public virtual MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader,
-			IValueConverterSelector convertorSelector)
+		public virtual MappingSchema CreateMappingSchema(
+			IModel model,
+			IMetadataReader? metadataReader,
+			IValueConverterSelector? convertorSelector)
 		{
 			var schema = new MappingSchema();
 			if (metadataReader != null)
@@ -381,10 +429,16 @@ namespace LinqToDB.EntityFrameworkCore
 			return schema;
 		}
 
+		/// <summary>
+		/// Import type conversions from EF.Core model into linq2db mapping schema.
+		/// </summary>
+		/// <param name="mappingSchema">linq2db mapping schema.</param>
+		/// <param name="model">EF.Core data mode.</param>
+		/// <param name="convertorSelector">Type filter.</param>
 		public virtual void DefineConvertors(
-			[JetBrains.Annotations.NotNull] MappingSchema mappingSchema,
-			[JetBrains.Annotations.NotNull] IModel model, 
-			IValueConverterSelector convertorSelector)
+			MappingSchema mappingSchema,
+			IModel model,
+			IValueConverterSelector? convertorSelector)
 		{
 			if (mappingSchema == null) throw new ArgumentNullException(nameof(mappingSchema));
 			if (model == null)         throw new ArgumentNullException(nameof(model));
@@ -472,8 +526,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <param name="convertorSelector"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader,
-			IValueConverterSelector convertorSelector)
+		public virtual MappingSchema GetMappingSchema(
+			IModel model,
+			IMetadataReader? metadataReader,
+			IValueConverterSelector? convertorSelector)
 		{
 			var result = _schemaCache.GetOrCreate(
 				Tuple.Create(
@@ -496,7 +552,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
 		/// <returns><see cref="IDbContextOptions"/> instance.</returns>
-		public virtual IDbContextOptions GetContextOptions(DbContext context)
+		public virtual IDbContextOptions? GetContextOptions(DbContext? context)
 		{
 			return context?.GetService<IDbContextOptions>();
 		}
@@ -530,7 +586,13 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static readonly ConstructorInfo DataParameterConstructor = MemberHelper.ConstructorOf(() => new DataParameter("", "", DataType.Undefined, ""));
 
-		public static Expression Unwrap(Expression ex)
+		/// <summary>
+		/// Removes conversions from expression.
+		/// </summary>
+		/// <param name="ex">Expression.</param>
+		/// <returns>Unwrapped expression.</returns>
+		[return: NotNullIfNotNull("ex")]
+		public static Expression? Unwrap(Expression? ex)
 		{
 			if (ex == null)
 				return null;
@@ -553,6 +615,12 @@ namespace LinqToDB.EntityFrameworkCore
 			return ex;
 		}
 
+		/// <summary>
+		/// Tests that method is <see cref="IQueryable{T}"/> extension.
+		/// </summary>
+		/// <param name="method">Method to test.</param>
+		/// <param name="enumerable">Allow <see cref="IEnumerable{T}"/> extensions.</param>
+		/// <returns><c>true</c> if method is <see cref="IQueryable{T}"/> extension.</returns>
 		public static bool IsQueryable(MethodCallExpression method, bool enumerable = true)
 		{
 			var type = method.Method.DeclaringType;
@@ -561,7 +629,12 @@ namespace LinqToDB.EntityFrameworkCore
 				   type == typeof(EntityFrameworkQueryableExtensions);
 		}
 
-		public static object EvaluateExpression(Expression expr)
+		/// <summary>
+		/// Evaluates value of expression.
+		/// </summary>
+		/// <param name="expr">Expression to evaluate.</param>
+		/// <returns>Expression value.</returns>
+		public static object? EvaluateExpression(Expression? expr)
 		{
 			if (expr == null)
 				return null;
@@ -688,8 +761,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="ctx">Optional DbContext instance.</param>
 		/// <param name="model">EF.Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
-		public virtual Expression TransformExpression(Expression expression, IDataContext dc, DbContext ctx, IModel model)
+		public virtual Expression TransformExpression(Expression expression, IDataContext dc, DbContext? ctx, IModel? model)
 		{
 			var ignoreQueryFilters = false;
 			var tracking           = true;
@@ -718,7 +790,7 @@ namespace LinqToDB.EntityFrameworkCore
 						if (typeof(DbSet<>).IsSameOrParentOf(e.Type))
 						{
 							var ma    = (MemberExpression)e;
-							var query = (IQueryable)EvaluateExpression(ma);
+							var query = (IQueryable)EvaluateExpression(ma)!;
 
 							return LocalTransform(query.Expression);
 						}
@@ -764,7 +836,7 @@ namespace LinqToDB.EntityFrameworkCore
 										methodCall.Arguments[0].Transform(l => LocalTransform(l))
 									};
 
-									var propName = (string)EvaluateExpression(methodCall.Arguments[1]);
+									var propName = (string)EvaluateExpression(methodCall.Arguments[1])!;
 									var param    = Expression.Parameter(methodCall.Method.GetGenericArguments()[0], "e");
 									var propPath = propName.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
 									var prop     = (Expression)param;
@@ -885,9 +957,6 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			var optimized = expression.Transform(e =>
 				{
-					if (e == null)
-						return null;
-
 					if (e is BinaryExpression binary)
 					{
 						e = binary.Update(OptimizeFilter(binary.Left), OptimizeFilter(binary.Conversion) as LambdaExpression, OptimizeFilter(binary.Right));
@@ -965,14 +1034,20 @@ namespace LinqToDB.EntityFrameworkCore
 			return optimized;
 		}
 
-		private Expression AddFilter(Dictionary<Type, Expression> cachedFilters, Type entityType, Expression expression, IDataContext dc, DbContext ctx, IModel model)
+		private Expression AddFilter(
+			Dictionary<Type, Expression> cachedFilters,
+			Type entityType,
+			Expression expression,
+			IDataContext dc,
+			DbContext? ctx,
+			IModel? model)
 		{
 			if (!cachedFilters.TryGetValue(entityType, out var filterExpression))
 			{
 				var filter = model?.FindEntityType(entityType)?.GetQueryFilter();
 				if (filter != null)
 				{
-					var filterBody = TransformExpression(filter.Body, dc, ctx, model);
+					var filterBody = TransformExpression(filter.Body, dc, ctx, model!);
 
 					// replacing DbContext constant
 					if (ctx != null)
@@ -1071,7 +1146,7 @@ namespace LinqToDB.EntityFrameworkCore
 						{
 							var entityType = model.FindEntityType(ma.Expression.Type);
 							var navigation = entityType?.FindNavigation(ma.Member);
-							if (navigation != null && navigation.IsCollection())
+							if (navigation != null && navigation.IsCollection)
 							{
 								var navigationType = GetEnumerableElementType(navigation.ClrType, dc.MappingSchema);
 								var expr = ApplyQueryFilters(ma.Expression, ignoredExpressions, dc, ctx, model);
@@ -1234,7 +1309,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="query">EF.Core query.</param>
 		/// <returns>Current <see cref="DbContext"/> instance.</returns>
-		public virtual DbContext GetCurrentContext(IQueryable query)
+		public virtual DbContext? GetCurrentContext(IQueryable query)
 		{
 			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance);
 			var compiler = (QueryCompiler) compilerField.GetValue(query.Provider);
@@ -1262,9 +1337,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>EF.Core connection data.</returns>
-		public virtual EFConnectionInfo ExtractConnectionInfo(IDbContextOptions options)
+		public virtual EFConnectionInfo ExtractConnectionInfo(IDbContextOptions? options)
 		{
-			var relational = options.Extensions.OfType<RelationalOptionsExtension>().FirstOrDefault();
+			var relational = options?.Extensions.OfType<RelationalOptionsExtension>().FirstOrDefault();
 			return new  EFConnectionInfo
 			{
 				ConnectionString = relational?.ConnectionString,
@@ -1277,7 +1352,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
 		/// <returns>EF.Core data model instance.</returns>
-		public virtual IModel ExtractModel(IDbContextOptions options)
+		public virtual IModel? ExtractModel(IDbContextOptions? options)
 		{
 			var coreOptions = options?.Extensions.OfType<CoreOptionsExtension>().FirstOrDefault();
 			return coreOptions?.Model;
@@ -1285,6 +1360,11 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static int _messageCounter;
 
+		/// <summary>
+		/// Logs lin2db trace event to logger.
+		/// </summary>
+		/// <param name="info">lin2db trace event.</param>
+		/// <param name="logger">Logger instance.</param>
 		public virtual void LogConnectionTrace(TraceInfo info, ILogger logger)
 		{
 			Interlocked.Increment(ref _messageCounter);
@@ -1354,7 +1434,12 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 		}
 
-		public virtual ILogger CreateLogger(IDbContextOptions options)
+		/// <summary>
+		/// Creates logger instance.
+		/// </summary>
+		/// <param name="options"><see cref="DbContext"/> options.</param>
+		/// <returns>Logger instance.</returns>
+		public virtual ILogger? CreateLogger(IDbContextOptions? options)
 		{
 			var coreOptions = options?.FindExtension<CoreOptionsExtension>();
 

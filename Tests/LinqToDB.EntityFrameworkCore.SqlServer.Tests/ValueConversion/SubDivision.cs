@@ -7,8 +7,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 		long IEntity<long>.Id => Id;
 		public Id<SubDivision, long> Id { get; set; }
 		public Guid PermanentId { get; set; }
-		public string Code { get; set; }
-		public string Name { get; set; }
+		public string Code { get; set; } = null!;
+		public string Name { get; set; } = null!;
 		public bool? IsDeleted { get; set; }
 	}
 }
