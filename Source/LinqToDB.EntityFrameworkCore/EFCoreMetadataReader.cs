@@ -54,7 +54,8 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				if (typeof(T) == typeof(TableAttribute))
 				{
-					return new[] { (T)(Attribute)new TableAttribute(et.GetTableName()) { Schema = et.GetSchema() } };
+					var storeObjectId = GetStoreObjectIdentifier(et);
+					return new[] { (T)(Attribute)new TableAttribute(storeObjectId!.Value.Name) { Schema = storeObjectId!.Value.Schema } };
 				}
 				if (typeof(T) == typeof(QueryFilterAttribute))
 				{
@@ -162,7 +163,7 @@ namespace LinqToDB.EntityFrameworkCore
 								                  .FirstOrDefault(v => CompareProperty(v.p, memberInfo))?.index ?? 0;
 						}
 
-						var storeObjectId = StoreObjectIdentifier.Create(et, StoreObjectType.Table);
+						var storeObjectId = GetStoreObjectIdentifier(et);
 
 						return new T[]{(T)(Attribute) new ColumnAttribute
 						{
@@ -323,6 +324,15 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				expressionPrinter.Print(Expression);
 			}
+		}
+
+		private StoreObjectIdentifier? GetStoreObjectIdentifier(IEntityType entityType)
+		{
+			return entityType.GetTableName() switch
+			{
+				not null => StoreObjectIdentifier.Create(entityType, StoreObjectType.Table),
+				null     => StoreObjectIdentifier.Create(entityType, StoreObjectType.View),
+			};
 		}
 
 		private Sql.ExpressionAttribute? GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
