@@ -12,7 +12,10 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 					.AddFilter("System", LogLevel.Warning)
 					.AddFilter("LinqToDB.EntityFrameworkCore.Test", LogLevel.Information)
 
-					.AddTestLogger();
+					.AddTestLogger(o =>
+					{
+						o.IncludeScopes = true;
+					});
 			});		
 
 	}

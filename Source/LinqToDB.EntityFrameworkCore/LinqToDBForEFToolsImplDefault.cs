@@ -1358,8 +1358,6 @@ namespace LinqToDB.EntityFrameworkCore
 			return coreOptions?.Model;
 		}
 
-		static int _messageCounter;
-
 		/// <summary>
 		/// Logs lin2db trace event to logger.
 		/// </summary>
@@ -1367,68 +1365,51 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="logger">Logger instance.</param>
 		public virtual void LogConnectionTrace(TraceInfo info, ILogger logger)
 		{
-			Interlocked.Increment(ref _messageCounter);
+			var logLevel = info.TraceLevel switch
+			{
+				TraceLevel.Off => LogLevel.None,
+				TraceLevel.Error => LogLevel.Error,
+				TraceLevel.Warning => LogLevel.Warning,
+				TraceLevel.Info => LogLevel.Information,
+				TraceLevel.Verbose => LogLevel.Debug,
+				_ => LogLevel.Trace,
+			};
+
+			using var _ = logger.BeginScope("TraceInfoStep: {TraceInfoStep}, IsAsync: {IsAsync}", info.TraceInfoStep, info.IsAsync);
+
 			switch (info.TraceInfoStep)
 			{
 				case TraceInfoStep.BeforeExecute:
-					logger.LogInformation(_messageCounter, $"{info.TraceInfoStep}{Environment.NewLine}{info.SqlText}");
+					logger.Log(logLevel, "{SqlText}", info.SqlText);
 					break;
 
 				case TraceInfoStep.AfterExecute:
-					logger.LogInformation(_messageCounter,
-						info.RecordsAffected != null
-							? $"Query Execution Time ({info.TraceInfoStep}) {(info.IsAsync ? " (async)" : "")}: {info.ExecutionTime}. Records Affected: {info.RecordsAffected}.\r\n"
-							: $"Query Execution Time ({info.TraceInfoStep}) {(info.IsAsync ? " (async)" : "")}: {info.ExecutionTime}\r\n");
+					if (info.RecordsAffected is null)
+					{
+						logger.Log(logLevel, "Query Execution Time: {ExecutionTime}.", info.ExecutionTime);
+					}
+					else
+					{
+						logger.Log(logLevel, "Query Execution Time: {ExecutionTime}. Records Affected: {RecordsAffected}.", info.ExecutionTime, info.RecordsAffected);
+					}
 					break;
 
 				case TraceInfoStep.Error:
 				{
-					var sb = new StringBuilder();
-
-					sb.Append(info.TraceInfoStep);
-
-					for (var ex = info.Exception; ex != null; ex = ex.InnerException)
-					{
-						try
-						{
-							sb
-								.AppendLine()
-								.AppendLine($"Exception: {ex.GetType()}")
-								.AppendLine($"Message  : {ex.Message}")
-								.AppendLine(ex.StackTrace)
-								;
-						}
-						catch
-						{
-							// Sybase provider could generate exception that will throw another exception when you
-							// try to access Message property due to bug in AseErrorCollection.Message property.
-							// There it tries to fetch error from first element of list without checking wether
-							// list contains any elements or not
-							sb
-								.AppendLine()
-								.AppendFormat("Failed while tried to log failure of type {0}", ex.GetType())
-								;
-						}
-					}
-
-					logger.LogError(_messageCounter, sb.ToString());
-
+					logger.Log(logLevel, info.Exception, "Failed executing command.");
 					break;
 				}
 
 				case TraceInfoStep.Completed:
 				{
-					var sb = new StringBuilder();
-
-					sb.Append($"Total Execution Time ({info.TraceInfoStep}){(info.IsAsync ? " (async)" : "")}: {info.ExecutionTime}.");
-
-					if (info.RecordsAffected != null)
-						sb.Append($" Rows Count: {info.RecordsAffected}.");
-
-					sb.AppendLine();
-
-					logger.LogInformation(_messageCounter, sb.ToString());
-
+					if (info.RecordsAffected is null)
+					{
+						logger.Log(logLevel, "Total Execution Time: {TotalExecutionTime}.", info.ExecutionTime);
+					}
+					else
+					{
+						logger.Log(logLevel, "Total Execution Time: {TotalExecutionTime}. Rows Count: {RecordsAffected}.", info.ExecutionTime, info.RecordsAffected);
+					}
 					break;
 				}
 			}
