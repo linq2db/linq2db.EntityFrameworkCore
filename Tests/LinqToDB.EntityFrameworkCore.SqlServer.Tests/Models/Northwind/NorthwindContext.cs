@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping;
 using LinqToDB.Expressions;
@@ -26,6 +27,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 		public NorthwindContext(DbContextOptions options) : base(options)
 		{
 			
+		}
+
+		[DbFunction("ProcessLong", "dbo")]
+		public static int ProcessLong(int seconds)
+		{
+			throw new NotImplementedException();
 		}
 
 		protected override void OnModelCreating(ModelBuilder builder)
