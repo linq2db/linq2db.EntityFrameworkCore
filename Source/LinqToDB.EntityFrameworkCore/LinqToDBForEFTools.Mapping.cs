@@ -94,6 +94,6 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 		}
 		
-		#endregion	
+		#endregion
 	}
 }
