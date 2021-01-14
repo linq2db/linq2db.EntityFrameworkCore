@@ -18,7 +18,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		private readonly string _name;
 
 		[ThreadStatic]
-		private static StringBuilder _logBuilder;
+		private static StringBuilder? _logBuilder;
 
 		static TestLogger()
 		{
@@ -37,9 +37,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			_name = name;
 		}
 
-		internal IExternalScopeProvider ScopeProvider { get; set; }
+		internal IExternalScopeProvider? ScopeProvider { get; set; }
 
-		internal ConsoleLoggerOptions Options { get; set; }
+		internal ConsoleLoggerOptions? Options { get; set; }
 
 		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
 		{
@@ -63,7 +63,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		public virtual void WriteMessage(LogLevel logLevel, string logName, int eventId, string message, Exception exception)
 		{
-			var format = Options.Format;
+			var format = Options!.Format;
 			Debug.Assert(format >= ConsoleLoggerFormat.Default && format <= ConsoleLoggerFormat.Systemd);
 
 			var logBuilder = _logBuilder;
@@ -154,7 +154,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 				logBuilder.AppendLine(exception.ToString());
 			}
 
-			var timestampFormat = Options.TimestampFormat;
+			var timestampFormat = Options!.TimestampFormat;
 
 			return new LogMessageEntry(
 				message: logBuilder.ToString(),
@@ -163,7 +163,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 				levelBackground: logLevelColors.Background,
 				levelForeground: logLevelColors.Foreground,
 				messageColor: DefaultConsoleColor,
-				logAsError: logLevel >= Options.LogToStandardErrorThreshold
+				logAsError: logLevel >= Options!.LogToStandardErrorThreshold
 			);
 		}
 
@@ -180,7 +180,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			logBuilder.Append(logLevelString);
 
 			// timestamp
-			var timestampFormat = Options.TimestampFormat;
+			var timestampFormat = Options!.TimestampFormat;
 			if (timestampFormat != null)
 			{
 				logBuilder.Append(DateTime.Now.ToString(timestampFormat));
@@ -278,7 +278,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		private ConsoleColors GetLogLevelConsoleColors(LogLevel logLevel)
 		{
-			if (Options.DisableColors)
+			if (Options!.DisableColors)
 			{
 				return new ConsoleColors(null, null);
 			}
@@ -307,7 +307,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		private void GetScopeInformation(StringBuilder stringBuilder, bool multiLine)
 		{
 			var scopeProvider = ScopeProvider;
-			if (Options.IncludeScopes && scopeProvider != null)
+			if (Options!.IncludeScopes && scopeProvider != null)
 			{
 				var initialLength = stringBuilder.Length;
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using LinqToDB.Expressions;
 using LinqToDB.Reflection;
 using Microsoft.EntityFrameworkCore;
@@ -28,12 +29,12 @@ namespace LinqToDB.EntityFrameworkCore
 	/// </summary>
 	internal class EFCoreMetadataReader : IMetadataReader
 	{
-		readonly IModel _model;
-		private readonly RelationalSqlTranslatingExpressionVisitorDependencies _dependencies;
-		private readonly IRelationalTypeMappingSource _mappingSource;
-		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute>();
+		readonly IModel? _model;
+		private readonly RelationalSqlTranslatingExpressionVisitorDependencies? _dependencies;
+		private readonly IRelationalTypeMappingSource? _mappingSource;
+		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?>();
 
-		public EFCoreMetadataReader(IModel model, RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource)
+		public EFCoreMetadataReader(IModel? model, RelationalSqlTranslatingExpressionVisitorDependencies? dependencies, IRelationalTypeMappingSource? mappingSource)
 		{
 			_model = model;
 			_dependencies = dependencies;
@@ -60,19 +61,12 @@ namespace LinqToDB.EntityFrameworkCore
 						var contextProp  = Expression.Property(Expression.Convert(dcParam, typeof(LinqToDBForEFToolsDataConnection)), "Context");
 						var filterBody   = filter.Body.Transform(e =>
 						{
-							switch (e)
+							if (typeof(DbContext).IsSameOrParentOf(e.Type))
 							{
-								case ConstantExpression cnt:
-								{
-									if (typeof(DbContext).IsSameOrParentOf(cnt.Type))
-									{
-										Expression newExpr = contextProp;
-										if (newExpr.Type != cnt.Type)
-											newExpr = Expression.Convert(newExpr, cnt.Type);
-										return newExpr;
-									}
-									break;
-								}
+								Expression newExpr = contextProp;
+								if (newExpr.Type != e.Type)
+									newExpr = Expression.Convert(newExpr, e.Type);
+								return newExpr;
 							}
 
 							return e;
@@ -107,7 +101,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return Array.Empty<T>();
 		}
 
-		static bool CompareProperty(MemberInfo property, MemberInfo memberInfo)
+		static bool CompareProperty(MemberInfo? property, MemberInfo memberInfo)
 		{
 			if (property == memberInfo)
 				return true;
@@ -126,13 +120,11 @@ namespace LinqToDB.EntityFrameworkCore
 			return false;
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		static bool CompareProperty(IProperty property, MemberInfo memberInfo)
 		{
 			return CompareProperty(property.GetIdentifyingMemberInfo(), memberInfo);
 		}
 		
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
 			if (typeof(Expression).IsSameOrParentOf(type)) 
@@ -307,7 +299,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			public Expression Expression { get; }
 
-			public SqlTransparentExpression(Expression expression, RelationalTypeMapping typeMapping) : base(expression.Type, typeMapping)
+			public SqlTransparentExpression(Expression expression, RelationalTypeMapping? typeMapping) : base(expression.Type, typeMapping)
 			{
 				Expression = expression;
 			}
@@ -316,18 +308,36 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				expressionPrinter.Print(Expression);
 			}
+
+			protected bool Equals(SqlTransparentExpression other)
+			{
+				return ReferenceEquals(this, other);
+			}
+
+			public override bool Equals(object obj)
+			{
+				if (ReferenceEquals(null, obj)) return false;
+				if (ReferenceEquals(this, obj)) return true;
+				if (obj.GetType() != this.GetType()) return false;
+				return Equals((SqlTransparentExpression) obj);
+			}
+
+			public override int GetHashCode()
+			{
+				return RuntimeHelpers.GetHashCode(this);
+			}
 		}
 
-		private Sql.ExpressionAttribute GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
+		private Sql.ExpressionAttribute? GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
 
-			methodInfo = (MethodInfo) type.GetMemberEx(methodInfo) ?? methodInfo;
+			methodInfo = (MethodInfo?) type.GetMemberEx(methodInfo) ?? methodInfo;
 
 			var found = _calculatedExtensions.GetOrAdd(methodInfo, mi =>
 			{
-				EFCoreExpressionAttribute result = null;
+				EFCoreExpressionAttribute? result = null;
 
 				if (!methodInfo.IsGenericMethodDefinition && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
 				{
@@ -357,16 +367,16 @@ namespace LinqToDB.EntityFrameworkCore
 			return found;
 		}
 
-		private Sql.ExpressionAttribute GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
+		private Sql.ExpressionAttribute? GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
 
-			propInfo = (PropertyInfo) type.GetMemberEx(propInfo) ?? propInfo;
+			propInfo = (PropertyInfo?) type.GetMemberEx(propInfo) ?? propInfo;
 
 			var found = _calculatedExtensions.GetOrAdd(propInfo, mi =>
 			{
-				EFCoreExpressionAttribute result = null;
+				EFCoreExpressionAttribute? result = null;
 
 				if ((propInfo.GetMethod?.IsStatic != true) 
 				    && !(mi is DynamicColumnInfo) 
@@ -390,9 +400,34 @@ namespace LinqToDB.EntityFrameworkCore
 
 		private static EFCoreExpressionAttribute ConvertToExpressionAttribute(MemberInfo memberInfo, Expression newExpression, Expression[] parameters)
 		{
-			string PrepareExpressionText(Expression expr)
+			string PrepareExpressionText(Expression? expr)
 			{
-				var idx = Array.IndexOf(parameters, expr);
+				var idx = -1;
+
+				for (var index = 0; index < parameters.Length; index++)
+				{
+					var param = parameters[index];
+					var found = ReferenceEquals(expr, param);
+					if (!found)
+					{
+						if (param is SqlTransparentExpression transparent)
+						{
+							if (transparent.Expression is ConstantExpression constantExpr &&
+							    expr is SqlConstantExpression sqlConstantExpr)
+							{
+								//found = sqlConstantExpr.Value.Equals(constantExpr.Value);
+								found = true;
+							}
+						}
+					}
+
+					if (found)
+					{
+						idx = index;
+						break;
+					}
+				}
+
 				if (idx >= 0)
 					return $"{{{idx}}}";
 
@@ -457,7 +492,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (expr is SqlFunctionExpression func)
 			{
 				if (string.Equals(func.Name, "COALESCE", StringComparison.InvariantCultureIgnoreCase) &&
-				    func.Arguments.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Default)
+				    func.Arguments.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Extension)
 					return UnwrapConverted(func.Arguments[0]);
 			}
 

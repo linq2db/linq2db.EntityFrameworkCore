@@ -2,9 +2,6 @@
 	<PropertyGroup>
 		<Version>3.8.0</Version>
 
-		<Description>Allows to execute Linq to DB (linq2db) queries in Entity Framework Core DbContext.</Description>
-		<Title>Linq to DB (linq2db) extensions for Entity Framework Core</Title>
-		<AssemblyTitle>$(Title)</AssemblyTitle>
 		<Authors>Svyatoslav Danyliv, Igor Tkachev, Dmitry Lukashenko, Ilya Chudin</Authors>
 		<Product>Linq to DB</Product>
 		<Company>linq2db.net</Company>
@@ -12,12 +9,11 @@
 		<RepositoryUrl>https://github.com/linq2db/linq2db.EntityFrameworkCore</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 
-		<AppDesignerFolder>Properties</AppDesignerFolder>
-		<LangVersion>8.0</LangVersion>
-		<Nullable>disable</Nullable>
+		<LangVersion>9.0</LangVersion>
+		<Nullable>enable</Nullable>
 		<WarningLevel>4</WarningLevel>
 		<ErrorReport>prompt</ErrorReport>
-		<NoWarn>1701;1591</NoWarn>
+		<AnalysisLevel>preview</AnalysisLevel>
 
 		<AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>

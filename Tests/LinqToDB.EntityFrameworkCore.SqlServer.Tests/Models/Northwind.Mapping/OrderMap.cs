@@ -63,17 +63,17 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 				builder.Property(e => e.ShippedDate).HasColumnType("datetime");
 
 				builder.HasOne(d => d.Customer)
-					.WithMany(p => p.Orders)
+					.WithMany(p => p!.Orders)
 					.HasForeignKey(d => d.CustomerId)
 					.HasConstraintName("FK_Orders_Customers");
 
 				builder.HasOne(d => d.Employee)
-					.WithMany(p => p.Orders)
+					.WithMany(p => p!.Orders)
 					.HasForeignKey(d => d.EmployeeId)
 					.HasConstraintName("FK_Orders_Employees");
 
 				builder.HasOne(d => d.ShipViaNavigation)
-					.WithMany(p => p.Orders)
+					.WithMany(p => p!.Orders)
 					.HasForeignKey(d => d.ShipVia)
 					.HasConstraintName("FK_Orders_Shippers");
 			}

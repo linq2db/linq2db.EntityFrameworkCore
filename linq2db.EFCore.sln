@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{A3F30061
 		azure-pipelines.yml = azure-pipelines.yml
 		Build\linq2db.Default.props = Build\linq2db.Default.props
 		Build\linq2db.snk = Build\linq2db.snk
+		Build\linq2db.Tests.props = Build\linq2db.Tests.props
 		Build\SetVersion.ps1 = Build\SetVersion.ps1
 	EndProjectSection
 EndProject

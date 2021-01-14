@@ -2,18 +2,18 @@
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class Territory : BaseEntity
-    {
-        public Territory()
-        {
-            EmployeeTerritories = new HashSet<EmployeeTerritory>();
-        }
+	public class Territory : BaseEntity
+	{
+		public Territory()
+		{
+			EmployeeTerritories = new HashSet<EmployeeTerritory>();
+		}
 
-        public string TerritoryId { get; set; }
-        public string TerritoryDescription { get; set; }
-        public int RegionId { get; set; }
+		public string TerritoryId          { get; set; } = null!;
+		public string TerritoryDescription { get; set; } = null!;
+		public int    RegionId             { get; set; }
 
-        public Region Region { get; set; }
-        public ICollection<EmployeeTerritory> EmployeeTerritories { get; set; }
-    }
+		public Region Region { get; set; } = null!;
+		public ICollection<EmployeeTerritory> EmployeeTerritories { get; set; }
+	}
 }
