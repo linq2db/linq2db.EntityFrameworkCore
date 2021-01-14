@@ -989,65 +989,6 @@ namespace LinqToDB.EntityFrameworkCore
 			return newExpression;
 		}
 
-		private Expression AddFilter(
-			Dictionary<Type, Expression> cachedFilters,
-			Type entityType,
-			Expression expression,
-			IDataContext dc,
-			DbContext? ctx,
-			IModel? model)
-		{
-			if (!cachedFilters.TryGetValue(entityType, out var filterExpression))
-			{
-				var filter = model?.FindEntityType(entityType)?.GetQueryFilter();
-				if (filter != null)
-				{
-					var filterBody = TransformExpression(filter.Body, dc, ctx, model!);
-
-					// replacing DbContext constant
-					if (ctx != null)
-					{
-						filterBody = filterBody.Transform(fe =>
-						{
-							if (fe.NodeType == ExpressionType.Constant)
-							{
-								if (fe.Type.IsAssignableFrom(ctx.GetType()))
-								{
-									return Expression.Constant(ctx, fe.Type);
-								}
-							}
-
-							return fe;
-						});
-					}
-
-					if (filterBody is ConstantExpression constantExpression && (constantExpression.Value as bool?) == true)
-					{ }
-					else
-					{
-						filterExpression = Expression.Lambda(filterBody, filter.Parameters[0]);
-					}
-				}
-				cachedFilters.Add(entityType, filterExpression);
-			}
-
-			if (filterExpression == null)
-				return expression;
-
-			if (typeof(IQueryable<>).IsSameOrParentOf(expression.Type))
-			{
-				expression = Expression.Call(Methods.Queryable.Where.MakeGenericMethod(entityType), expression,
-					filterExpression);
-			}
-			else if (typeof(IEnumerable<>).MakeGenericType(entityType).IsSameOrParentOf(expression.Type))
-			{
-				expression = Expression.Call(Methods.Enumerable.Where.MakeGenericMethod(entityType), expression,
-					filterExpression);
-			}
-
-			return expression;
-		}
-
 		static Expression EnsureEnumerable(Expression expression, MappingSchema mappingSchema)
 		{
 			var enumerable = typeof(IEnumerable<>).MakeGenericType(GetEnumerableElementType(expression.Type, mappingSchema));
