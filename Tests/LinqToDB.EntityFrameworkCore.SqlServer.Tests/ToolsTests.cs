@@ -758,5 +758,21 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
+		[Test]
+		public void TestNullability([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				int? test = 1;
+				var query = ctx.Employees.Where(e => e.EmployeeId == test);
+
+				var expected = query.ToArray();
+				var actual = query.ToLinqToDB().ToArray();
+
+				AreEqualWithComparer(expected, actual);
+			}
+		}
+
+
 	}
 }
