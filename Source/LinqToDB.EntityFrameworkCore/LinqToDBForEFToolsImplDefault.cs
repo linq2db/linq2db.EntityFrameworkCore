@@ -586,6 +586,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static readonly ConstructorInfo DataParameterConstructor = MemberHelper.ConstructorOf(() => new DataParameter("", "", DataType.Undefined, ""));
 
+		static readonly MethodInfo ToSql = MemberHelper.MethodOfGeneric(() => Sql.ToSql(1));
+
 		/// <summary>
 		/// Removes conversions from expression.
 		/// </summary>
@@ -767,7 +769,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var tracking           = true;
 			var ignoreTracking     = false;
 
-			Expression LocalTransform(Expression e)
+			TransformInfo LocalTransform(Expression e)
 			{
 				e = CompactExpression(e);
 
@@ -779,7 +781,7 @@ namespace LinqToDB.EntityFrameworkCore
 						{
 							var entityType = e.Type.GenericTypeArguments[0];
 							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(entityType), Expression.Constant(dc));
-							return newExpr;
+							return new TransformInfo(newExpr);
 						}
 
 						break;
@@ -787,12 +789,12 @@ namespace LinqToDB.EntityFrameworkCore
 
 					case ExpressionType.MemberAccess:
 					{
-						if (typeof(DbSet<>).IsSameOrParentOf(e.Type))
+						if (typeof(IQueryable<>).IsSameOrParentOf(e.Type))
 						{
 							var ma    = (MemberExpression)e;
 							var query = (IQueryable)EvaluateExpression(ma)!;
 
-							return LocalTransform(query.Expression);
+							return new TransformInfo(query.Expression, false, true);
 						}
 
 						break;
@@ -801,6 +803,7 @@ namespace LinqToDB.EntityFrameworkCore
 					case ExpressionType.Call:
 					{
 						var methodCall = (MethodCallExpression) e;
+
 						var generic = methodCall.Method.IsGenericMethod ? methodCall.Method.GetGenericMethodDefinition() : methodCall.Method;
 
 						if (IsQueryable(methodCall))
@@ -825,15 +828,13 @@ namespace LinqToDB.EntityFrameworkCore
 										Methods.LinqToDB.LoadWith.MakeGenericMethod(methodCall.Method
 											.GetGenericArguments());
 
-									return Expression.Call(method,
-										methodCall.Arguments.Select(a => a.Transform(l => LocalTransform(l)))
-											.ToArray());
+									return new TransformInfo(Expression.Call(method, methodCall.Arguments), false, true);
 								}
 								else if (generic == IncludeMethodInfoString)
 								{
 									var arguments = new List<Expression>(2)
 									{
-										methodCall.Arguments[0].Transform(l => LocalTransform(l))
+										methodCall.Arguments[0]
 									};
 
 									var propName = (string)EvaluateExpression(methodCall.Arguments[1])!;
@@ -850,7 +851,7 @@ namespace LinqToDB.EntityFrameworkCore
 									var method =
 										Methods.LinqToDB.LoadWith.MakeGenericMethod(param.Type, prop.Type);
 
-									return Expression.Call(method, arguments.ToArray());
+									return new TransformInfo(Expression.Call(method, arguments.ToArray()), false, true);
 								}
 								else if (generic == ThenIncludeMethodInfo)
 								{
@@ -858,9 +859,8 @@ namespace LinqToDB.EntityFrameworkCore
 										Methods.LinqToDB.ThenLoadFromSingle.MakeGenericMethod(methodCall.Method
 											.GetGenericArguments());
 
-									return Expression.Call(method,
-										methodCall.Arguments.Select(a => a.Transform(l => LocalTransform(l)))
-											.ToArray());
+									return new TransformInfo(Expression.Call(method, methodCall.Arguments.Select(a => a.Transform(l => LocalTransform(l)))
+										.ToArray()), false, true);
 								}
 								else if (generic == ThenIncludeEnumerableMethodInfo)
 								{
@@ -868,9 +868,8 @@ namespace LinqToDB.EntityFrameworkCore
 										Methods.LinqToDB.ThenLoadFromMany.MakeGenericMethod(methodCall.Method
 											.GetGenericArguments());
 
-									return Expression.Call(method,
-										methodCall.Arguments.Select(a => a.Transform(l => LocalTransform(l)))
-											.ToArray());
+									return new TransformInfo(Expression.Call(method, methodCall.Arguments.Select(a => a.Transform(l => LocalTransform(l)))
+										.ToArray()), false, true);
 								}
 								else if (generic == L2DBRemoveOrderByMethodInfo)
 								{
@@ -880,7 +879,7 @@ namespace LinqToDB.EntityFrameworkCore
 								}
 
 								if (isTunnel)
-									return methodCall.Arguments[0].Transform(l => LocalTransform(l));
+									return new TransformInfo(methodCall.Arguments[0], false, true);
 							}
 
 							break;
@@ -895,16 +894,53 @@ namespace LinqToDB.EntityFrameworkCore
 							if (methodCall.Method.Invoke(obj, arguments) is IQueryable result)
 							{
 								if (!ExpressionEqualityComparer.Instance.Equals(methodCall, result.Expression))
-									return result.Expression.Transform(l => LocalTransform(l));
+									return new TransformInfo(result.Expression, false, true);
 							}
 						}
 
 						if (generic == EFProperty)
 						{
 							var prop = Expression.Call(null, L2DBProperty.MakeGenericMethod(methodCall.Method.GetGenericArguments()[0]),
-								methodCall.Arguments[0].Transform(l => LocalTransform(l)), methodCall.Arguments[1]);
-							return prop;
+								methodCall.Arguments[0], methodCall.Arguments[1]);
+							return new TransformInfo(prop, false, true);
 						}
+
+						List<Expression>? newArguments = null;
+						var parameters = generic.GetParameters();
+						for (var i = 0; i < parameters.Length; i++)
+						{
+							var arg = methodCall.Arguments[i];
+							var canWrap = true;
+
+							if (arg.NodeType == ExpressionType.Call)
+							{
+								var mc = (MethodCallExpression) arg;
+								if (mc.Method.DeclaringType == typeof(Sql))
+									canWrap = false;
+							}
+
+							if (canWrap)
+							{
+								var parameterInfo = parameters[i];
+								var notParametrized = parameterInfo.GetCustomAttributes<NotParameterizedAttribute>()
+									.FirstOrDefault();
+								if (notParametrized != null)
+								{
+									if (newArguments == null)
+									{
+										newArguments = new List<Expression>(methodCall.Arguments.Take(i));
+									}
+
+									newArguments.Add(Expression.Call(ToSql.MakeGenericMethod(arg.Type), arg));
+									continue;
+								}
+							}							 
+								
+							newArguments?.Add(methodCall.Arguments[i]);
+						}
+
+						if (newArguments != null)
+							return new TransformInfo(methodCall.Update(methodCall.Object, newArguments), false, true);
 
 						break;
 					}
@@ -914,16 +950,16 @@ namespace LinqToDB.EntityFrameworkCore
 						if (e is FromSqlQueryRootExpression fromSqlQueryRoot)
 						{
 							//convert the arguments from the FromSqlOnQueryable method from EF, to a L2DB FromSql call
-							return Expression.Call(null,
+							return new TransformInfo(Expression.Call(null,
 								L2DBFromSqlMethodInfo.MakeGenericMethod(fromSqlQueryRoot.EntityType.ClrType),
 								Expression.Constant(dc),
 								Expression.New(RawSqlStringConstructor, Expression.Constant(fromSqlQueryRoot.Sql)),
-								fromSqlQueryRoot.Argument);
+								fromSqlQueryRoot.Argument));
 						}
 						else if (e is QueryRootExpression queryRoot)
 						{
 							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(queryRoot.EntityType.ClrType), Expression.Constant(dc));
-							return newExpr;
+							return new TransformInfo(newExpr);
 						}
 
 
@@ -932,7 +968,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 				}
 
-				return e;
+				return new TransformInfo(e);
 			}
 
 			var newExpression = expression.Transform(e => LocalTransform(e));
@@ -949,319 +985,6 @@ namespace LinqToDB.EntityFrameworkCore
 				// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 				dataConnection.Tracking = tracking;
 			}
-
-			return newExpression;
-		}
-
-		private static Expression OptimizeFilter(Expression expression)
-		{
-			var optimized = expression.Transform(e =>
-				{
-					if (e is BinaryExpression binary)
-					{
-						e = binary.Update(OptimizeFilter(binary.Left), OptimizeFilter(binary.Conversion) as LambdaExpression, OptimizeFilter(binary.Right));
-					}
-					else if (e is UnaryExpression unaryExpression)
-					{
-						e = unaryExpression.Update(OptimizeFilter(unaryExpression.Operand));
-					}
-					else if (e is MemberExpression memberExpression)
-					{
-						e = memberExpression.Update(OptimizeFilter(memberExpression.Expression));
-					}
-
-					switch (e)
-					{
-						case UnaryExpression unary when unary.Operand.NodeType == ExpressionType.Constant:
-						{
-							return Expression.Constant(EvaluateExpression(unary));
-						}
-						case MemberExpression me when me.Expression?.NodeType == ExpressionType.Constant:
-						{
-							return Expression.Constant(EvaluateExpression(me));
-						}
-						case BinaryExpression be when be.Left.NodeType == ExpressionType.Constant && be.Right.NodeType == ExpressionType.Constant:
-						{
-							return Expression.Constant(EvaluateExpression(be));
-						}
-						case BinaryExpression be when be.NodeType == ExpressionType.AndAlso:
-						{
-							if (be.Left.NodeType == ExpressionType.Constant)
-							{
-								var lefTbool = EvaluateExpression(be.Left) as bool?;
-								if (lefTbool == true)
-									return be.Right;
-								if (lefTbool == false)
-									return Expression.Constant(false);
-							}
-							else
-							if (be.Right.NodeType == ExpressionType.Constant)
-							{
-								var rightBool = EvaluateExpression(be.Right) as bool?;
-								if (rightBool == true)
-									return be.Left;
-								if (rightBool == false)
-									return Expression.Constant(false);
-							}
-							break;
-						}
-						case BinaryExpression be when be.NodeType == ExpressionType.OrElse:
-						{
-							if (be.Left.NodeType == ExpressionType.Constant)
-							{
-								var leftBool = EvaluateExpression(be.Left) as bool?;
-								if (leftBool == false)
-									return be.Right;
-								if (leftBool == true)
-									return Expression.Constant(true);
-							}
-							else
-							if (be.Right.NodeType == ExpressionType.Constant)
-							{
-								var rightBool = EvaluateExpression(be.Right) as bool?;
-								if (rightBool == false)
-									return be.Left;
-								if (rightBool == true)
-									return Expression.Constant(true);
-							}
-							break;
-						}
-					}
-
-					return e;
-				}
-			);
-			return optimized;
-		}
-
-		private Expression AddFilter(
-			Dictionary<Type, Expression> cachedFilters,
-			Type entityType,
-			Expression expression,
-			IDataContext dc,
-			DbContext? ctx,
-			IModel? model)
-		{
-			if (!cachedFilters.TryGetValue(entityType, out var filterExpression))
-			{
-				var filter = model?.FindEntityType(entityType)?.GetQueryFilter();
-				if (filter != null)
-				{
-					var filterBody = TransformExpression(filter.Body, dc, ctx, model!);
-
-					// replacing DbContext constant
-					if (ctx != null)
-					{
-						filterBody = filterBody.Transform(fe =>
-						{
-							if (fe.NodeType == ExpressionType.Constant)
-							{
-								if (fe.Type.IsAssignableFrom(ctx.GetType()))
-								{
-									return Expression.Constant(ctx, fe.Type);
-								}
-							}
-
-							return fe;
-						});
-					}
-
-					filterBody = OptimizeFilter(filterBody);
-					if (filterBody is ConstantExpression constantExpression && (constantExpression.Value as bool?) == true)
-					{ }
-					else
-					{
-						filterExpression = Expression.Lambda(filterBody, filter.Parameters[0]);
-					}
-				}
-				cachedFilters.Add(entityType, filterExpression);
-			}
-
-			if (filterExpression == null)
-				return expression;
-
-			if (typeof(IQueryable<>).IsSameOrParentOf(expression.Type))
-			{
-				expression = Expression.Call(Methods.Queryable.Where.MakeGenericMethod(entityType), expression,
-					filterExpression);
-			}
-			else if (typeof(IEnumerable<>).MakeGenericType(entityType).IsSameOrParentOf(expression.Type))
-			{
-				expression = Expression.Call(Methods.Enumerable.Where.MakeGenericMethod(entityType), expression,
-					filterExpression);
-			}
-
-			return expression;
-		}
-
-		private Expression ApplyQueryFilters(Expression expression, HashSet<Expression> ignoredExpressions, IDataContext dc, DbContext ctx, IModel model)
-		{
-			var cachedFilters = new Dictionary<Type, Expression>();
-
-			var newExpression = expression.Transform(e =>
-			{
-				switch (e.NodeType)
-				{
-					case ExpressionType.Call:
-					{
-						var mc = (MethodCallExpression) e;
-
-						if (mc.Method.IsGenericMethod)
-						{
-							var generic = mc.Method.GetGenericMethodDefinition();
-							if (Methods.LinqToDB.GetTable == generic)
-							{
-								var entityType = mc.Method.GetGenericArguments()[0];
-								e = AddFilter(cachedFilters, entityType, e, dc, ctx, model);
-							}
-						}
-						break;
-					}
-				}
-
-				return new TransformInfo(e);
-			});
-
-			return newExpression;
-		}
-
-
-		private Expression ApplyQueryFiltersTODO(Expression expression, HashSet<Expression> ignoredExpressions, IDataContext dc, DbContext ctx, IModel model)
-		{
-			// bool HasFilter(Type et)
-			// {
-			// 	return model?.FindEntityType(et)?.GetQueryFilter() != null;
-			// }
-
-			var cachedFilters = new Dictionary<Type, Expression>();
-
-			var newExpression = expression.Transform(e =>
-			{
-				switch (e.NodeType)
-				{
-					case ExpressionType.MemberAccess:
-					{
-						var ma = (MemberExpression) e;
-						if (ma.Expression != null)
-						{
-							var entityType = model.FindEntityType(ma.Expression.Type);
-							var navigation = entityType?.FindNavigation(ma.Member);
-							if (navigation != null && navigation.IsCollection)
-							{
-								var navigationType = GetEnumerableElementType(navigation.ClrType, dc.MappingSchema);
-								var expr = ApplyQueryFilters(ma.Expression, ignoredExpressions, dc, ctx, model);
-								ma = ma.Update(expr);
-								var filtered = AddFilter(cachedFilters, navigationType, ma, dc, ctx, model);
-								if (!e.Type.IsAssignableFrom(filtered.Type))
-								{
-									if (typeof(ICollection<>).IsSameOrParentOf(e.Type))
-									{
-										filtered = Expression.Call(
-											Methods.Enumerable.ToList.MakeGenericMethod(navigationType), filtered);
-									}
-									else if (e.Type.IsArray)
-									{
-										filtered = Expression.Call(
-											Methods.Enumerable.ToArray.MakeGenericMethod(navigationType), filtered);
-									}
-								}
-
-								e = filtered;
-							}
-						}
-						break;
-					}
-					case ExpressionType.Lambda:
-					{
-						return new TransformInfo(e, ignoredExpressions.Contains(e));
-					}
-					case ExpressionType.Call:
-					{
-						var mc = (MethodCallExpression) e;
-
-						if (IsQueryable(mc))
-						{
-							if (mc.Method.Name.In("LoadWith", "ThenLoad", "Set", "Value"))
-							{
-								ignoredExpressions.Add(Unwrap(mc.Arguments[1]));
-							}
-							else if (mc.Method.IsGenericMethod)
-							{
-								var generic = mc.Method.GetGenericMethodDefinition();
-								if (Methods.LinqToDB.GetTable == generic)
-								{
-									var entityType = mc.Method.GetGenericArguments()[0];
-									e = AddFilter(cachedFilters, entityType, e, dc, ctx, model);
-								}
-							}
-						}
-
-						// TODO: review LoadWith overloads
-						/*if (mc.Method.IsGenericMethod)
-						{
-							var generic = mc.Method.GetGenericMethodDefinition();
-							if (Methods.LinqToDB.GetTable == generic)
-							{
-								var entityType = mc.Method.GetGenericArguments()[0];
-								e = AddFilter(cachedFilters, entityType, e, dc, ctx, model);
-							}
-							else if (Methods.LinqToDB.LoadWith == generic || Methods.LinqToDB.LoadWithQueryMany == generic)
-							{
-								IQueryable q;
-								var elementType = GetEnumerableElementType(mc.Method.GetGenericArguments()[1], dc.MappingSchema);
-
-								if (HasFilter(elementType))
-								{
-									var emptyQuery = Common.Tools.CreateEmptyQuery(elementType);
-									Delegate func = null;
-									if (Methods.LinqToDB.LoadWithQueryMany == generic)
-									{
-										func = (Delegate) EvaluateExpression(mc.Arguments[2]);
-										q = (IQueryable) func.DynamicInvoke(emptyQuery);
-									}
-									else
-									{
-										q = emptyQuery;
-									}
-
-									var filterQuery = AddFilter(cachedFilters, emptyQuery.ElementType, emptyQuery.Expression, dc, ctx,
-										model);
-
-									if (filterQuery != emptyQuery && filterQuery.NodeType == ExpressionType.Call)
-									{
-										var filterMethod = (MethodCallExpression) filterQuery;
-
-										var arguments = new List<Expression>();
-										arguments.Add(q.Expression);
-										arguments.AddRange(filterMethod.Arguments.Skip(1));
-										var newMethod = filterMethod.Update(null, arguments);
-										
-										var queryableType = typeof(IQueryable<>).MakeGenericType(elementType);
-										var param = Expression.Parameter(queryableType, "q");
-										var body = newMethod.Transform(ee =>
-											ee == emptyQuery.Expression ? param : ee);
-										body = Expression.Convert(body, queryableType);
-
-										var lambda = Expression.Lambda(body, param);
-										var compiled = lambda.Compile();
-
-										var methodInfo = Methods.LinqToDB.LoadWithQueryMany.MakeGenericMethod(
-											mc.Method.GetGenericArguments());
-										e = Expression.Call(
-											methodInfo,
-											mc.Arguments[0], EnsureEnumerable((LambdaExpression)Unwrap(mc.Arguments[1]), dc.MappingSchema), Expression.Constant(compiled));
-									}
-								}
-							}
-
-						}
-						*/
-						break;
-					}
-				}
-
-				return new TransformInfo(e);
-			});
 
 			return newExpression;
 		}

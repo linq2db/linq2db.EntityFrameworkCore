@@ -43,7 +43,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 		{
 			using (var db = CreateNpgSqlExntitiesContext())
 			{
-				var date = DateTime.UtcNow;
+				var date = DateTime.Now;
 
 				var query = db.Events.Where(e =>
 					e.Duration.Contains(date) || e.Duration.LowerBound == date || e.Duration.UpperBound == date ||
