@@ -23,7 +23,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="options">Operation options.</param>
 		/// <param name="source">Records to insert.</param>
 		/// <returns>Bulk insert operation status.</returns>
-		public static BulkCopyRowsCopied BulkCopy<T>([JetBrains.Annotations.NotNull] this DbContext context, BulkCopyOptions options, IEnumerable<T> source) where T : class
+		public static BulkCopyRowsCopied BulkCopy<T>(this DbContext context, BulkCopyOptions options, IEnumerable<T> source) where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
@@ -41,7 +41,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="maxBatchSize">Number of rows in each batch. At the end of each batch, the rows in the batch are sent to the server. </param>
 		/// <param name="source">Records to insert.</param>
 		/// <returns>Bulk insert operation status.</returns>
-		public static BulkCopyRowsCopied BulkCopy<T>([JetBrains.Annotations.NotNull] this DbContext context, int maxBatchSize, IEnumerable<T> source) where T : class
+		public static BulkCopyRowsCopied BulkCopy<T>(this DbContext context, int maxBatchSize, IEnumerable<T> source) where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
@@ -60,7 +60,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="context">Database context.</param>
 		/// <param name="source">Records to insert.</param>
 		/// <returns>Bulk insert operation status.</returns>
-		public static BulkCopyRowsCopied BulkCopy<T>([JetBrains.Annotations.NotNull] this DbContext context, IEnumerable<T> source) where T : class
+		public static BulkCopyRowsCopied BulkCopy<T>(this DbContext context, IEnumerable<T> source) where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
@@ -84,7 +84,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
 		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
-			[JetBrains.Annotations.NotNull] this DbContext context,
+			this DbContext context,
 			BulkCopyOptions options,
 			IEnumerable<T> source,
 			CancellationToken cancellationToken = default)
@@ -110,7 +110,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
 		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
-			[JetBrains.Annotations.NotNull] this DbContext context,
+			this DbContext context,
 			int maxBatchSize,
 			IEnumerable<T> source,
 			CancellationToken cancellationToken = default)
@@ -135,7 +135,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
 		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
-			[JetBrains.Annotations.NotNull] this DbContext context,
+			this DbContext context,
 			IEnumerable<T> source,
 			CancellationToken cancellationToken = default)
 			where T : class
@@ -157,7 +157,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
 		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
-			[JetBrains.Annotations.NotNull] this DbContext context,
+			this DbContext context,
 			BulkCopyOptions options,
 			IAsyncEnumerable<T> source,
 			CancellationToken cancellationToken = default)
@@ -183,7 +183,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
 		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
-			[JetBrains.Annotations.NotNull] this DbContext context,
+			this DbContext context,
 			int maxBatchSize,
 			IAsyncEnumerable<T> source,
 			CancellationToken cancellationToken = default)
@@ -205,7 +205,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
 		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
-			[JetBrains.Annotations.NotNull] this DbContext context,
+			this DbContext context,
 			IAsyncEnumerable<T> source,
 			CancellationToken cancellationToken = default)
 			where T : class
@@ -232,7 +232,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Insertable source query.</returns>
 		[LinqTunnel]
 		[Pure]
-		public static IValueInsertable<T> Into<T>([JetBrains.Annotations.NotNull] this DbContext context, [JetBrains.Annotations.NotNull] ITable<T> target)
+		public static IValueInsertable<T> Into<T>(this DbContext context, ITable<T> target)
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (target == null)  throw new ArgumentNullException(nameof(target));
@@ -249,7 +249,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <typeparam name="T">Mapping class type.</typeparam>
 		/// <returns>Queryable source.</returns>
-		public static ITable<T> GetTable<T>([JetBrains.Annotations.NotNull] this DbContext context)
+		public static ITable<T> GetTable<T>(this DbContext context)
 			where T : class
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));

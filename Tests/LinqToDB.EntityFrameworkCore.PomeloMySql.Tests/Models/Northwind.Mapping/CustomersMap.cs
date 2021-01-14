@@ -12,16 +12,16 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
             builder.HasKey(e => e.CustomerId);
 
             builder.HasIndex(e => e.City)
-                    .HasName("City");
+                    .HasDatabaseName("City");
 
             builder.HasIndex(e => e.CompanyName)
-                    .HasName("CompanyName");
+                    .HasDatabaseName("CompanyName");
 
             builder.HasIndex(e => e.PostalCode)
-                    .HasName("PostalCode");
+                    .HasDatabaseName("PostalCode");
 
             builder.HasIndex(e => e.Region)
-                    .HasName("Region");
+                    .HasDatabaseName("Region");
 
             builder.Property(e => e.CustomerId)
                     .HasColumnName("CustomerID")

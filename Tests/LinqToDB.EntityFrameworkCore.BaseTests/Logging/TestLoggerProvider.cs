@@ -42,7 +42,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		/// <inheritdoc />
 		public ILogger CreateLogger(string name)
 		{
-			return _loggers.GetOrAdd(name, loggerName => new TestLogger(name)
+			return _loggers.GetOrAdd(name, loggerName => new TestLogger(loggerName)
 			{
 				Options = _options.CurrentValue,
 				ScopeProvider = _scopeProvider

@@ -14,9 +14,15 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.NpgSqlEntities
 			modelBuilder.Entity<Event>(entity =>
 				entity.Property(e => e.Duration).HasColumnType("tsrange")
 			);
+
+			modelBuilder.Entity<EventView>(entity =>
+				{
+					entity.HasNoKey();
+					entity.ToView("EventsView", "views");
+				});
 		}
 
-		public virtual DbSet<Event> Events { get; set; }
+		public virtual DbSet<Event> Events { get; set; } = null!;
 
 	}
 }

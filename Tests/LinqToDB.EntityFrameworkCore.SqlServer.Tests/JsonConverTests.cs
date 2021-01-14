@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
-using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
@@ -16,15 +17,16 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 		public class LocalizedString
 		{
-			public string English { get; set; }
-			public string German { get; set; }
-			public string Slovak { get; set; }
+			public string English { get; set; } = null!;
+			public string German { get; set; } = null!;
+			public string Slovak { get; set; } = null!;
 		}
 
 		public class EventScheduleItemBase
 		{
 			public int Id { get; set; }
-			public virtual LocalizedString NameLocalized { get; set; }
+			public virtual LocalizedString NameLocalized { get; set; } = null!;
+			public virtual string JsonColumn { get; set; } = null!;
 		}
 		
 		public enum CrashEnum : byte
@@ -51,7 +53,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 
 
-			public virtual DbSet<EventScheduleItem> EventScheduleItems { get; set; }
+			public virtual DbSet<EventScheduleItem> EventScheduleItems { get; set; } = null!;
 
 
 			protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -71,6 +73,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					entity.Property(e => e.CrashEnum).HasColumnType("tinyint");
 					entity.Property(e => e.GuidColumn).HasColumnType("uniqueidentifier");
 				});
+
+				modelBuilder.HasDbFunction(typeof(JsonConverTests).GetMethod(nameof(JsonConverTests.JsonValue)))
+					.HasTranslation(e => new SqlFunctionExpression(
+						"JSON_VALUE", e, true, e.Select(_ => false), typeof(string), null));
 			}
 		}
 
@@ -83,6 +89,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
+		}
+
+		public static string JsonValue(string column, [NotParameterized] string path)
+		{
+			throw new NotSupportedException();
 		}
 
 		[Test]
@@ -113,15 +124,20 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var queryable = ctx.EventScheduleItems
 					.Where(p => p.Id < 10).ToLinqToDB();
 
-				var item = queryable
+				var path = "some";
+
+				var items = queryable
 					.Select(p => new
 					{
 						p.Id,
 						p.NameLocalized,
 						p.CrashEnum,
-						p.GuidColumn
-					}).FirstOrDefault();
-				
+						p.GuidColumn,
+						JsonValue = JsonValue(p.JsonColumn, path)
+					});
+
+				var item = items.FirstOrDefault();
+
 				Assert.That(item.NameLocalized.English, Is.EqualTo("English"));
 				Assert.That(item.NameLocalized.German,  Is.EqualTo("German"));
 				Assert.That(item.NameLocalized.Slovak,  Is.EqualTo("Slovak"));

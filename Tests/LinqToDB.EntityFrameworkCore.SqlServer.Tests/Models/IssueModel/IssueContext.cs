@@ -10,7 +10,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 {
 	public class IssueContext : DbContext
 	{
-		public DbSet<Issue73Entity> Issue73Entities { get; set; }
+		public DbSet<Issue73Entity> Issue73Entities { get; set; } = null!;
 
 		public IssueContext(DbContextOptions options) : base(options)
 		{
@@ -24,9 +24,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 				b.HasKey(x => new { x.Id });
 
 				b.HasOne(x => x.Parent)
-					.WithMany(x => x.Childs)
+					.WithMany(x => x!.Childs)
 					.HasForeignKey(x => new { x.ParentId })
-					.HasPrincipalKey(x => new { x.Id });
+					.HasPrincipalKey(x => new { x!.Id });
 
 				b.HasData(new[]
 				{

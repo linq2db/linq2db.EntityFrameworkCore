@@ -3,10 +3,10 @@
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
-    public class CustomerQuery : BaseEntity
-    {
-        public string CompanyName { get; set; }
-        public int OrderCount { get; set; }
-        public string SearchTerm { get; set; }
-    }
+	public class CustomerQuery : BaseEntity
+	{
+		public string CompanyName { get; set; } = null!;
+		public int OrderCount { get; set; }
+		public string SearchTerm { get; set; } = null!;
+	}
 }
