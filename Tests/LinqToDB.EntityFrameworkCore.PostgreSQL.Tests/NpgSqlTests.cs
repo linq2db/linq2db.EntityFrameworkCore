@@ -29,19 +29,20 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 			_options = optionsBuilder.Options;
 		}
 
-		private NpgSqlEnititesContext CreateNpgSqlExntitiesContext()
+		private NpgSqlEnititesContext CreateNpgSqlEntitiesContext()
 		{
 			var ctx = new NpgSqlEnititesContext(_options);
 			ctx.Database.EnsureDeleted();
 			ctx.Database.EnsureCreated();
+			ctx.Database.ExecuteSqlRaw("create schema \"views\"");
+			ctx.Database.ExecuteSqlRaw("create view \"views\".\"EventsView\" as select \"Name\" from \"Events\"");
 			return ctx;
 		}
-
 
 		[Test]
 		public void TestFunctionsMapping()
 		{
-			using (var db = CreateNpgSqlExntitiesContext())
+			using (var db = CreateNpgSqlEntitiesContext())
 			{
 				var date = DateTime.Now;
 
@@ -54,6 +55,17 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 			}
 		}
 
-	
+		[Test]
+		public void TestViewMapping()
+		{
+			using (var db = CreateNpgSqlEntitiesContext())
+			{
+				var query = db.Set<EventView>().Where(e =>
+					e.Name.StartsWith("any"));
+
+				var efResult = query.ToArray();
+				var l2dbResult = query.ToLinqToDB().ToArray();
+			}
+		}
 	}
 }
