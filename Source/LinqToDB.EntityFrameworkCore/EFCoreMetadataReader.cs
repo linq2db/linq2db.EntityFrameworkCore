@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using LinqToDB.Expressions;
 using LinqToDB.Reflection;
 using Microsoft.EntityFrameworkCore;
@@ -67,19 +68,12 @@ namespace LinqToDB.EntityFrameworkCore
 						var contextProp  = Expression.Property(Expression.Convert(dcParam, typeof(LinqToDBForEFToolsDataConnection)), "Context");
 						var filterBody   = filter.Body.Transform(e =>
 						{
-							switch (e)
+							if (typeof(DbContext).IsSameOrParentOf(e.Type))
 							{
-								case ConstantExpression cnt:
-								{
-									if (typeof(DbContext).IsSameOrParentOf(cnt.Type))
-									{
-										Expression newExpr = contextProp;
-										if (newExpr.Type != cnt.Type)
-											newExpr = Expression.Convert(newExpr, cnt.Type);
-										return newExpr;
-									}
-									break;
-								}
+								Expression newExpr = contextProp;
+								if (newExpr.Type != e.Type)
+									newExpr = Expression.Convert(newExpr, e.Type);
+								return newExpr;
 							}
 
 							return e;
@@ -323,6 +317,24 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				expressionPrinter.Print(Expression);
 			}
+
+			protected bool Equals(SqlTransparentExpression other)
+			{
+				return ReferenceEquals(this, other);
+			}
+
+			public override bool Equals(object obj)
+			{
+				if (ReferenceEquals(null, obj)) return false;
+				if (ReferenceEquals(this, obj)) return true;
+				if (obj.GetType() != this.GetType()) return false;
+				return Equals((SqlTransparentExpression) obj);
+			}
+
+			public override int GetHashCode()
+			{
+				return RuntimeHelpers.GetHashCode(this);
+			}
 		}
 
 		private Sql.ExpressionAttribute? GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
@@ -399,7 +411,32 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			string PrepareExpressionText(Expression? expr)
 			{
-				var idx = Array.IndexOf(parameters, expr);
+				var idx = -1;
+
+				for (var index = 0; index < parameters.Length; index++)
+				{
+					var param = parameters[index];
+					var found = ReferenceEquals(expr, param);
+					if (!found)
+					{
+						if (param is SqlTransparentExpression transparent)
+						{
+							if (transparent.Expression is ConstantExpression constantExpr &&
+							    expr is SqlConstantExpression sqlConstantExpr)
+							{
+								//found = sqlConstantExpr.Value.Equals(constantExpr.Value);
+								found = true;
+							}
+						}
+					}
+
+					if (found)
+					{
+						idx = index;
+						break;
+					}
+				}
+
 				if (idx >= 0)
 					return $"{{{idx}}}";
 
@@ -429,18 +466,63 @@ namespace LinqToDB.EntityFrameworkCore
 					return text;
 				}
 
-				if (newExpression.GetType().GetProperty("Left") != null &&
-				    newExpression.GetType().GetProperty("Right") != null &&
-				    newExpression.GetType().GetProperty("Operator") != null)
+				if (newExpression.GetType().Name == "PostgresBinaryExpression")
 				{
-					// Handling NpgSql's CustomBinaryExpression
+					// Handling NpgSql's PostgresBinaryExpression
 
-					var left = newExpression.GetType().GetProperty("Left")?.GetValue(newExpression) as Expression;
+					var left  = newExpression.GetType().GetProperty("Left")?.GetValue(newExpression) as Expression;
 					var right = newExpression.GetType().GetProperty("Right")?.GetValue(newExpression) as Expression;
 
-					var operand = newExpression.GetType().GetProperty("Operator")?.GetValue(newExpression) as string;
+					var operand = newExpression.GetType().GetProperty("OperatorType")?.GetValue(newExpression).ToString();
 
-					var text = $"{PrepareExpressionText(left)} {operand} {PrepareExpressionText(right)}";
+					var operandExpr = operand;
+
+					operandExpr = operand switch
+					{
+						"Contains"
+							when left!.Type.Name == "NpgsqlInetTypeMapping" ||
+							     left.Type.Name == "NpgsqlCidrTypeMapping"
+							=> ">>",
+						"ContainedBy"
+							when left!.Type.Name == "NpgsqlInetTypeMapping" ||
+							     left.Type.Name == "NpgsqlCidrTypeMapping"
+							=> "<<",
+						"Contains"                      => "@>",
+						"ContainedBy"                   => "<@",
+						"Overlaps"                      => "&&",
+						"AtTimeZone"                    => "AT TIME ZONE",
+						"NetworkContainedByOrEqual"     => "<<=",
+						"NetworkContainsOrEqual"        => ">>=",
+						"NetworkContainsOrContainedBy"  => "&&",
+						"RangeIsStrictlyLeftOf"         => "<<",
+						"RangeIsStrictlyRightOf"        => ">>",
+						"RangeDoesNotExtendRightOf"     => "&<",
+						"RangeDoesNotExtendLeftOf"      => "&>",
+						"RangeIsAdjacentTo"             => "-|-",
+						"RangeUnion"                    => "+",
+						"RangeIntersect"                => "*",
+						"RangeExcept"                   => "-",
+						"TextSearchMatch"               => "@@",
+						"TextSearchAnd"                 => "&&",
+						"TextSearchOr"                  => "||",
+						"JsonExists"                    => "?",
+						"JsonExistsAny"                 => "?|",
+						"JsonExistsAll"                 => "?&",
+						_ => throw new InvalidOperationException(
+							$"Unknown PostgresBinaryExpression.OperatorType: '{operand}'")
+					};
+
+					switch (operand)
+					{
+						case "Contains":
+							operandExpr = "@>"; break;
+						case "ContainedBy":
+							operandExpr = "<@"; break;
+						case "Overlaps":
+							operandExpr = "&&"; break;
+					}
+
+					var text = $"{PrepareExpressionText(left)} {operandExpr} {PrepareExpressionText(right)}";
 
 					return text;
 				}
@@ -464,7 +546,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (expr is SqlFunctionExpression func)
 			{
 				if (string.Equals(func.Name, "COALESCE", StringComparison.InvariantCultureIgnoreCase) &&
-				    func.Arguments.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Default)
+				    func.Arguments.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Extension)
 					return UnwrapConverted(func.Arguments[0]);
 			}
 

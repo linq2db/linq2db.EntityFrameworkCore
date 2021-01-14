@@ -78,9 +78,6 @@ namespace LinqToDB.EntityFrameworkCore
 
 			LinqExtensions.ExtensionsAdapter = new LinqToDBExtensionsAdapter();
 
-			// Set linq2db to allow multiple queries by default
-			Common.Configuration.Linq.AllowMultipleQuery = true;
-
 			return true;
 		}
 

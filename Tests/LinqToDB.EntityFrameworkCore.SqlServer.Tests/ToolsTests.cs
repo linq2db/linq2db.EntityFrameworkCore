@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
@@ -72,6 +73,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			var ctx = new NorthwindContext(_options);
 			ctx.IsSoftDeleteFilterEnabled = enableFilter;
+			//ctx.Database.EnsureDeleted();
 			if (ctx.Database.EnsureCreated())
 			{
 
@@ -736,6 +738,23 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 				var efResult = await query.AsNoTracking().ToArrayAsyncEF();
 				var linq2dbResult = await query.AsNoTracking().ToArrayAsyncLinqToDB();
+			}
+		}
+
+		[Test]
+		public async Task TestDeleteFrom()
+		{
+			using (var ctx = CreateContext(false))
+			{
+				var query = ctx.Customers.Where(x => x.IsDeleted).Take(20);
+
+				var affected = await query
+					.Where(x => query
+						.Select(y => y.CustomerId)
+						.Contains(x.CustomerId) && false
+					)
+					.ToLinqToDB()
+					.DeleteAsync();
 			}
 		}
 

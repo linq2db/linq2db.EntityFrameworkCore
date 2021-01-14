@@ -68,7 +68,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 		public void ConfigureEntityFilter<TEntity>(ModelBuilder builder)
 		where TEntity: class, ISoftDelete
 		{
-			builder.Entity<TEntity>().HasQueryFilter(e => !IsSoftDeleteFilterEnabled || !e.IsDeleted);
+			NorthwindContext? obj = null;
+
+			builder.Entity<TEntity>().HasQueryFilter(e => !obj!.IsSoftDeleteFilterEnabled || !e.IsDeleted);
 		}
 
 		public bool IsFilterProducts { get; set; } 

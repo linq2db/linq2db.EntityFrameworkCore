@@ -1,5 +1,6 @@
 ﻿using LinqToDB.EntityFrameworkCore.BaseTests.Logging;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests
 {
@@ -12,7 +13,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 					.AddFilter("System", LogLevel.Warning)
 					.AddFilter("LinqToDB.EntityFrameworkCore.Test", LogLevel.Information)
 
-					.AddTestLogger();
+					.AddTestLogger(o => o.FormatterName = ConsoleFormatterNames.Simple);
 			});		
 
 	}
