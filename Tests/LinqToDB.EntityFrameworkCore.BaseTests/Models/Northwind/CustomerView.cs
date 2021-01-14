@@ -7,11 +7,11 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
     public class CustomerView : BaseEntity
     {
-        public string CompanyName { get; set; }
-        public string ContactName { get; set; }
-        public string ContactTitle { get; set; }
-        public string Address { get; set; }
-        public string City { get; set; }
+        public string? CompanyName { get; set; }
+        public string? ContactName { get; set; }
+        public string? ContactTitle { get; set; }
+        public string? Address { get; set; }
+        public string? City { get; set; }
 
         [NotMapped]
         public bool IsLondon => City == "London";
@@ -19,7 +19,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
         protected bool Equals(CustomerView other)
             => string.Equals(CompanyName, other.CompanyName);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {

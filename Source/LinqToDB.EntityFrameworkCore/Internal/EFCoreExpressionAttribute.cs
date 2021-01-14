@@ -7,14 +7,25 @@ using LinqToDB.SqlQuery;
 
 namespace LinqToDB.EntityFrameworkCore.Internal
 {
+	/// <summary>
+	/// Maps linq2db exression.
+	/// </summary>
 	public class EFCoreExpressionAttribute : Sql.ExpressionAttribute
 	{
+		/// <summary>
+		/// Creates instance of expression mapper.
+		/// </summary>
+		/// <param name="expression">Mapped expression.</param>
 		public EFCoreExpressionAttribute(string expression) : base(expression)
 		{
 		}
 
-		public override ISqlExpression GetExpression(IDataContext dataContext, SelectQuery query,
-				Expression expression, Func<Expression, ColumnDescriptor, ISqlExpression> converter)
+		/// <inheritdoc cref="Sql.ExpressionAttribute.GetExpression(IDataContext, SelectQuery, System.Linq.Expressions.Expression, Func{Expression, ColumnDescriptor?, ISqlExpression})" />
+		public override ISqlExpression GetExpression(
+			IDataContext dataContext,
+			SelectQuery query,
+			Expression expression,
+			Func<Expression, ColumnDescriptor?, ISqlExpression> converter)
 		{
 			var knownExpressions = new List<Expression>();
 			if (expression.NodeType == ExpressionType.Call)
@@ -30,9 +41,9 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 				knownExpressions.Add(me.Expression);
 			}
 
-			var pams = new List<ISqlExpression>(knownExpressions.Select(_ => (ISqlExpression) null));
+			var pams = new List<ISqlExpression?>(knownExpressions.Select(_ => (ISqlExpression?) null));
 
-			_ = Sql.ExtensionAttribute.ResolveExpressionValues(Expression,
+			_ = Sql.ExtensionAttribute.ResolveExpressionValues(Expression!,
 				(v, d) =>
 				{
 					var idx = int.Parse(v);
@@ -44,7 +55,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 				});
 
 			var parameters = pams.Select(p => p ?? new SqlExpression("!!!")).ToArray();
-			return new SqlExpression(expression.Type, Expression, Precedence, parameters);
+			return new SqlExpression(expression.Type, Expression!, Precedence, parameters);
 		}
 	}
 }

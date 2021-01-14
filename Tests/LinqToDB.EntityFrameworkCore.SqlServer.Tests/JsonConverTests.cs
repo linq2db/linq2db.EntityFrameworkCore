@@ -16,15 +16,15 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 		public class LocalizedString
 		{
-			public string English { get; set; }
-			public string German { get; set; }
-			public string Slovak { get; set; }
+			public string English { get; set; } = null!;
+			public string German { get; set; } = null!;
+			public string Slovak { get; set; } = null!;
 		}
 
 		public class EventScheduleItemBase
 		{
 			public int Id { get; set; }
-			public virtual LocalizedString NameLocalized { get; set; }
+			public virtual LocalizedString NameLocalized { get; set; } = null!;
 		}
 		
 		public enum CrashEnum : byte
@@ -51,7 +51,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 
 
-			public virtual DbSet<EventScheduleItem> EventScheduleItems { get; set; }
+			public virtual DbSet<EventScheduleItem> EventScheduleItems { get; set; } = null!;
 
 
 			protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

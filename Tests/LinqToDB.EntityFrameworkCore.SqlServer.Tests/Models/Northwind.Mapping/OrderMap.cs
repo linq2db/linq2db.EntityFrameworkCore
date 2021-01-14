@@ -14,22 +14,22 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 				builder.HasKey(e => e.OrderId);
 
 				builder.HasIndex(e => e.CustomerId)
-					.HasName("CustomersOrders");
+					.HasDatabaseName("CustomersOrders");
 
 				builder.HasIndex(e => e.EmployeeId)
-					.HasName("EmployeesOrders");
+					.HasDatabaseName("EmployeesOrders");
 
 				builder.HasIndex(e => e.OrderDate)
-					.HasName("OrderDate");
+					.HasDatabaseName("OrderDate");
 
 				builder.HasIndex(e => e.ShipPostalCode)
-					.HasName("ShipPostalCode");
+					.HasDatabaseName("ShipPostalCode");
 
 				builder.HasIndex(e => e.ShipVia)
-					.HasName("ShippersOrders");
+					.HasDatabaseName("ShippersOrders");
 
 				builder.HasIndex(e => e.ShippedDate)
-					.HasName("ShippedDate");
+					.HasDatabaseName("ShippedDate");
 
 				builder.Property(e => e.OrderId).HasColumnName("OrderID")
 					.ValueGeneratedNever();
@@ -63,17 +63,17 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 				builder.Property(e => e.ShippedDate).HasColumnType("datetime");
 
 				builder.HasOne(d => d.Customer)
-					.WithMany(p => p.Orders)
+					.WithMany(p => p!.Orders)
 					.HasForeignKey(d => d.CustomerId)
 					.HasConstraintName("FK_Orders_Customers");
 
 				builder.HasOne(d => d.Employee)
-					.WithMany(p => p.Orders)
+					.WithMany(p => p!.Orders)
 					.HasForeignKey(d => d.EmployeeId)
 					.HasConstraintName("FK_Orders_Employees");
 
 				builder.HasOne(d => d.ShipViaNavigation)
-					.WithMany(p => p.Orders)
+					.WithMany(p => p!.Orders)
 					.HasForeignKey(d => d.ShipVia)
 					.HasConstraintName("FK_Orders_Shippers");
 			}

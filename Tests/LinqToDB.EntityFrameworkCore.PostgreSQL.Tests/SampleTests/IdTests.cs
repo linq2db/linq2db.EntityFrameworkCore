@@ -165,11 +165,11 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 			}
 
 
-			public DbSet<Entity> Entitites { get; set; } 
-			public DbSet<Detail> Details { get; set; } 
-			public DbSet<SubDetail> SubDetails { get; set; } 
-			public DbSet<Item> Items { get; set; }
-			public DbSet<Child> Children { get; set; }
+			public DbSet<Entity> Entitites { get; set; } = null!;
+			public DbSet<Detail> Details { get; set; } = null!;
+			public DbSet<SubDetail> SubDetails { get; set; } = null!;
+			public DbSet<Item> Items { get; set; } = null!;
+			public DbSet<Child> Children { get; set; } = null!;
 		}
 
 		public void Dispose() => _efContext.Dispose();
