@@ -12,11 +12,13 @@
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\linq2db.EntityFrameworkCore.xml</DocumentationFile>
 
 		<NoWarn>EF1001</NoWarn>
+
+		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="linq2db" Version="3.1.6" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.10" />
+		<PackageReference Include="linq2db" Version="3.2.3" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.11" />
 	</ItemGroup>
 
 </Project>

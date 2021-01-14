@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using LinqToDB.Expressions;
 using LinqToDB.Reflection;
 using Microsoft.EntityFrameworkCore;
@@ -60,19 +61,12 @@ namespace LinqToDB.EntityFrameworkCore
 						var contextProp  = Expression.Property(Expression.Convert(dcParam, typeof(LinqToDBForEFToolsDataConnection)), "Context");
 						var filterBody   = filter.Body.Transform(e =>
 						{
-							switch (e)
+							if (typeof(DbContext).IsSameOrParentOf(e.Type))
 							{
-								case ConstantExpression cnt:
-								{
-									if (typeof(DbContext).IsSameOrParentOf(cnt.Type))
-									{
-										Expression newExpr = contextProp;
-										if (newExpr.Type != cnt.Type)
-											newExpr = Expression.Convert(newExpr, cnt.Type);
-										return newExpr;
-									}
-									break;
-								}
+								Expression newExpr = contextProp;
+								if (newExpr.Type != e.Type)
+									newExpr = Expression.Convert(newExpr, e.Type);
+								return newExpr;
 							}
 
 							return e;
@@ -314,6 +308,24 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				expressionPrinter.Print(Expression);
 			}
+
+			protected bool Equals(SqlTransparentExpression other)
+			{
+				return ReferenceEquals(this, other);
+			}
+
+			public override bool Equals(object obj)
+			{
+				if (ReferenceEquals(null, obj)) return false;
+				if (ReferenceEquals(this, obj)) return true;
+				if (obj.GetType() != this.GetType()) return false;
+				return Equals((SqlTransparentExpression) obj);
+			}
+
+			public override int GetHashCode()
+			{
+				return RuntimeHelpers.GetHashCode(this);
+			}
 		}
 
 		private Sql.ExpressionAttribute? GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
@@ -390,7 +402,32 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			string PrepareExpressionText(Expression? expr)
 			{
-				var idx = Array.IndexOf(parameters, expr);
+				var idx = -1;
+
+				for (var index = 0; index < parameters.Length; index++)
+				{
+					var param = parameters[index];
+					var found = ReferenceEquals(expr, param);
+					if (!found)
+					{
+						if (param is SqlTransparentExpression transparent)
+						{
+							if (transparent.Expression is ConstantExpression constantExpr &&
+							    expr is SqlConstantExpression sqlConstantExpr)
+							{
+								//found = sqlConstantExpr.Value.Equals(constantExpr.Value);
+								found = true;
+							}
+						}
+					}
+
+					if (found)
+					{
+						idx = index;
+						break;
+					}
+				}
+
 				if (idx >= 0)
 					return $"{{{idx}}}";
 
@@ -455,7 +492,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (expr is SqlFunctionExpression func)
 			{
 				if (string.Equals(func.Name, "COALESCE", StringComparison.InvariantCultureIgnoreCase) &&
-				    func.Arguments.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Default)
+				    func.Arguments.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Extension)
 					return UnwrapConverted(func.Arguments[0]);
 			}
 
