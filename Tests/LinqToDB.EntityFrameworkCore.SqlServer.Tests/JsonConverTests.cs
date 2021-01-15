@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
-using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
@@ -25,6 +26,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			public int Id { get; set; }
 			public virtual LocalizedString NameLocalized { get; set; } = null!;
+			public virtual string JsonColumn { get; set; } = null!;
 		}
 		
 		public enum CrashEnum : byte
@@ -71,6 +73,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					entity.Property(e => e.CrashEnum).HasColumnType("tinyint");
 					entity.Property(e => e.GuidColumn).HasColumnType("uniqueidentifier");
 				});
+
+				modelBuilder.HasDbFunction(typeof(JsonConverTests).GetMethod(nameof(JsonConverTests.JsonValue)))
+					.HasTranslation(e => new SqlFunctionExpression(
+						"JSON_VALUE", e, true, e.Select(_ => false), typeof(string), null));
 			}
 		}
 
@@ -83,6 +89,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
+		}
+
+		public static string JsonValue(string column, [NotParameterized] string path)
+		{
+			throw new NotSupportedException();
 		}
 
 		[Test]
@@ -113,15 +124,20 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var queryable = ctx.EventScheduleItems
 					.Where(p => p.Id < 10).ToLinqToDB();
 
-				var item = queryable
+				var path = "some";
+
+				var items = queryable
 					.Select(p => new
 					{
 						p.Id,
 						p.NameLocalized,
 						p.CrashEnum,
-						p.GuidColumn
-					}).FirstOrDefault();
-				
+						p.GuidColumn,
+						JsonValue = JsonValue(p.JsonColumn, path)
+					});
+
+				var item = items.FirstOrDefault();
+
 				Assert.That(item.NameLocalized.English, Is.EqualTo("English"));
 				Assert.That(item.NameLocalized.German,  Is.EqualTo("German"));
 				Assert.That(item.NameLocalized.Slovak,  Is.EqualTo("Slovak"));
