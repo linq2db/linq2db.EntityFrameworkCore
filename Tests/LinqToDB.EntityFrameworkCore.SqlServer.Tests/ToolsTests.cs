@@ -735,5 +735,83 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
+		[Test]
+		public async Task TestDeleteFrom()
+		{
+			using (var ctx = CreateContext(false))
+			{
+				var query = ctx.Customers.Where(x => x.IsDeleted).Take(20);
+
+				var affected = await query
+					.Where(x => query
+						.Select(y => y.CustomerId)
+						.Contains(x.CustomerId) && false
+					)
+					.ToLinqToDB()
+					.DeleteAsync();
+			}
+		}
+
+		[Test]
+		public void TestNullability([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				int? test = 1;
+				var query = ctx.Employees.Where(e => e.EmployeeId == test);
+
+				var expected = query.ToArray();
+				var actual = query.ToLinqToDB().ToArray();
+
+				AreEqualWithComparer(expected, actual);
+			}
+		}
+
+
+		[Test]
+		public void TestCommandTimeout()
+		{
+			int timeoutErrorCode = -2;     // Timeout Expired
+			int commandTimeout = 1;
+			int commandExecutionTime = 5;
+			var createProcessLongFunctionSql =   // function that takes @secondsNumber seconds
+				@"CREATE OR ALTER FUNCTION dbo.[ProcessLong]
+					(
+						@secondsNumber int
+					)
+					RETURNS int
+					AS
+					BEGIN
+						declare @startTime datetime = getutcdate()
+						while datediff(second, @startTime, getutcdate()) < @secondsNumber
+						begin
+							set @startTime = @startTime
+						end
+						return 1
+					END";
+			var dropProcessLongFunctionSql = @"DROP FUNCTION IF EXISTS [dbo].[ProcessLong]";
+
+			using (var ctx = CreateContext(false))
+			{
+				try
+				{
+					ctx.Database.ExecuteSqlRaw(createProcessLongFunctionSql);
+					ctx.Database.SetCommandTimeout(commandTimeout);
+
+					var query = from p in ctx.Products
+								select NorthwindContext.ProcessLong(commandExecutionTime);
+
+					var exception = Assert.Throws<Microsoft.Data.SqlClient.SqlException>(() =>
+					{
+						var result = query.ToLinqToDB().First();
+					});
+					Assert.AreEqual(exception.Number, timeoutErrorCode);
+				}
+				finally
+				{
+					ctx.Database.ExecuteSqlRaw(dropProcessLongFunctionSql);
+				}
+			}
+		}
 	}
 }
