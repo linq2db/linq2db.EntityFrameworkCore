@@ -58,6 +58,7 @@ namespace LinqToDB.EntityFrameworkCore
 			Context          = context;
 			_model           = model;
 			_transformFunc   = transformFunc;
+			CopyCommandTimeout();
 			if (LinqToDBForEFTools.EnableChangeTracker)
 				OnEntityCreated += OnEntityCreatedHandler;
 		}
@@ -81,6 +82,7 @@ namespace LinqToDB.EntityFrameworkCore
 			Context          = context;
 			_model           = model;
 			_transformFunc   = transformFunc;
+			CopyCommandTimeout();
 			if (LinqToDBForEFTools.EnableChangeTracker)
 				OnEntityCreated += OnEntityCreatedHandler;
 		}
@@ -103,6 +105,7 @@ namespace LinqToDB.EntityFrameworkCore
 			Context          = context;
 			_model           = model;
 			_transformFunc   = transformFunc;
+			CopyCommandTimeout();
 			if (LinqToDBForEFTools.EnableChangeTracker)
 				OnEntityCreated += OnEntityCreatedHandler;
 		}
@@ -169,5 +172,10 @@ namespace LinqToDB.EntityFrameworkCore
 			args.Entity = entry.Entity;
 		}
 
+		private void CopyCommandTimeout()
+		{
+			this.CommandTimeout = 
+				Context?.Database.GetCommandTimeout() ?? this.CommandTimeout;
+		}
 	}
 }
