@@ -83,7 +83,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Records to insert.</param>
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
-		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
+		public static async Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
 			this DbContext context,
 			BulkCopyOptions options,
 			IEnumerable<T> source,
@@ -95,7 +95,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			using (var dc = context.CreateLinqToDbConnection())
 			{
-				return dc.BulkCopyAsync(options, source, cancellationToken);
+				return await dc.BulkCopyAsync(options, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
 		}
 
@@ -109,7 +109,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Records to insert.</param>
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
-		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
+		public static async Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
 			this DbContext context,
 			int maxBatchSize,
 			IEnumerable<T> source,
@@ -124,7 +124,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			using (var dc = context.CreateLinqToDbConnection())
 			{
-				return dc.BulkCopyAsync(maxBatchSize, source, cancellationToken);
+				return await dc.BulkCopyAsync(maxBatchSize, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
 		}
 
@@ -134,7 +134,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Records to insert.</param>
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
-		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
+		public static async Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
 			this DbContext context,
 			IEnumerable<T> source,
 			CancellationToken cancellationToken = default)
@@ -145,7 +145,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			using (var dc = context.CreateLinqToDbConnection())
 			{
-				return dc.BulkCopyAsync(source, cancellationToken);
+				return await dc.BulkCopyAsync(source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
 		}
 
@@ -156,7 +156,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Records to insert.</param>
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
-		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
+		public static async Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
 			this DbContext context,
 			BulkCopyOptions options,
 			IAsyncEnumerable<T> source,
@@ -168,7 +168,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			using (var dc = context.CreateLinqToDbConnection())
 			{
-				return dc.BulkCopyAsync(options, source, cancellationToken);
+				return await dc.BulkCopyAsync(options, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
 		}
 
@@ -182,7 +182,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Records to insert.</param>
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
-		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
+		public static async Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
 			this DbContext context,
 			int maxBatchSize,
 			IAsyncEnumerable<T> source,
@@ -194,7 +194,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			using (var dc = context.CreateLinqToDbConnection())
 			{
-				return dc.BulkCopyAsync(maxBatchSize, source, cancellationToken);
+				return await dc.BulkCopyAsync(maxBatchSize, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
 		}
 
@@ -204,7 +204,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="source">Records to insert.</param>
 		/// <param name="cancellationToken">Asynchronous operation cancellation token.</param>
 		/// <returns>Task with bulk insert operation status.</returns>
-		public static Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
+		public static async Task<BulkCopyRowsCopied> BulkCopyAsync<T>(
 			this DbContext context,
 			IAsyncEnumerable<T> source,
 			CancellationToken cancellationToken = default)
@@ -215,7 +215,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			using (var dc = context.CreateLinqToDbConnection())
 			{
-				return dc.BulkCopyAsync(source, cancellationToken);
+				return await dc.BulkCopyAsync(source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
 		}
 

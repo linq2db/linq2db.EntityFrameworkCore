@@ -15,7 +15,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		private readonly IOptionsMonitor<ConsoleLoggerOptions> _options;
 		private readonly ConcurrentDictionary<string, TestLogger> _loggers;
 
-		private IDisposable _optionsReloadToken;
+		private readonly IDisposable _optionsReloadToken;
 		private IExternalScopeProvider _scopeProvider = NullExternalScopeProvider.Instance;
 
 		/// <summary>
@@ -40,9 +40,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		}
 
 		/// <inheritdoc />
-		public ILogger CreateLogger(string name)
+		public ILogger CreateLogger(string categoryName)
 		{
-			return _loggers.GetOrAdd(name, loggerName => new TestLogger(loggerName)
+			return _loggers.GetOrAdd(categoryName, loggerName => new TestLogger(loggerName)
 			{
 				Options = _options.CurrentValue,
 				ScopeProvider = _scopeProvider

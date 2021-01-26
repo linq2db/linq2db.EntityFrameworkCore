@@ -25,23 +25,23 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 			
 		}
 
-		protected override void OnModelCreating(ModelBuilder builder)
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			builder.ApplyConfiguration(new CategoriesMap());
-			builder.ApplyConfiguration(new CustomerCustomerDemoMap());
-			builder.ApplyConfiguration(new CustomerDemographicsMap());
-			builder.ApplyConfiguration(new CustomersMap());
-			builder.ApplyConfiguration(new EmployeesMap());
-			builder.ApplyConfiguration(new EmployeeTerritoriesMap());
-			builder.ApplyConfiguration(new OrderDetailsMap());
-			builder.ApplyConfiguration(new OrderMap());
-			builder.ApplyConfiguration(new ProductsMap());
-			builder.ApplyConfiguration(new RegionMap());
-			builder.ApplyConfiguration(new ShippersMap());
-			builder.ApplyConfiguration(new SuppliersMap());
-			builder.ApplyConfiguration(new TerritoriesMap());
+			modelBuilder.ApplyConfiguration(new CategoriesMap());
+			modelBuilder.ApplyConfiguration(new CustomerCustomerDemoMap());
+			modelBuilder.ApplyConfiguration(new CustomerDemographicsMap());
+			modelBuilder.ApplyConfiguration(new CustomersMap());
+			modelBuilder.ApplyConfiguration(new EmployeesMap());
+			modelBuilder.ApplyConfiguration(new EmployeeTerritoriesMap());
+			modelBuilder.ApplyConfiguration(new OrderDetailsMap());
+			modelBuilder.ApplyConfiguration(new OrderMap());
+			modelBuilder.ApplyConfiguration(new ProductsMap());
+			modelBuilder.ApplyConfiguration(new RegionMap());
+			modelBuilder.ApplyConfiguration(new ShippersMap());
+			modelBuilder.ApplyConfiguration(new SuppliersMap());
+			modelBuilder.ApplyConfiguration(new TerritoriesMap());
 
-			builder.Entity<Product>()
+			modelBuilder.Entity<Product>()
 				.HasQueryFilter(e => !IsFilterProducts || e.ProductId > 2);
 		}
 

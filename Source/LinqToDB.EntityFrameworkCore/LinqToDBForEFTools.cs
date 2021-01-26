@@ -27,7 +27,6 @@ namespace LinqToDB.EntityFrameworkCore
 	using Expressions;
 
 	using Internal;
-	using System.Diagnostics.CodeAnalysis;
 
 	/// <summary>
 	/// EF.Core <see cref="DbContext"/> extensions to call LINQ To DB functionality.
@@ -35,7 +34,7 @@ namespace LinqToDB.EntityFrameworkCore
 	[PublicAPI]
 	public static partial class LinqToDBForEFTools
 	{
-		static Lazy<bool> _intialized = new Lazy<bool>(InitializeInternal);
+		static readonly Lazy<bool> _intialized = new Lazy<bool>(InitializeInternal);
 
 		/// <summary>
 		/// Initializes integration of LINQ To DB with EF.Core.
@@ -306,7 +305,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return dc;
 		}
 
-		private static TraceSwitch _defaultTraceSwitch =
+		private static readonly TraceSwitch _defaultTraceSwitch =
 			new TraceSwitch("DataConnection", "DataConnection trace switch", TraceLevel.Info.ToString());
 
 		static void EnableTracing(DataConnection dc, ILogger logger)
@@ -428,7 +427,7 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 
-		static ConcurrentDictionary<Type, Func<DbConnection, string>> _connectionStringExtractors = new ConcurrentDictionary<Type, Func<DbConnection, string>>();
+		static readonly ConcurrentDictionary<Type, Func<DbConnection, string>> _connectionStringExtractors = new ConcurrentDictionary<Type, Func<DbConnection, string>>();
 
 		/// <summary>
 		/// Extracts database connection information from EF.Core provider data.

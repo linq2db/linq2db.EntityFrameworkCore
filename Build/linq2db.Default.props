@@ -1,6 +1,6 @@
 ﻿<Project>
 	<PropertyGroup>
-		<Version>5.0.2</Version>
+		<Version>5.1.2</Version>
 
 		<Authors>Svyatoslav Danyliv, Igor Tkachev, Dmitry Lukashenko, Ilya Chudin</Authors>
 		<Product>Linq to DB</Product>
@@ -29,4 +29,15 @@
 		<GenerateAssemblyFileVersionAttribute>true</GenerateAssemblyFileVersionAttribute>
 		<GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
 	</PropertyGroup>
+
+ 	<PropertyGroup>
+        <AnalysisLevel>preview</AnalysisLevel>
+        
+        <EnableNETAnalyzers>false</EnableNETAnalyzers>
+        <RunAnalyzers>false</RunAnalyzers>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Azure' OR '$(Configuration)' == 'Release' OR '$(Configuration)' == 'Debug'">
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <RunAnalyzers>true</RunAnalyzers>
+    </PropertyGroup>	
 </Project>
