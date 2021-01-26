@@ -2,8 +2,6 @@
 using System.Linq.Expressions;
 
 using Microsoft.EntityFrameworkCore.Metadata;
-
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 
 namespace LinqToDB.EntityFrameworkCore

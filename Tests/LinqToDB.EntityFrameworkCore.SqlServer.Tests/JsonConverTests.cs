@@ -3,6 +3,8 @@ using System.Linq;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
@@ -25,6 +27,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			public int Id { get; set; }
 			public virtual LocalizedString NameLocalized { get; set; } = null!;
+			public virtual string JsonColumn { get; set; } = null!;
 		}
 		
 		public enum CrashEnum : byte

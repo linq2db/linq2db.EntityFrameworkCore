@@ -13,7 +13,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		private static readonly string _newLineWithMessagePadding;
 
 		// ConsoleColor does not have a value to specify the 'Default' color
-		private readonly ConsoleColor? DefaultConsoleColor = null;
+		private readonly ConsoleColor? DefaultConsoleColor;
 
 		private readonly string _name;
 
@@ -29,12 +29,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		internal TestLogger(string name)
 		{
-			if (name == null)
-			{
-				throw new ArgumentNullException(nameof(name));
-			}
-
-			_name = name;
+			_name = name ?? throw new ArgumentNullException(nameof(name));
 		}
 
 		internal IExternalScopeProvider? ScopeProvider { get; set; }
@@ -126,11 +121,11 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			var logLevelColors = GetLogLevelConsoleColors(logLevel);
 			var logLevelString = GetLogLevelString(logLevel);
 			// category and event id
-			logBuilder.Append(_loglevelPadding);
-			logBuilder.Append(logName);
-			logBuilder.Append("[");
-			logBuilder.Append(eventId);
-			logBuilder.AppendLine("]");
+			logBuilder.Append(_loglevelPadding)
+				.Append(logName)
+				.Append('[')
+				.Append(eventId)
+				.AppendLine("]");
 
 			// scope information
 			GetScopeInformation(logBuilder, multiLine: true);
@@ -154,7 +149,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 				logBuilder.AppendLine(exception.ToString());
 			}
 
+#pragma warning disable CS0618 // Type or member is obsolete
 			var timestampFormat = Options!.TimestampFormat;
+#pragma warning restore CS0618 // Type or member is obsolete
 
 			return new LogMessageEntry(
 				message: logBuilder.ToString(),
@@ -180,17 +177,19 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			logBuilder.Append(logLevelString);
 
 			// timestamp
+#pragma warning disable CS0618 // Type or member is obsolete
 			var timestampFormat = Options!.TimestampFormat;
+#pragma warning restore CS0618 // Type or member is obsolete
 			if (timestampFormat != null)
 			{
 				logBuilder.Append(DateTime.Now.ToString(timestampFormat));
 			}
 
 			// category and event id
-			logBuilder.Append(logName);
-			logBuilder.Append("[");
-			logBuilder.Append(eventId);
-			logBuilder.Append("]");
+			logBuilder.Append(logName)
+				.Append('[')
+				.Append(eventId)
+				.Append(']');
 
 			// scope information
 			GetScopeInformation(logBuilder, multiLine: false);
@@ -278,7 +277,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		private ConsoleColors GetLogLevelConsoleColors(LogLevel logLevel)
 		{
+#pragma warning disable CS0618 // Type or member is obsolete
 			if (Options!.DisableColors)
+#pragma warning restore CS0618 // Type or member is obsolete
 			{
 				return new ConsoleColors(null, null);
 			}
@@ -307,7 +308,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		private void GetScopeInformation(StringBuilder stringBuilder, bool multiLine)
 		{
 			var scopeProvider = ScopeProvider;
+#pragma warning disable CS0618 // Type or member is obsolete
 			if (Options!.IncludeScopes && scopeProvider != null)
+#pragma warning restore CS0618 // Type or member is obsolete
 			{
 				var initialLength = stringBuilder.Length;
 

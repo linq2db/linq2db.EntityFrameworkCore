@@ -132,7 +132,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 			foreach (var employee in CreateEmployees())
 			{
 				context.Set<Employee>().Add(employee);
+#pragma warning disable EF1001 // Internal EF Core API usage.
 				context.Entry(employee).GetInfrastructure()[titleProperty] = employee.Title;
+#pragma warning restore EF1001 // Internal EF Core API usage.
 			}
 
 			context.Set<Order>().AddRange(CreateOrders());
@@ -176,14 +178,14 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 
 			private class ShadowStateAccessRewriter : ExpressionVisitor
 			{
-				protected override Expression VisitMethodCall(MethodCallExpression expression)
-					=> expression.Method.IsEFPropertyMethod()
+				protected override Expression VisitMethodCall(MethodCallExpression node)
+					=> node.Method.IsEFPropertyMethod()
 						? Expression.Property(
 #pragma warning disable CS0618 // Type or member is obsolete
-							expression.Arguments[0].RemoveConvert(),
+							node.Arguments[0].RemoveConvert(),
 #pragma warning restore CS0618 // Type or member is obsolete
-							Expression.Lambda<Func<string>>(expression.Arguments[1]).Compile().Invoke())
-						: base.VisitMethodCall(expression);
+							Expression.Lambda<Func<string>>(node.Arguments[1]).Compile().Invoke())
+						: base.VisitMethodCall(node);
 			}
 
 			public IQueryable CreateQuery(Expression expression)

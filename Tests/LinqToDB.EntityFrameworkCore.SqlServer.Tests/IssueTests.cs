@@ -30,6 +30,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 			if (!_created)
 			{
+				//ctx.Database.EnsureDeleted();
 				ctx.Database.EnsureCreated();
 				_created = true;
 			}
@@ -44,7 +45,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 			var q = ctx.Issue73Entities
 				.Where(x => x.Name == "Name1_3")
-				.Select(x => x.Parent.Name + ">" + x.Name);
+				.Select(x => x.Parent!.Name + ">" + x.Name);
 
 			var efItems = q.ToList();
 			var linq2dbItems = q.ToLinqToDB().ToList();
