@@ -6,9 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -19,8 +16,6 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
-using LinqToDB.Common;
-using LinqToDB.Tools;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace LinqToDB.EntityFrameworkCore
@@ -354,7 +349,7 @@ namespace LinqToDB.EntityFrameworkCore
 					providerName = ProviderName.SqlServer2012;
 					break;
 				default:
-					throw new ArgumentOutOfRangeException();
+					throw new ArgumentOutOfRangeException($"Version '{version}' is not supported.");
 			}
 
 			return new SqlServerDataProvider(providerName, version);
@@ -1042,7 +1037,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (queryContextFactoryField == null)
 				throw new LinqToDBForEFToolsException($"Can not find private field '{compiler.GetType()}._queryContextFactory' in current EFCore Version.");
 
-			if (!(queryContextFactoryField.GetValue(compiler) is RelationalQueryContextFactory queryContextFactory))
+			if (queryContextFactoryField.GetValue(compiler) is not RelationalQueryContextFactory queryContextFactory)
 				throw new LinqToDBForEFToolsException("LinqToDB Tools for EFCore support only Relational Databases.");
 
 			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetField("_dependencies", BindingFlags.NonPublic | BindingFlags.Instance);

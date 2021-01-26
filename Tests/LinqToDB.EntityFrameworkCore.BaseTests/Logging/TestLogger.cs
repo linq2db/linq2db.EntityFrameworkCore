@@ -13,7 +13,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		private static readonly string _newLineWithMessagePadding;
 
 		// ConsoleColor does not have a value to specify the 'Default' color
-		private readonly ConsoleColor? DefaultConsoleColor = null;
+		private readonly ConsoleColor? DefaultConsoleColor;
 
 		private readonly string _name;
 
@@ -29,12 +29,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		internal TestLogger(string name)
 		{
-			if (name == null)
-			{
-				throw new ArgumentNullException(nameof(name));
-			}
-
-			_name = name;
+			_name = name ?? throw new ArgumentNullException(nameof(name));
 		}
 
 		internal IExternalScopeProvider? ScopeProvider { get; set; }
@@ -64,7 +59,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		public virtual void WriteMessage(LogLevel logLevel, string logName, int eventId, string message, Exception exception)
 		{
 			var format = Options!.FormatterName;
-			Debug.Assert(format == ConsoleFormatterNames.Simple || format == ConsoleFormatterNames.Systemd);
+			Debug.Assert(format is ConsoleFormatterNames.Simple or ConsoleFormatterNames.Systemd);
 
 			var logBuilder = _logBuilder;
 			_logBuilder = null;
@@ -126,11 +121,11 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			var logLevelColors = GetLogLevelConsoleColors(logLevel);
 			var logLevelString = GetLogLevelString(logLevel);
 			// category and event id
-			logBuilder.Append(_loglevelPadding);
-			logBuilder.Append(logName);
-			logBuilder.Append("[");
-			logBuilder.Append(eventId);
-			logBuilder.AppendLine("]");
+			logBuilder.Append(_loglevelPadding)
+				.Append(logName)
+				.Append('[')
+				.Append(eventId)
+				.AppendLine("]");
 
 			// scope information
 			GetScopeInformation(logBuilder, multiLine: true);
@@ -191,10 +186,10 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			}
 
 			// category and event id
-			logBuilder.Append(logName);
-			logBuilder.Append("[");
-			logBuilder.Append(eventId);
-			logBuilder.Append("]");
+			logBuilder.Append(logName)
+				.Append('[')
+				.Append(eventId)
+				.Append(']');
 
 			// scope information
 			GetScopeInformation(logBuilder, multiLine: false);

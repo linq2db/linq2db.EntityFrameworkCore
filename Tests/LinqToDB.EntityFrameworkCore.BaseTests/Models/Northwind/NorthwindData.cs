@@ -13,7 +13,6 @@ using LinqToDB.Tools;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 {
@@ -191,12 +190,12 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 					return expr;
 				}
 
-				protected override Expression VisitMethodCall(MethodCallExpression expression)
-					=> expression.Method.IsEFPropertyMethod()
+				protected override Expression VisitMethodCall(MethodCallExpression node)
+					=> node.Method.IsEFPropertyMethod()
 						? Expression.Property(
-							RemoveConvert(expression.Arguments[0]),
-							Expression.Lambda<Func<string>>(expression.Arguments[1]).Compile().Invoke())
-						: base.VisitMethodCall(expression);
+							RemoveConvert(node.Arguments[0]),
+							Expression.Lambda<Func<string>>(node.Arguments[1]).Compile().Invoke())
+						: base.VisitMethodCall(node);
 			}
 
 			public IQueryable CreateQuery(Expression expression)
