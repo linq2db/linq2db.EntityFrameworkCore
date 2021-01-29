@@ -760,7 +760,6 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Transformed expression.</returns>
 		public virtual Expression TransformExpression(Expression expression, IDataContext dc, DbContext? ctx, IModel? model)
 		{
-			var ignoreQueryFilters = false;
 			var tracking           = true;
 			var ignoreTracking     = false;
 
@@ -809,8 +808,10 @@ namespace LinqToDB.EntityFrameworkCore
 
 								if (generic == IgnoreQueryFiltersMethodInfo)
 								{
-									ignoreQueryFilters = true;
-									isTunnel = true;
+									var newMethod = Expression.Call(
+										Methods.LinqToDB.IgnoreFilters.MakeGenericMethod(methodCall.Method.GetGenericArguments()),
+										methodCall.Arguments[0], Expression.NewArrayInit(typeof(Type)));
+									return new TransformInfo(newMethod, false, true);
 								}
 								else if (generic == AsNoTrackingMethodInfo)
 								{
@@ -967,13 +968,6 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 
 			var newExpression = expression.Transform(e => LocalTransform(e));
-
-			if (ignoreQueryFilters)
-			{
-				var elementType = newExpression.Type.GetGenericArguments()[0];
-				newExpression = Expression.Call(Methods.LinqToDB.IgnoreFilters.MakeGenericMethod(elementType),
-					newExpression, Expression.NewArrayInit(typeof(Type)));
-			}
 
 			if (!ignoreTracking && dc is LinqToDBForEFToolsDataConnection dataConnection)
 			{
