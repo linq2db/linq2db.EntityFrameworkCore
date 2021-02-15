@@ -149,6 +149,9 @@ namespace LinqToDB.EntityFrameworkCore
 								                  .FirstOrDefault(v => CompareProperty(v.p, memberInfo))?.index ?? 0;
 						}
 
+						var isIdentity = prop.GetAnnotations()
+							.Any(a => a.Name.EndsWith(":ValueGenerationStrategy") && a.Value?.ToString() == "IdentityColumn");
+
 						return new T[]{(T)(Attribute) new ColumnAttribute
 						{
 							Name            = prop.GetColumnName(),
@@ -157,7 +160,7 @@ namespace LinqToDB.EntityFrameworkCore
 							DbType          = prop.GetColumnType(),
 							IsPrimaryKey    = isPrimaryKey,
 							PrimaryKeyOrder = primaryKeyOrder,
-							IsIdentity      = prop.ValueGenerated == ValueGenerated.OnAdd,
+							IsIdentity      = isIdentity,
 						}};
 					}
 				}

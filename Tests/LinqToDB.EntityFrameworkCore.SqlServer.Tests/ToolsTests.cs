@@ -768,7 +768,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
-
 		[Test]
 		public void TestUpdate([Values(true, false)] bool enableFilter)
 		{
@@ -794,6 +793,18 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					Address = x.Address
 
 				});
+			}
+		}
+
+		[Test]
+		public void TestCreateTempTable([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				using var db = ctx.CreateLinqToDbContext();
+				using var temp = db.CreateTempTable(ctx.Employees, "#TestEmployees");
+
+				Assert.AreEqual(ctx.Employees.Count(), temp.Count());
 			}
 		}
 
