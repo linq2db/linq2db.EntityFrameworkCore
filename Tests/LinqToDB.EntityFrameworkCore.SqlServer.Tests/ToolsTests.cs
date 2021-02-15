@@ -775,6 +775,19 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 
 		[Test]
+		public void TestCreateTempTable([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				using var db = ctx.CreateLinqToDbContext();
+				using var temp = db.CreateTempTable(ctx.Employees, "#TestEmployees");
+
+				Assert.AreEqual(ctx.Employees.Count(), temp.Count());
+			}
+		}
+
+
+		[Test]
 		public void TestCommandTimeout()
 		{
 			int timeoutErrorCode = -2;     // Timeout Expired

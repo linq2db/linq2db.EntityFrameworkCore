@@ -622,7 +622,8 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			var type = method.Method.DeclaringType;
 
-			return type == typeof(Queryable) || (enumerable && type == typeof(Enumerable)) || type == typeof(LinqExtensions) ||
+			return type == typeof(Queryable) || (enumerable && type == typeof(Enumerable)) || type == typeof(LinqExtensions) || 
+			       type == typeof(DataExtensions) || type == typeof(TableExtensions) ||
 				   type == typeof(EntityFrameworkQueryableExtensions);
 		}
 
@@ -771,7 +772,7 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					case ExpressionType.Constant:
 					{
-						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type))
+						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type))
 						{
 							var entityType = e.Type.GenericTypeArguments[0];
 							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(entityType), Expression.Constant(dc));
@@ -876,6 +877,16 @@ namespace LinqToDB.EntityFrameworkCore
 
 								if (isTunnel)
 									return new TransformInfo(methodCall.Arguments[0], false, true);
+							}
+
+							break;
+						}
+
+						if (typeof(ITable<>).IsSameOrParentOf(methodCall.Type))
+						{
+							if (generic.Name == "ToLinqToDBTable")
+							{
+								return new TransformInfo(methodCall.Arguments[0], false, true);
 							}
 
 							break;
