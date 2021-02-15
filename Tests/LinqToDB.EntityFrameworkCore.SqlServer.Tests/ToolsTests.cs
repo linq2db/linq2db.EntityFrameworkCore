@@ -773,6 +773,46 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
+		[Test]
+		public void TestUpdate([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				int? test = 1;
+				ctx.Employees.IgnoreQueryFilters().Where(e => e.EmployeeId == test).Update(x => new Employee
+				{
+					Address = x.Address
+
+				});
+			}
+		}
+
+		[Test]
+		public async Task TestUpdateAsync([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				int? test = 1;
+				await ctx.Employees.IgnoreQueryFilters().Where(e => e.EmployeeId == test).UpdateAsync(x => new Employee
+				{
+					Address = x.Address
+
+				});
+			}
+		}
+
+		[Test]
+		public void TestCreateTempTable([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				using var db = ctx.CreateLinqToDbContext();
+				using var temp = db.CreateTempTable(ctx.Employees, "#TestEmployees");
+
+				Assert.AreEqual(ctx.Employees.Count(), temp.Count());
+			}
+		}
+
 
 		[Test]
 		public void TestCommandTimeout()

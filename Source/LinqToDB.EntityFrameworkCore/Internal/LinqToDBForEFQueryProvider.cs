@@ -8,9 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-
-using JetBrains.Annotations;
 using LinqToDB.Expressions;
 
 namespace LinqToDB.EntityFrameworkCore.Internal
@@ -24,7 +21,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 	///		It may change or be removed without further notice.
 	/// </summary>
 	/// <typeparam name="T">Type of query element.</typeparam>
-	public class LinqToDBForEFQueryProvider<T> : IAsyncQueryProvider, IQueryProviderAsync, IQueryable<T>, System.Collections.Generic.IAsyncEnumerable<T>
+	public class LinqToDBForEFQueryProvider<T> : IAsyncQueryProvider, IQueryProviderAsync, IQueryable<T>, IAsyncEnumerable<T>
 	{
 		/// <summary>
 		/// Creates instance of adapter.
@@ -84,7 +81,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			return QueryProvider.Execute<TResult>(expression);
 		}
 
-		private static MethodInfo _executeAsyncMethodInfo =
+		private static readonly MethodInfo _executeAsyncMethodInfo =
 			MemberHelper.MethodOf((IQueryProviderAsync p) => p.ExecuteAsync<int>(null!, default)).GetGenericMethodDefinition();
 
 		/// <summary>

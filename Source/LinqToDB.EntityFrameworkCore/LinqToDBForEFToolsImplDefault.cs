@@ -622,7 +622,8 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			var type = method.Method.DeclaringType;
 
-			return type == typeof(Queryable) || (enumerable && type == typeof(Enumerable)) || type == typeof(LinqExtensions) ||
+			return type == typeof(Queryable) || (enumerable && type == typeof(Enumerable)) || type == typeof(LinqExtensions) || 
+			       type == typeof(DataExtensions) || type == typeof(TableExtensions) ||
 				   type == typeof(EntityFrameworkQueryableExtensions);
 		}
 
@@ -876,6 +877,16 @@ namespace LinqToDB.EntityFrameworkCore
 
 								if (isTunnel)
 									return new TransformInfo(methodCall.Arguments[0], false, true);
+							}
+
+							break;
+						}
+
+						if (typeof(ITable<>).IsSameOrParentOf(methodCall.Type))
+						{
+							if (generic.Name == "ToLinqToDBTable")
+							{
+								return new TransformInfo(methodCall.Arguments[0], false, true);
 							}
 
 							break;
