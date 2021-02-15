@@ -772,7 +772,7 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					case ExpressionType.Constant:
 					{
-						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type))
+						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type))
 						{
 							var entityType = e.Type.GenericTypeArguments[0];
 							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(entityType), Expression.Constant(dc));
