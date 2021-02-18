@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToDB.EntityFrameworkCor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToDB.EntityFrameworkCore.PomeloMySql.Tests", "Tests\LinqToDB.EntityFrameworkCore.PomeloMySql.Tests\LinqToDB.EntityFrameworkCore.PomeloMySql.Tests.csproj", "{0F013A9A-AC97-4A5E-A5D7-E1B64541CC46}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToDB.EntityFrameworkCore.SQLite.Tests", "Tests\LinqToDB.EntityFrameworkCore.SQLite.Tests\LinqToDB.EntityFrameworkCore.SQLite.Tests.csproj", "{615C5697-5FA7-490C-8812-3D61994A8AC1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{0F013A9A-AC97-4A5E-A5D7-E1B64541CC46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F013A9A-AC97-4A5E-A5D7-E1B64541CC46}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F013A9A-AC97-4A5E-A5D7-E1B64541CC46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{615C5697-5FA7-490C-8812-3D61994A8AC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{615C5697-5FA7-490C-8812-3D61994A8AC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{615C5697-5FA7-490C-8812-3D61994A8AC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{615C5697-5FA7-490C-8812-3D61994A8AC1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
