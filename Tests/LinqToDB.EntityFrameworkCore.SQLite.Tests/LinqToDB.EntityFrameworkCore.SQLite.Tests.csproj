@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="..\..\Build\linq2db.Tests.props" />
+
+	<ItemGroup>
+	  <Compile Remove="Models\UniversalEntities\**" />
+	  <EmbeddedResource Remove="Models\UniversalEntities\**" />
+	  <None Remove="Models\UniversalEntities\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.csproj" />
+		<ProjectReference Include="..\LinqToDB.EntityFrameworkCore.BaseTests\LinqToDB.EntityFrameworkCore.BaseTests.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Models\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.3" />
+	</ItemGroup>
+
+</Project>
