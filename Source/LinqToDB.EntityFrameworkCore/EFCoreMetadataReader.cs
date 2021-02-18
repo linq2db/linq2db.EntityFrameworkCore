@@ -152,6 +152,11 @@ namespace LinqToDB.EntityFrameworkCore
 						var isIdentity = prop.GetAnnotations()
 							.Any(a => a.Name.EndsWith(":ValueGenerationStrategy") && a.Value?.ToString() == "IdentityColumn");
 
+						if (!isIdentity && isPrimaryKey)
+						{
+							isIdentity = prop.ValueGenerated == ValueGenerated.OnAdd;
+						}
+
 						return new T[]{(T)(Attribute) new ColumnAttribute
 						{
 							Name            = prop.GetColumnName(),
