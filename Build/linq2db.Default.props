@@ -1,6 +1,6 @@
 ﻿<Project>
 	<PropertyGroup>
-		<Version>5.1.5</Version>
+		<Version>5.1.6</Version>
 
 		<Authors>Svyatoslav Danyliv, Igor Tkachev, Dmitry Lukashenko, Ilya Chudin</Authors>
 		<Product>Linq to DB</Product>
