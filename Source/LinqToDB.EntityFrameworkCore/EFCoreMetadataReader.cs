@@ -191,25 +191,28 @@ namespace LinqToDB.EntityFrameworkCore
 						var fk = navigation.ForeignKey;
 						if (!navigation.IsDependentToPrincipal())
 						{
-							var thisKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
+							// Could not track when EF decides to do INNER JOIN
+							var canBeNull = true;
+
+							var thisKey  = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
 							var otherKey = string.Join(",", fk.Properties.Select(p => p.Name));
 							associations.Add(new AssociationAttribute
 							{
-								ThisKey = thisKey,
-								OtherKey = otherKey,
-								CanBeNull = !fk.IsRequired,
+								ThisKey         = thisKey,
+								OtherKey        = otherKey,
+								CanBeNull       = canBeNull,
 								IsBackReference = false
 							});
 						}
 						else
 						{
-							var thisKey = string.Join(",", fk.Properties.Select(p => p.Name));
+							var thisKey  = string.Join(",", fk.Properties.Select(p => p.Name));
 							var otherKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
 							associations.Add(new AssociationAttribute
 							{
-								ThisKey = thisKey,
-								OtherKey = otherKey,
-								CanBeNull = !fk.IsRequired,
+								ThisKey         = thisKey,
+								OtherKey        = otherKey,
+								CanBeNull       = !fk.IsRequired,
 								IsBackReference = true
 							});
 						}
