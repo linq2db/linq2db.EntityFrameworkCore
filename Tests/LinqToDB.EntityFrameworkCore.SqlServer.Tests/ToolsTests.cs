@@ -815,6 +815,19 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 
 		[Test]
+		public void TestForeignKey([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				var resultEF = ctx.Employees.Include(e => e.ReportsToNavigation).ToArray();
+				var result = ctx.Employees.Include(e => e.ReportsToNavigation).ToLinqToDB().ToArray();
+
+				AreEqual(resultEF, result);
+			}
+		}
+
+
+		[Test]
 		public void TestCommandTimeout()
 		{
 			int timeoutErrorCode = -2;     // Timeout Expired
