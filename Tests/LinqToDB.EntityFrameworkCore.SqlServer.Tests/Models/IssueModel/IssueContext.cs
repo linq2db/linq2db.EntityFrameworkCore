@@ -1,16 +1,12 @@
-﻿using System.Reflection;
-using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
-using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel;
-using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping;
-using LinqToDB.Expressions;
-using LinqToDB.Extensions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
-namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
+namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel
 {
 	public class IssueContext : DbContext
 	{
 		public DbSet<Issue73Entity> Issue73Entities { get; set; } = null!;
+
+		public DbSet<Patent> Patents { get; set; } = null!;
 
 		public IssueContext(DbContextOptions options) : base(options)
 		{
@@ -43,6 +39,14 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 					},
 				});
 			});
+
+			modelBuilder
+				.Entity<Patent>()
+				.HasOne(p => p.Assessment)
+				.WithOne(pa => pa.Patent)
+				.HasForeignKey<PatentAssessment>(pa => pa.PatentId)
+				.OnDelete(DeleteBehavior.Restrict);
+
 		}
 	}
 }
