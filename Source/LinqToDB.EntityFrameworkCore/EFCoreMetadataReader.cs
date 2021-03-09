@@ -201,25 +201,25 @@ namespace LinqToDB.EntityFrameworkCore
 						var fk = navigation.ForeignKey;
 						if (!navigation.IsOnDependent)
 						{
-							var thisKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
+							var thisKey  = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
 							var otherKey = string.Join(",", fk.Properties.Select(p => p.Name));
 							associations.Add(new AssociationAttribute
 							{
-								ThisKey = thisKey,
-								OtherKey = otherKey,
-								CanBeNull = !fk.IsRequired,
+								ThisKey         = thisKey,
+								OtherKey        = otherKey,
+								CanBeNull       = !fk.IsRequiredDependent,
 								IsBackReference = false
 							});
 						}
 						else
 						{
-							var thisKey = string.Join(",", fk.Properties.Select(p => p.Name));
+							var thisKey  = string.Join(",", fk.Properties.Select(p => p.Name));
 							var otherKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
 							associations.Add(new AssociationAttribute
 							{
-								ThisKey = thisKey,
-								OtherKey = otherKey,
-								CanBeNull = !fk.IsRequired,
+								ThisKey         = thisKey,
+								OtherKey        = otherKey,
+								CanBeNull       = !fk.IsRequired,
 								IsBackReference = true
 							});
 						}
