@@ -76,13 +76,13 @@ namespace LinqToDB.EntityFrameworkCore
 			=> AsyncExtensions.FirstAsync(source.ToLinqToDB(), predicate, token);
 
 		/// <inheritdoc cref="AsyncExtensions.FirstOrDefaultAsync{TSource}(IQueryable{TSource}, CancellationToken)"/>
-		public static Task<TSource> FirstOrDefaultAsyncLinqToDB<TSource>(
+		public static Task<TSource?> FirstOrDefaultAsyncLinqToDB<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
 			=> AsyncExtensions.FirstOrDefaultAsync(source.ToLinqToDB(), token);
 
 		/// <inheritdoc cref="AsyncExtensions.FirstOrDefaultAsync{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}}, CancellationToken)"/>
-		public static Task<TSource> FirstOrDefaultAsyncLinqToDB<TSource>(
+		public static Task<TSource?> FirstOrDefaultAsyncLinqToDB<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default)
@@ -102,13 +102,13 @@ namespace LinqToDB.EntityFrameworkCore
 			=> AsyncExtensions.SingleAsync(source.ToLinqToDB(), predicate, token);
 
 		/// <inheritdoc cref="AsyncExtensions.SingleOrDefaultAsync{TSource}(IQueryable{TSource}, CancellationToken)"/>
-		public static Task<TSource> SingleOrDefaultAsyncLinqToDB<TSource>(
+		public static Task<TSource?> SingleOrDefaultAsyncLinqToDB<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        token = default)
 			=> AsyncExtensions.SingleOrDefaultAsync(source.ToLinqToDB(), token);
 
 		/// <inheritdoc cref="AsyncExtensions.SingleOrDefaultAsync{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}}, CancellationToken)"/>
-		public static Task<TSource> SingleOrDefaultAsyncLinqToDB<TSource>(
+		public static Task<TSource?> SingleOrDefaultAsyncLinqToDB<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token = default)

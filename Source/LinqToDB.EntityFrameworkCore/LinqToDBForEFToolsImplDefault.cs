@@ -331,7 +331,7 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				providerName = "Microsoft.Data.SqlClient";
 
-				return DataConnection.GetDataProvider(providerName, connectionString)!;
+				return DataConnection.GetDataProvider(providerName, connectionString!)!;
 			}
 
 			switch (version)
@@ -364,7 +364,7 @@ namespace LinqToDB.EntityFrameworkCore
 		protected virtual IDataProvider CreatePostgreSqlProvider(PostgreSQLVersion version, string? connectionString)
 		{
 			if (!string.IsNullOrEmpty(connectionString))
-				return DataConnection.GetDataProvider(ProviderName.PostgreSQL, connectionString)!;
+				return DataConnection.GetDataProvider(ProviderName.PostgreSQL, connectionString!)!;
 
 			string providerName;
 			switch (version)
