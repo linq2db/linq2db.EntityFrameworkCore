@@ -91,11 +91,11 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// </summary>
 		/// <typeparam name="TResult">Type of result element.</typeparam>
 		/// <param name="expression">Query expression.</param>
-		/// <param name="token">Cancellation token.</param>
+		/// <param name="cancellationToken">Cancellation token.</param>
 		/// <returns>Query result as <see cref="IAsyncEnumerable{T}"/>.</returns>
-		public Task<IAsyncEnumerable<TResult>> ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken token)
+		public Task<IAsyncEnumerable<TResult>> ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken cancellationToken)
 		{
-			return QueryProvider.ExecuteAsyncEnumerable<TResult>(expression, token);
+			return QueryProvider.ExecuteAsyncEnumerable<TResult>(expression, cancellationToken);
 		}
 
 		/// <summary>
