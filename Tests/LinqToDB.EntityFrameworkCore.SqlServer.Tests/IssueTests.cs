@@ -29,7 +29,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 		private IssueContext CreateContext()
 		{
-			var ctx = new IssueContext(_options);
+			var ctx = new IssueContext(_options!);
 
 			if (!_created)
 			{

@@ -233,6 +233,7 @@ namespace LinqToDB.EntityFrameworkCore
 		[LinqTunnel]
 		[Pure]
 		public static IValueInsertable<T> Into<T>(this DbContext context, ITable<T> target)
+			where T: notnull
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (target == null)  throw new ArgumentNullException(nameof(target));
