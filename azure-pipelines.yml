@@ -44,12 +44,12 @@ stages:
       inputs:
         solution: '$(solution)'
         configuration: '$(build_configuration)'
-        msbuildArguments: '/t:Restore;Rebuild -m'
+        msbuildArguments: '/t:Restore;Rebuild -m /p:ContinuousIntegrationBuild=true'
       displayName: Build Solution
 
     - powershell: echo "##vso[task.setvariable variable=packageVersion]$(packageVersion)-rc.$(Build.BuildId)"
-      condition: ne(variables['Build.SourceBranchName'], 'release.3')
       displayName: Set nuget RC version for non-release branch
+      condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'version3'))
 
     - task: PowerShell@2
       inputs:
@@ -57,24 +57,35 @@ stages:
         workingDirectory: '$(Build.SourcesDirectory)'
         arguments: -path $(Build.SourcesDirectory)/NuGet/linq2db.EntityFrameworkCore.nuspec -version $(packageVersion) -branch $(Build.SourceBranchName)
       displayName: Generate nuspec
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.3'), eq(variables['Build.SourceBranchName'], 'version3')))
 
     - task: NuGetToolInstaller@0
       inputs:
         versionSpec: '5.x'
         workingDirectory: $(Build.SourcesDirectory)/NuGet
       displayName: Install nuget
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.3'), eq(variables['Build.SourceBranchName'], 'version3')))
 
     - task: CmdLine@2
       inputs:
         script: 'nuget Pack linq2db.EntityFrameworkCore.nuspec -OutputDirectory built'
         workingDirectory: $(Build.SourcesDirectory)/NuGet
-      displayName: Build nuget
+      displayName: Build nuget (azure artifacts)
+      condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'version3'))
+
+    - task: CmdLine@2
+      inputs:
+        script: 'nuget Pack linq2db.EntityFrameworkCore.nuspec -OutputDirectory built -Symbols -SymbolPackageFormat snupkg'
+        workingDirectory: $(Build.SourcesDirectory)/NuGet
+      displayName: Build nuget (nuget.org)
+      condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'release.3'))
 
     - task: PublishBuildArtifacts@1
       inputs:
         pathToPublish: '$(Build.SourcesDirectory)/NuGet/built'
         artifactName: '$(artifact_nugets)'
       displayName: Publish nugets to artifacts
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.3'), eq(variables['Build.SourceBranchName'], 'version3')))
 
     - task: NuGetCommand@2
       inputs:
