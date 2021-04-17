@@ -47,7 +47,6 @@ stages:
       displayName: Build Solution
 
     - powershell: echo "##vso[task.setvariable variable=packageVersion]$(packageVersion)-rc.$(Build.BuildId)"
-      condition: ne(variables['Build.SourceBranchName'], 'release')
       displayName: Set nuget RC version for non-release branch
       condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
 
