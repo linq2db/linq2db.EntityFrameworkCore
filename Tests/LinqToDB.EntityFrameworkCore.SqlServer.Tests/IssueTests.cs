@@ -9,7 +9,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	[TestFixture]
 	public class IssueTests : TestsBase
 	{
-		private DbContextOptions<IssueContext>? _options;
+		private DbContextOptions<IssueContext> _options = null!;
 		private bool _created;
 
 		public IssueTests()

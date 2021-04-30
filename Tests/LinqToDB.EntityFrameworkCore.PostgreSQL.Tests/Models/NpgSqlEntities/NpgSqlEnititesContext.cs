@@ -20,9 +20,14 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.NpgSqlEntities
 					entity.HasNoKey();
 					entity.ToView("EventsView", "views");
 				});
+
+			modelBuilder.Entity<EntityWithArrays>(entity =>
+			{
+			});
 		}
 
 		public virtual DbSet<Event> Events { get; set; } = null!;
+		public virtual DbSet<EntityWithArrays> EntityWithArrays { get; set; } = null!;
 
 	}
 }
