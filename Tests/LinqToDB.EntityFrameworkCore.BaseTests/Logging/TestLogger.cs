@@ -13,7 +13,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		private static readonly string _newLineWithMessagePadding;
 
 		// ConsoleColor does not have a value to specify the 'Default' color
+#pragma warning disable 649
 		private readonly ConsoleColor? DefaultConsoleColor;
+#pragma warning restore 649
 
 		private readonly string _name;
 

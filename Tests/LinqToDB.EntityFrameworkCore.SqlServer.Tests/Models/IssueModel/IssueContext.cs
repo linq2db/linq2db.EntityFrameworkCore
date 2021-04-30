@@ -43,7 +43,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel
 			modelBuilder
 				.Entity<Patent>()
 				.HasOne(p => p.Assessment)
-				.WithOne(pa => pa.Patent)
+				.WithOne(pa => pa!.Patent)
 				.HasForeignKey<PatentAssessment>(pa => pa.PatentId)
 				.OnDelete(DeleteBehavior.Restrict);
 
