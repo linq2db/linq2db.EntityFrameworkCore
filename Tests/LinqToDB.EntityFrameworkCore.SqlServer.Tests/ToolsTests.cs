@@ -669,7 +669,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
-				var customer = await ctx.Customers.FirstOrDefaultAsync();
+				var customer = await ctx.Customers.FirstAsync();
 
 				var updatable = ctx.Customers.Where(c => c.CustomerId == customer.CustomerId)
 					.Set(c => c.CompanyName, customer.CompanyName);

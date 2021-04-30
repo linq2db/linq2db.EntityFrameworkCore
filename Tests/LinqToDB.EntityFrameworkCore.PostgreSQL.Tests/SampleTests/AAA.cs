@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+#pragma warning disable 8604
+#pragma warning disable CS8625
+
 namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 {
 	public class Unit
