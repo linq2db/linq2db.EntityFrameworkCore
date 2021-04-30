@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+using FluentAssertions;
 using LinqToDB.Data;
+using LinqToDB.DataProvider.PostgreSQL;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.NpgSqlEntities;
 using Microsoft.EntityFrameworkCore;
@@ -67,5 +69,23 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 				var l2dbResult = query.ToLinqToDB().ToArray();
 			}
 		}
+
+		[Test]
+		public void TestArray()
+		{
+			using (var db = CreateNpgSqlEntitiesContext())
+			{
+				var guids = new Guid[] { Guid.Parse("271425b1-ebe8-400d-b71d-a6e47a460ae3"),
+					Guid.Parse("b75de94e-6d7b-4c70-bfa1-f8639a6a5b35") };
+
+				var query = 
+						from m in db.EntityWithArrays.ToLinqToDBTable()
+						where Sql.Ext.PostgreSQL().Overlaps(m.Guids, guids)
+						select m;
+
+				query.Invoking(q => q.ToArray()).Should().NotThrow();
+			}
+		}
+
 	}
 }
