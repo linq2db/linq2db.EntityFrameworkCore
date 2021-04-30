@@ -455,6 +455,10 @@ namespace LinqToDB.EntityFrameworkCore
 				if (modelType.IsEnum)
 					continue;
 
+				// skipping arrays
+				if (modelType.IsArray)
+					continue;
+
 				MapEFCoreType(modelType);
 				if (modelType.IsValueType && !typeof(Nullable<>).IsSameOrParentOf(modelType))
 					MapEFCoreType(typeof(Nullable<>).MakeGenericType(modelType));
