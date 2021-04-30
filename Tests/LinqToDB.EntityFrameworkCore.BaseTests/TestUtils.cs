@@ -15,7 +15,6 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 
 					.AddTestLogger(o =>
 					{
-						o.IncludeScopes = true;
 						o.FormatterName = ConsoleFormatterNames.Simple;
 					});
 			});		
