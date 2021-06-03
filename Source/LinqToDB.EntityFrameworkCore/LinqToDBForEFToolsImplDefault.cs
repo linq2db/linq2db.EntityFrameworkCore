@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -84,10 +85,10 @@ namespace LinqToDB.EntityFrameworkCore
 			#endregion
 		}
 
-		readonly ConcurrentDictionary<ProviderKey, IDataProvider> _knownProviders = new ConcurrentDictionary<ProviderKey, IDataProvider>();
+		readonly ConcurrentDictionary<ProviderKey, IDataProvider> _knownProviders = new();
 
-		private readonly MemoryCache _schemaCache = new MemoryCache(
-			new MemoryCacheOptions
+		private readonly MemoryCache _schemaCache = new(
+			new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions
 			{
 				ExpirationScanFrequency = TimeSpan.FromHours(1.0)
 			});

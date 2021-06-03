@@ -9,6 +9,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="FluentAssertions" Version="5.10.3" />
 		<PackageReference Include="linq2db.Tools" Version="3.2.3" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.11" />

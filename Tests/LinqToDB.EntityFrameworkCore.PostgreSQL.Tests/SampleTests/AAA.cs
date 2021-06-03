@@ -25,11 +25,11 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 		}
 
 		public static ArrangeResult<T, Unit> Arrange<T>(T @object) 
-			=> new ArrangeResult<T, Unit>(@object, default);
+			=> new(@object, default);
 
 		public static ArrangeResult<T, TMock> Arrange<T, TMock>(this TMock mock, Func<TMock, T> @object)
 			where TMock: notnull
-			=> new ArrangeResult<T, TMock>(@object(mock), mock);
+			=> new(@object(mock), mock);
 
 		public static ActResult<T, TMock> Act<T, TMock>(this ArrangeResult<T, TMock> arrange, Action<T> act)
 			where T : notnull
