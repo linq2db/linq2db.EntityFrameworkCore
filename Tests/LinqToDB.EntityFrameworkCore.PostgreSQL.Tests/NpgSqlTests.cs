@@ -87,18 +87,5 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 			}
 		}
 
-		[Test]
-		public void TestIdentityMapping()
-		{
-			using (var ctx = CreateNpgSqlEntitiesContext())
-			using (var db = ctx.CreateLinqToDbConnection())
-			{
-				var ed = db.MappingSchema.GetEntityDescriptor(typeof(Event));
-				var pk = ed.Columns.Where(c => c.IsPrimaryKey).Single();
-
-				pk.IsIdentity.Should().BeTrue();
-			}
-		}
-
 	}
 }

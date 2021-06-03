@@ -15,9 +15,6 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 
 					.AddTestLogger(o =>
 					{
-#pragma warning disable 618
-						o.IncludeScopes = true;
-#pragma warning restore 618
 						o.FormatterName = ConsoleFormatterNames.Simple;
 					});
 			});		
