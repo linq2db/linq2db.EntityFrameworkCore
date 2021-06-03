@@ -1,10 +1,7 @@
-﻿using System.Linq;
-using LinqToDB.Data;
+﻿using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
-using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
 using LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.Northwind;
 using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 {
@@ -37,21 +34,6 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			ctx.Database.EnsureCreated();
 			return ctx;
 		}
-
-
-		[Test]
-		public void TestIdentityMapping()
-		{
-			using (var ctx = CreateSQLiteSqlExntitiesContext())
-			using (var db = ctx.CreateLinqToDbConnection())
-			{
-				var ed = db.MappingSchema.GetEntityDescriptor(typeof(Category));
-				var pk = ed.Columns.Where(c => c.IsPrimaryKey).Single();
-
-				Assert.That(pk.IsIdentity, Is.True);
-			}
-		}
-
 	
 	}
 }

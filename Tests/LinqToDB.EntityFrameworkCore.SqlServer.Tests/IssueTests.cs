@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using FluentAssertions;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel;
 using Microsoft.EntityFrameworkCore;
