@@ -23,6 +23,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.NpgSqlEntities
 		}
 
 		public virtual DbSet<Event> Events { get; set; } = null!;
+		public virtual DbSet<EntityWithArrays> EntityWithArrays { get; set; } = null!;
 
 	}
 }

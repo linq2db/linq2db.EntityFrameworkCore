@@ -158,7 +158,25 @@ namespace LinqToDB.EntityFrameworkCore
 						}
 
 						var isIdentity = prop.GetAnnotations()
-							.Any(a => a.Name.EndsWith(":ValueGenerationStrategy") && a.Value?.ToString() == "IdentityColumn");
+							.Any(a =>
+							{
+								if (a.Name.EndsWith(":ValueGenerationStrategy"))
+									return a.Value?.ToString().Contains("Identity") == true;
+
+								if (a.Name.EndsWith(":Autoincrement"))
+									return a.Value is bool b && b;
+
+								// for postgres
+								if (a.Name == "Relational:DefaultValueSql")
+								{
+									if (a.Value is string str)
+									{
+										return str.ToLower().Contains("nextval");
+									}
+								}
+
+								return false;
+							});
 
 						var storeObjectId = GetStoreObjectIdentifier(et);
 
@@ -170,8 +188,6 @@ namespace LinqToDB.EntityFrameworkCore
 							DbType          = prop.GetColumnType(),
 							IsPrimaryKey    = isPrimaryKey,
 							PrimaryKeyOrder = primaryKeyOrder,
-							SkipOnInsert    = prop.ValueGenerated == ValueGenerated.OnAdd || prop.ValueGenerated == ValueGenerated.OnAddOrUpdate,
-							SkipOnUpdate    = prop.ValueGenerated == ValueGenerated.OnUpdate || prop.ValueGenerated == ValueGenerated.OnAddOrUpdate,
 							IsIdentity      = isIdentity,
 						}};
 					}

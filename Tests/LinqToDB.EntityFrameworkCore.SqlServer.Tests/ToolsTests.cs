@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
@@ -76,29 +77,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			//ctx.Database.EnsureDeleted();
 			if (ctx.Database.EnsureCreated())
 			{
-
-
-				SetIdentityInsert(ctx, "[dbo].[Employees]", true);
-				SetIdentityInsert(ctx, "[dbo].[Categories]", true);
-				SetIdentityInsert(ctx, "[dbo].[Orders]", true);
-				SetIdentityInsert(ctx, "[dbo].[Products]", true);
-				SetIdentityInsert(ctx, "[dbo].[Shippers]", true);
-				SetIdentityInsert(ctx, "[dbo].[Suppliers]", true);
-
-				try
-				{
-					NorthwindData.Seed(ctx);
-				}
-				finally
-				{
-					SetIdentityInsert(ctx, "[dbo].[Employees]", false);
-					SetIdentityInsert(ctx, "[dbo].[Categories]", false);
-					SetIdentityInsert(ctx, "[dbo].[Orders]", false);
-					SetIdentityInsert(ctx, "[dbo].[Products]", false);
-					SetIdentityInsert(ctx, "[dbo].[Shippers]", false);
-					SetIdentityInsert(ctx, "[dbo].[Suppliers]", false);
-				}
-
+				NorthwindData.Seed(ctx);
 			}			
 			return ctx;
 		}
@@ -370,26 +349,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
-
-		[Test]
-		public void TestIdentityColumn()
-		{
-			using (var ctx = CreateContext(false))
-			{
-				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var converters    = ctx.GetService<IValueConverterSelector>();
-				var dLogger       = ctx.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource, dLogger);
-				
-				var identity = ms.GetAttribute<ColumnAttribute>(typeof(Customer),
-					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
-
-				//TODO:
-				//Assert.NotNull(identity);
-				//Assert.AreEqual(true, identity.IsIdentity);
-			}
-		}
 
 		[Repeat(2)]
 		[Test]
