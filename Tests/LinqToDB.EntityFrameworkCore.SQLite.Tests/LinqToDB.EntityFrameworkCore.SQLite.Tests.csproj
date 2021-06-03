@@ -9,12 +9,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.4" />
+		<ProjectReference Include="..\..\Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.csproj" />
+		<ProjectReference Include="..\LinqToDB.EntityFrameworkCore.BaseTests\LinqToDB.EntityFrameworkCore.BaseTests.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.csproj" />
-		<ProjectReference Include="..\LinqToDB.EntityFrameworkCore.BaseTests\LinqToDB.EntityFrameworkCore.BaseTests.csproj" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.15" />
 	</ItemGroup>
 
 </Project>

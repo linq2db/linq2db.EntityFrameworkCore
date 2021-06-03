@@ -41,13 +41,12 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 			return ctx;
 		}
 
-
 		[Test]
 		public void TestFunctionsMapping()
 		{
 			using (var db = CreateNpgSqlEntitiesContext())
 			{
-				var date = DateTime.UtcNow;
+				var date = DateTime.Now;
 
 				var query = db.Events.Where(e =>
 					e.Duration.Contains(date) || e.Duration.LowerBound == date || e.Duration.UpperBound == date ||
