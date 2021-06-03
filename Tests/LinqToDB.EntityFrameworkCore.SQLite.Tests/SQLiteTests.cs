@@ -1,7 +1,10 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using FluentAssertions;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
+using LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.Identity;
 using LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.Northwind;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
@@ -50,6 +53,31 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 
 				Assert.That(pk.IsIdentity, Is.True);
 			}
+		}
+
+	
+		[Test]
+		public void TestSqliteDbCreation()
+		{
+			var dbFactory = new EfCoreSqliteInMemoryDbFactory();
+
+			using var context = dbFactory.CreateDbContext<IdentityDbContext>();
+
+			context.AddRange(new List<Person>
+			{
+				new() {Name = "John Doe"},
+				new() {Name = "Jane Doe"}
+			});
+
+			context.SaveChanges();
+
+			var people = context.People.ToList();
+
+			var connection = context.CreateLinqToDbConnection();
+
+			var tempTable = connection.CreateTempTable(people, new BulkCopyOptions {KeepIdentity = true});
+
+			tempTable.ToList().Should().BeEquivalentTo(people);
 		}
 
 	

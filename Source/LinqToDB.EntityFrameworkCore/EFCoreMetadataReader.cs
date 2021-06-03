@@ -160,11 +160,6 @@ namespace LinqToDB.EntityFrameworkCore
 						var isIdentity = prop.GetAnnotations()
 							.Any(a => a.Name.EndsWith(":ValueGenerationStrategy") && a.Value?.ToString() == "IdentityColumn");
 
-						if (!isIdentity && isPrimaryKey)
-						{
-							isIdentity = prop.ValueGenerated == ValueGenerated.OnAdd;
-						}
-
 						var storeObjectId = GetStoreObjectIdentifier(et);
 
 						return new T[]{(T)(Attribute) new ColumnAttribute
@@ -175,6 +170,8 @@ namespace LinqToDB.EntityFrameworkCore
 							DbType          = prop.GetColumnType(),
 							IsPrimaryKey    = isPrimaryKey,
 							PrimaryKeyOrder = primaryKeyOrder,
+							SkipOnInsert    = prop.ValueGenerated == ValueGenerated.OnAdd || prop.ValueGenerated == ValueGenerated.OnAddOrUpdate,
+							SkipOnUpdate    = prop.ValueGenerated == ValueGenerated.OnUpdate || prop.ValueGenerated == ValueGenerated.OnAddOrUpdate,
 							IsIdentity      = isIdentity,
 						}};
 					}
