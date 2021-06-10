@@ -310,10 +310,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(false))
 			{
-				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var converters    = ctx.GetService<IValueConverterSelector>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource);
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx);
 				
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
@@ -330,10 +327,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(false))
 			{
-				var dependencies = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var converters    = ctx.GetService<IValueConverterSelector>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, null);
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx);
 				
 				var associationOrder = ms.GetAttribute<AssociationAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.Orders));
