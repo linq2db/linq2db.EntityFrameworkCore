@@ -16,9 +16,6 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.ForMapping
 			modelBuilder.Entity<WithIdentity>(b =>
 			{
 				b.HasKey(e => e.Id);
-
-				b.Property(e => e.Id)
-					.HasAnnotation("Sqlite:Autoincrement", true);
 			});
 
 			modelBuilder.Entity<NoIdentity>(b =>

@@ -9,6 +9,7 @@ using LinqToDB.Expressions;
 using LinqToDB.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Query;
@@ -33,19 +34,21 @@ namespace LinqToDB.EntityFrameworkCore
 		readonly IModel? _model;
 		private readonly RelationalSqlTranslatingExpressionVisitorDependencies? _dependencies;
 		private readonly IRelationalTypeMappingSource? _mappingSource;
-		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?>();
+		private readonly IRelationalAnnotationProvider? _annotationProvider;
+		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new();
 		private readonly IDiagnosticsLogger<DbLoggerCategory.Query>? _logger;
 
 		public EFCoreMetadataReader(
-			IModel? model,
-			RelationalSqlTranslatingExpressionVisitorDependencies? dependencies,
-			IRelationalTypeMappingSource? mappingSource,
-			IDiagnosticsLogger<DbLoggerCategory.Query>? logger)
+			IModel? model, IInfrastructure<IServiceProvider>? accessor)
 		{
 			_model = model;
-			_dependencies = dependencies;
-			_mappingSource = mappingSource;
-			_logger = logger;
+			if (accessor != null)
+			{
+				_dependencies       = accessor.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
+				_mappingSource      = accessor.GetService<IRelationalTypeMappingSource>();
+				_annotationProvider = accessor.GetService<IRelationalAnnotationProvider>();
+				_logger             = accessor.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+			}
 		}
 
 		public T[] GetAttributes<T>(Type type, bool inherit = true) where T : Attribute
@@ -157,7 +160,17 @@ namespace LinqToDB.EntityFrameworkCore
 								                  .FirstOrDefault(v => CompareProperty(v.p, memberInfo))?.index ?? 0;
 						}
 
-						var isIdentity = prop.GetAnnotations()
+						var storeObjectId = GetStoreObjectIdentifier(et);
+
+						var annotations = prop.GetAnnotations();
+						if (_annotationProvider != null && storeObjectId != null)
+						{
+							var column = prop.FindColumn(storeObjectId.Value) as IColumn;
+							if (column != null)
+								annotations = annotations.Concat(_annotationProvider.For(column));
+						}
+
+						var isIdentity = annotations
 							.Any(a =>
 							{
 								if (a.Name.EndsWith(":ValueGenerationStrategy"))
@@ -177,8 +190,6 @@ namespace LinqToDB.EntityFrameworkCore
 
 								return false;
 							});
-
-						var storeObjectId = GetStoreObjectIdentifier(et);
 
 						return new T[]{(T)(Attribute) new ColumnAttribute
 						{
