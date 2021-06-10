@@ -9,14 +9,12 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace LinqToDB.EntityFrameworkCore
@@ -43,7 +41,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	/// <summary>
-	/// Default EF.Core - LINQ To DB integration bridge implementation.
+	/// Default EF Core - LINQ To DB integration bridge implementation.
 	/// </summary>
 	[PublicAPI]
 	public class LinqToDBForEFToolsImplDefault : ILinqToDBForEFTools
@@ -104,10 +102,10 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Returns LINQ To DB provider, based on provider data from EF.Core.
+		/// Returns LINQ To DB provider, based on provider data from EF Core.
 		/// Could be overriden if you have issues with default detection mechanisms.
 		/// </summary>
-		/// <param name="providerInfo">Provider information, extracted from EF.Core.</param>
+		/// <param name="providerInfo">Provider information, extracted from EF Core.</param>
 		/// <param name="connectionInfo"></param>
 		/// <returns>LINQ TO DB provider instance.</returns>
 		public virtual IDataProvider GetDataProvider(EFProviderInfo providerInfo, EFConnectionInfo connectionInfo)
@@ -121,9 +119,9 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Converts EF.Core provider settings to linq2db provider settings.
+		/// Converts EF Core provider settings to linq2db provider settings.
 		/// </summary>
-		/// <param name="providerInfo">EF.Core provider settings.</param>
+		/// <param name="providerInfo">EF Core provider settings.</param>
 		/// <returns>linq2db provider settings.</returns>
 		protected virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(EFProviderInfo providerInfo)
 		{
@@ -151,9 +149,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Creates instance of linq2db database provider.
 		/// </summary>
-		/// <param name="providerInfo">EF.Core provider settings.</param>
+		/// <param name="providerInfo">EF Core provider settings.</param>
 		/// <param name="provInfo">linq2db provider settings.</param>
-		/// <param name="connectionInfo">EF.Core connection settings.</param>
+		/// <param name="connectionInfo">EF Core connection settings.</param>
 		/// <returns>linq2db database provider.</returns>
 		protected virtual IDataProvider CreateLinqToDbDataProvider(EFProviderInfo providerInfo, LinqToDBProviderInfo provInfo,
 			EFConnectionInfo connectionInfo)
@@ -197,7 +195,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Creates linq2db provider settings object from <see cref="DatabaseFacade"/> instance.
 		/// </summary>
-		/// <param name="database">EF.Core database information object.</param>
+		/// <param name="database">EF Core database information object.</param>
 		/// <returns>linq2db provider settings.</returns>
 		protected virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(DatabaseFacade database)
 		{
@@ -285,7 +283,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Creates linq2db provider settings object from <see cref="RelationalOptionsExtension"/> instance.
 		/// </summary>
-		/// <param name="extensions">EF.Core provider options.</param>
+		/// <param name="extensions">EF Core provider options.</param>
 		/// <returns>linq2db provider settings.</returns>
 		protected virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(RelationalOptionsExtension extensions)
 		{
@@ -387,27 +385,21 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Creates metadata provider for specified EF.Core data model. Default implementation uses
+		/// Creates metadata provider for specified EF Core data model. Default implementation uses
 		/// <see cref="EFCoreMetadataReader"/> metadata provider.
 		/// </summary>
-		/// <param name="model">EF.Core data model.</param>
-		/// <param name="dependencies">EF.Core service dependencies.</param>
-		/// <param name="mappingSource">EF.Core mappings source.</param>
-		/// <param name="logger">EF.Core diagnostics logger.</param>
-		/// <returns>LINQ To DB metadata provider for specified EF.Core model.</returns>
-		public virtual IMetadataReader CreateMetadataReader(
-			IModel? model,
-			RelationalSqlTranslatingExpressionVisitorDependencies? dependencies,
-			IRelationalTypeMappingSource? mappingSource,
-			IDiagnosticsLogger<DbLoggerCategory.Query>? logger)
+		/// <param name="model">EF Core data model.</param>
+		/// <param name="accessor">EF Core service provider.</param>
+		/// <returns>LINQ To DB metadata provider for specified EF Core model.</returns>
+		public virtual IMetadataReader CreateMetadataReader(IModel? model, IInfrastructure<IServiceProvider>? accessor)
 		{
-			return new EFCoreMetadataReader(model, dependencies, mappingSource, logger);
+			return new EFCoreMetadataReader(model, accessor);
 		}
 
 		/// <summary>
-		/// Creates mapping schema using provided EF.Core data model and metadata provider.
+		/// Creates mapping schema using provided EF Core data model and metadata provider.
 		/// </summary>
-		/// <param name="model">EF.Core data model.</param>
+		/// <param name="model">EF Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <param name="convertorSelector"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
@@ -426,10 +418,10 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Import type conversions from EF.Core model into linq2db mapping schema.
+		/// Import type conversions from EF Core model into linq2db mapping schema.
 		/// </summary>
 		/// <param name="mappingSchema">linq2db mapping schema.</param>
-		/// <param name="model">EF.Core data mode.</param>
+		/// <param name="model">EF Core data mode.</param>
 		/// <param name="convertorSelector">Type filter.</param>
 		public virtual void DefineConvertors(
 			MappingSchema mappingSchema,
@@ -520,9 +512,9 @@ namespace LinqToDB.EntityFrameworkCore
 				: valueExpression;
 		
 		/// <summary>
-		/// Returns mapping schema using provided EF.Core data model and metadata provider.
+		/// Returns mapping schema using provided EF Core data model and metadata provider.
 		/// </summary>
-		/// <param name="model">EF.Core data model.</param>
+		/// <param name="model">EF Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <param name="convertorSelector"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
@@ -548,9 +540,9 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Returns EF.Core <see cref="IDbContextOptions"/> for specific <see cref="DbContext"/> instance.
+		/// Returns EF Core <see cref="IDbContextOptions"/> for specific <see cref="DbContext"/> instance.
 		/// </summary>
-		/// <param name="context">EF.Core <see cref="DbContext"/> instance.</param>
+		/// <param name="context">EF Core <see cref="DbContext"/> instance.</param>
 		/// <returns><see cref="IDbContextOptions"/> instance.</returns>
 		public virtual IDbContextOptions? GetContextOptions(DbContext? context)
 		{
@@ -755,14 +747,14 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Transforms EF.Core expression tree to LINQ To DB expression.
-		/// Method replaces EF.Core <see cref="EntityQueryable{TResult}"/> instances with LINQ To DB
+		/// Transforms EF Core expression tree to LINQ To DB expression.
+		/// Method replaces EF Core <see cref="EntityQueryable{TResult}"/> instances with LINQ To DB
 		/// <see cref="DataExtensions.GetTable{T}(IDataContext)"/> calls.
 		/// </summary>
-		/// <param name="expression">EF.Core expression tree.</param>
+		/// <param name="expression">EF Core expression tree.</param>
 		/// <param name="dc">LINQ To DB <see cref="IDataContext"/> instance.</param>
 		/// <param name="ctx">Optional DbContext instance.</param>
-		/// <param name="model">EF.Core data model instance.</param>
+		/// <param name="model">EF Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
 		public virtual Expression TransformExpression(Expression expression, IDataContext dc, DbContext? ctx, IModel? model)
 		{
@@ -1033,9 +1025,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 		/// <summary>
 		/// Extracts <see cref="DbContext"/> instance from <see cref="IQueryable"/> object.
-		/// Due to unavailability of integration API in EF.Core this method use reflection and could became broken after EF.Core update.
+		/// Due to unavailability of integration API in EF Core this method use reflection and could became broken after EF Core update.
 		/// </summary>
-		/// <param name="query">EF.Core query.</param>
+		/// <param name="query">EF Core query.</param>
 		/// <returns>Current <see cref="DbContext"/> instance.</returns>
 		public virtual DbContext? GetCurrentContext(IQueryable query)
 		{
@@ -1061,10 +1053,10 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Extracts EF.Core connection information object from <see cref="IDbContextOptions"/>.
+		/// Extracts EF Core connection information object from <see cref="IDbContextOptions"/>.
 		/// </summary>
 		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
-		/// <returns>EF.Core connection data.</returns>
+		/// <returns>EF Core connection data.</returns>
 		public virtual EFConnectionInfo ExtractConnectionInfo(IDbContextOptions? options)
 		{
 			var relational = options?.Extensions.OfType<RelationalOptionsExtension>().FirstOrDefault();
@@ -1076,10 +1068,10 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Extracts EF.Core data model instance from <see cref="IDbContextOptions"/>.
+		/// Extracts EF Core data model instance from <see cref="IDbContextOptions"/>.
 		/// </summary>
 		/// <param name="options"><see cref="IDbContextOptions"/> instance.</param>
-		/// <returns>EF.Core data model instance.</returns>
+		/// <returns>EF Core data model instance.</returns>
 		public virtual IModel? ExtractModel(IDbContextOptions? options)
 		{
 			var coreOptions = options?.Extensions.OfType<CoreOptionsExtension>().FirstOrDefault();

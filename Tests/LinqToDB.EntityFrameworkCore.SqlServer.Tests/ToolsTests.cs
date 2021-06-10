@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
@@ -10,11 +8,6 @@ using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
@@ -313,11 +306,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(false))
 			{
-				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var converters    = ctx.GetService<IValueConverterSelector>();
-				var dLogger       = ctx.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource, dLogger);
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx);
 				
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
@@ -334,11 +323,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(false))
 			{
-				var dependencies = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var converters    = ctx.GetService<IValueConverterSelector>();
-				var dLogger = ctx.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, null, dLogger);
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx);
 				
 				var associationOrder = ms.GetAttribute<AssociationAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.Orders));
