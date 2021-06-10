@@ -83,7 +83,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			return QueryProvider.Execute<TResult>(expression);
 		}
 
-		private static MethodInfo _executeAsyncMethodInfo =
+		private static readonly MethodInfo _executeAsyncMethodInfo =
 			MemberHelper.MethodOf((IQueryProviderAsync p) => p.ExecuteAsync<int>(null!, default)).GetGenericMethodDefinition();
 
 		/// <summary>

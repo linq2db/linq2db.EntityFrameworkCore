@@ -8,8 +8,10 @@ using System.Runtime.CompilerServices;
 using LinqToDB.Expressions;
 using LinqToDB.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -22,7 +24,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Common;
 	using Internal;
 	using SqlQuery;
-	using SqlExpression = Microsoft.EntityFrameworkCore.Query.SqlExpressions.SqlExpression;
+	using SqlExpression = SqlExpression;
 
 	/// <summary>
 	/// LINQ To DB metadata reader for EF.Core model.
@@ -32,13 +34,19 @@ namespace LinqToDB.EntityFrameworkCore
 		readonly IModel? _model;
 		private readonly RelationalSqlTranslatingExpressionVisitorDependencies? _dependencies;
 		private readonly IRelationalTypeMappingSource? _mappingSource;
-		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?>();
+		private readonly IMigrationsAnnotationProvider? _annotationProvider;
+		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new();
 
-		public EFCoreMetadataReader(IModel? model, RelationalSqlTranslatingExpressionVisitorDependencies? dependencies, IRelationalTypeMappingSource? mappingSource)
+		public EFCoreMetadataReader(
+			IModel? model, IInfrastructure<IServiceProvider>? accessor)
 		{
 			_model = model;
-			_dependencies = dependencies;
-			_mappingSource = mappingSource;
+			if (accessor != null)
+			{
+				_dependencies       = accessor.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
+				_mappingSource      = accessor.GetService<IRelationalTypeMappingSource>();
+				_annotationProvider = accessor.GetService<IMigrationsAnnotationProvider>();
+			}
 		}
 
 		public T[] GetAttributes<T>(Type type, bool inherit = true) where T : Attribute
@@ -149,7 +157,13 @@ namespace LinqToDB.EntityFrameworkCore
 								                  .FirstOrDefault(v => CompareProperty(v.p, memberInfo))?.index ?? 0;
 						}
 
-						var isIdentity = prop.GetAnnotations()
+						var annotations = prop.GetAnnotations();
+						if (_annotationProvider != null)
+						{
+							annotations = annotations.Concat(_annotationProvider.For(prop));
+						}
+
+						var isIdentity = annotations
 							.Any(a =>
 							{
 								if (a.Name.EndsWith(":ValueGenerationStrategy"))
