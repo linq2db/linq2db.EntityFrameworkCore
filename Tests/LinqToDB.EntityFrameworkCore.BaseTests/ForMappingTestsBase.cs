@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.ForMapping;
@@ -85,6 +86,26 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 
 
 			t.Should().HaveCount(items.Count);
+		}
+
+		[Test]
+		public virtual async Task TestUIntTable()
+		{
+			using var context = CreateContext();
+			context.UIntTable.Add(new UIntTable
+			{
+				Field16 = 1,
+				Field16N = 2,
+				Field32 = 3,
+				Field32N = 4,
+				Field64 = 5,
+				Field64N = 6
+			});
+
+			await context.SaveChangesAsync();
+
+			ulong field64 = 5;
+			var item = await context.UIntTable.FirstOrDefaultAsyncLinqToDB(e => e.Field64 == field64);
 		}
 
 	}
