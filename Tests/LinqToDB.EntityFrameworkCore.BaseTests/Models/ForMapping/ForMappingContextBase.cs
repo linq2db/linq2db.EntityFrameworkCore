@@ -10,6 +10,6 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.ForMapping
 
 		public DbSet<WithIdentity> WithIdentity { get; set; } = null!;
 		public DbSet<NoIdentity> NoIdentity { get; set; } = null!;
-
+		public DbSet<UIntTable> UIntTable { get; set; } = null!;
 	}
 }

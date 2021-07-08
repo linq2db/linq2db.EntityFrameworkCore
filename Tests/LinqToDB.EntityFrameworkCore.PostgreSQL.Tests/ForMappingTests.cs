@@ -23,7 +23,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 			var options = optionsBuilder.Options;
 			var ctx = new ForMappingContext(options);
 
-			//ctx.Database.EnsureDeleted();
+			ctx.Database.EnsureDeleted();
 			ctx.Database.EnsureCreated();
 
 			return ctx;
