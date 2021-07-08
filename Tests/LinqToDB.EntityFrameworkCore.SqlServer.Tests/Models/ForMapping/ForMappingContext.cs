@@ -25,6 +25,13 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.ForMapping
 			{
 				b.HasKey(e => e.Id);
 			});
+
+			modelBuilder.Entity<StringTypes>(b =>
+				{
+					b.Property(e => e.AnsiString).HasMaxLength(50).IsUnicode(false);
+					b.Property(e => e.UnicodeString).HasMaxLength(50).IsUnicode();
+				}
+			);
 		}
 	}
 }

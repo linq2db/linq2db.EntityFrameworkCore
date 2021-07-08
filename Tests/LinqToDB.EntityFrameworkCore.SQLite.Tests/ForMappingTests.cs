@@ -18,6 +18,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			var options = optionsBuilder.Options;
 			var ctx = new ForMappingContext(options);
 
+			ctx.Database.OpenConnection();
 			ctx.Database.EnsureCreated();
 
 			return ctx;

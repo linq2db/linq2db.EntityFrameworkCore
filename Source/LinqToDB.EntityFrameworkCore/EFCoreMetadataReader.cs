@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -132,6 +133,41 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			return CompareProperty(property.GetIdentifyingMemberInfo(), memberInfo);
 		}
+
+		static DataType DbTypeToDataType(DbType dbType)
+		{
+			return dbType switch
+			{
+				DbType.AnsiString => DataType.VarChar,
+				DbType.AnsiStringFixedLength => DataType.VarChar,
+				DbType.Binary => DataType.Binary,
+				DbType.Boolean => DataType.Boolean,
+				DbType.Byte => DataType.Byte,
+				DbType.Currency => DataType.Money,
+				DbType.Date => DataType.Date,
+				DbType.DateTime => DataType.DateTime,
+				DbType.DateTime2 => DataType.DateTime2,
+				DbType.DateTimeOffset => DataType.DateTimeOffset,
+				DbType.Decimal => DataType.Decimal,
+				DbType.Double => DataType.Double,
+				DbType.Guid => DataType.Guid,
+				DbType.Int16 => DataType.Int16,
+				DbType.Int32 => DataType.Int32,
+				DbType.Int64 => DataType.Int64,
+				DbType.Object => DataType.Undefined,
+				DbType.SByte => DataType.SByte,
+				DbType.Single => DataType.Single,
+				DbType.String => DataType.NVarChar,
+				DbType.StringFixedLength => DataType.NVarChar,
+				DbType.Time => DataType.Time,
+				DbType.UInt16 => DataType.UInt16,
+				DbType.UInt32 => DataType.UInt32,
+				DbType.UInt64 => DataType.UInt64,
+				DbType.VarNumeric => DataType.VarNumeric,
+				DbType.Xml => DataType.Xml,
+				_ => DataType.Undefined
+			};
+		}
 		
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
@@ -184,16 +220,34 @@ namespace LinqToDB.EntityFrameworkCore
 								return false;
 							});
 
-						return new T[]{(T)(Attribute) new ColumnAttribute
+						var dataType = DataType.Undefined;
+
+						if (prop.GetTypeMapping() is RelationalTypeMapping typeMapping)
 						{
-							Name            = prop.GetColumnName(),
-							Length          = prop.GetMaxLength() ?? 0,
-							CanBeNull       = prop.IsNullable,
-							DbType          = prop.GetColumnType(),
-							IsPrimaryKey    = isPrimaryKey,
-							PrimaryKeyOrder = primaryKeyOrder,
-							IsIdentity      = isIdentity,
-						}};
+							if (typeMapping.DbType != null)
+							{
+								dataType = DbTypeToDataType(typeMapping.DbType.Value);
+							}
+							else
+							{
+								dataType = SqlDataType.GetDataType(typeMapping.ClrType).Type.DataType;
+							}
+						}
+
+						return new T[]
+						{
+							(T)(Attribute)new ColumnAttribute
+							{
+								Name            = prop.GetColumnName(),
+								Length          = prop.GetMaxLength() ?? 0,
+								CanBeNull       = prop.IsNullable,
+								DbType          = prop.GetColumnType(),
+								DataType        = dataType,
+								IsPrimaryKey    = isPrimaryKey,
+								PrimaryKeyOrder = primaryKeyOrder,
+								IsIdentity      = isIdentity,
+							}
+						};
 					}
 				}
 
