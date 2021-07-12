@@ -160,5 +160,10 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		{
 			return QueryProvider.ExecuteAsyncEnumerable<T>(Expression, cancellationToken).Result.GetAsyncEnumerator(cancellationToken);
 		}
+
+		public override string ToString()
+		{
+			return QueryProvider.ToString();
+		}
 	}
 }
