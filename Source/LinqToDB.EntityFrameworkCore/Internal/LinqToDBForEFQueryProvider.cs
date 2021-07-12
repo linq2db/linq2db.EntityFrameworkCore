@@ -162,5 +162,14 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		{
 			return QueryProvider.ExecuteAsyncEnumerable<T>(Expression, cancellationToken).Result.GetAsyncEnumerator(cancellationToken);
 		}
+
+		/// <summary>
+		/// Returns generated SQL for specific LINQ query.
+		/// </summary>
+		/// <returns>Generated SQL.</returns>
+		public override string ToString()
+		{
+			return QueryProvider.ToString();
+		}
 	}
 }

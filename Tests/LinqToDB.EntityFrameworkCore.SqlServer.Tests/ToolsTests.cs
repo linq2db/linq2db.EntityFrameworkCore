@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentAssertions;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
@@ -8,10 +9,6 @@ using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
@@ -820,5 +817,23 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				}
 			}
 		}
+
+		[Test]
+		public void TestTagWith([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				var query = ctx.Employees.Include(e => e.ReportsToNavigation).TagWith("Tagged query");
+				var resultEF = query.ToArray();
+				var result = query.ToLinqToDB().ToArray();
+
+				var str = query.ToLinqToDB().ToString();
+
+				AreEqual(resultEF, result);
+
+				str.Should().Contain("Tagged query");
+			}
+		}
+
 	}
 }
