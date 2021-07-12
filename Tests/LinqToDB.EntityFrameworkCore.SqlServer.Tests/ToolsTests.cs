@@ -17,7 +17,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	public class ToolsTests : TestsBase
 	{
 		private readonly DbContextOptions _options;
-		private DbContextOptions<NorthwindContext> _inmemoryOptions;
+		private readonly DbContextOptions<NorthwindContext> _inmemoryOptions;
 
 		static ToolsTests()
 		{
