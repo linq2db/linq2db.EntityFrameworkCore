@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
-using LinqToDB.Data;
-using LinqToDB.EntityFrameworkCore.BaseTests;
+﻿using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.ForMapping;
 using LinqToDB.EntityFrameworkCore.PomeloMySql.Tests.Models.ForMapping;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +7,8 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 {
 	public class ForMappingTests : ForMappingTestsBase
 	{
+		private bool _isDbCreated;
+
 		public override ForMappingContextBase CreateContext()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
@@ -21,8 +18,13 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 			var options = optionsBuilder.Options;
 			var ctx = new ForMappingContext(options);
 
-			//ctx.Database.EnsureDeleted();
-			ctx.Database.EnsureCreated();
+			if (!_isDbCreated)
+			{
+				ctx.Database.EnsureDeleted();
+				ctx.Database.EnsureCreated();
+
+				_isDbCreated = true;
+			}
 
 			return ctx;
 		}

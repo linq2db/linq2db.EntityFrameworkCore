@@ -558,6 +558,9 @@ namespace LinqToDB.EntityFrameworkCore
 		static readonly MethodInfo ThenIncludeMethodInfo =
 			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, object>>(q => q.ThenInclude<object, object, object>(null));
 
+		static readonly MethodInfo TagWithMethodInfo =
+			MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.TagWith(string.Empty));
+
 		static readonly MethodInfo ThenIncludeEnumerableMethodInfo =
 			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null));
 
@@ -579,6 +582,9 @@ namespace LinqToDB.EntityFrameworkCore
 		static readonly ConstructorInfo DataParameterConstructor = MemberHelper.ConstructorOf(() => new DataParameter("", "", DataType.Undefined, ""));
 
 		static readonly MethodInfo ToSql = MemberHelper.MethodOfGeneric(() => Sql.ToSql(1));
+
+		static readonly MethodInfo TagQueryMethodInfo =
+			MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.TagQuery(string.Empty));
 
 		/// <summary>
 		/// Removes conversions from expression.
@@ -870,6 +876,14 @@ namespace LinqToDB.EntityFrameworkCore
 									// This is workaround. EagerLoading runs query again with RemoveOrderBy method.
 									// it is only one possible way now how to detect nested query. 
 									ignoreTracking = true;
+								}
+								else if (generic == TagWithMethodInfo)
+								{
+									var method =
+										TagQueryMethodInfo.MakeGenericMethod(methodCall.Method.GetGenericArguments());
+
+									return new TransformInfo(Expression.Call(method, methodCall.Arguments.Select(a => a.Transform(l => LocalTransform(l)))
+										.ToArray()), false, true);
 								}
 
 								if (isTunnel)

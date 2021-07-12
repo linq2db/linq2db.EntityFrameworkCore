@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentAssertions;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
@@ -16,7 +17,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	public class ToolsTests : TestsBase
 	{
 		private readonly DbContextOptions _options;
-		private DbContextOptions<NorthwindContext> _inmemoryOptions;
+		private readonly DbContextOptions<NorthwindContext> _inmemoryOptions;
 
 		static ToolsTests()
 		{
@@ -816,5 +817,23 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				}
 			}
 		}
+
+		[Test]
+		public void TestTagWith([Values(true, false)] bool enableFilter)
+		{
+			using (var ctx = CreateContext(enableFilter))
+			{
+				var query = ctx.Employees.Include(e => e.ReportsToNavigation).TagWith("Tagged query");
+				var resultEF = query.ToArray();
+				var result = query.ToLinqToDB().ToArray();
+
+				var str = query.ToLinqToDB().ToString();
+
+				AreEqual(resultEF, result);
+
+				str.Should().Contain("Tagged query");
+			}
+		}
+
 	}
 }
