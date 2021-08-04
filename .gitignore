@@ -1,5 +1,8 @@
 #Ignore files build by IDE
+*.user
 bin/
 obj/
 _ReSharper*/
 /.vs/*
+/.tools/
+/.idea/

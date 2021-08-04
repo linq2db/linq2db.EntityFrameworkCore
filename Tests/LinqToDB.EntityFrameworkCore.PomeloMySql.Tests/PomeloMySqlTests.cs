@@ -1,12 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
-using Pomelo.EntityFrameworkCore.MySql.Storage;
 
 namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 {
@@ -25,7 +22,8 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseMySql(ServerVersion.AutoDetect("Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;"));
+			var connectionString = "Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;";
+			optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
