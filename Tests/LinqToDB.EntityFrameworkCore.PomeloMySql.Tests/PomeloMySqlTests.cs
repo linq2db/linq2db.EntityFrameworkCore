@@ -25,9 +25,7 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseMySql(
-				"Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;",
-				builder => builder.ServerVersion(ServerVersion.Default));
+			optionsBuilder.UseMySql(ServerVersion.AutoDetect("Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;"));
 
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 

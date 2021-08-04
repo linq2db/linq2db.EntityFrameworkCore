@@ -172,7 +172,7 @@ namespace LinqToDB.EntityFrameworkCore
 				_ => DataType.Undefined
 			};
 		}
-		
+
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
 			if (typeof(Expression).IsSameOrParentOf(type)) 
@@ -185,7 +185,7 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					var props = et.GetProperties();
 					var prop  = props.FirstOrDefault(p => CompareProperty(p, memberInfo));
-					
+
 					if (prop != null)
 					{
 						var isPrimaryKey = prop.IsPrimaryKey();
@@ -204,7 +204,7 @@ namespace LinqToDB.EntityFrameworkCore
 						{
 							var column = prop.FindColumn(storeObjectId.Value) as IColumn;
 							if (column != null)
-								annotations = annotations.Concat(_annotationProvider.For(column));
+								annotations = annotations.Concat(_annotationProvider.For(column, false));
 						}
 
 						var isIdentity = annotations

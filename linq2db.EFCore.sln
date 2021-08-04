@@ -7,7 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linq2db.EntityFrameworkCore
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{A3F30061-485E-4112-9675-3AE332BEED13}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
 		azure-pipelines.yml = azure-pipelines.yml
+		Directory.Packages.props = Directory.Packages.props
 		Build\linq2db.Default.props = Build\linq2db.Default.props
 		Build\linq2db.snk = Build\linq2db.snk
 		Build\linq2db.Tests.props = Build\linq2db.Tests.props
