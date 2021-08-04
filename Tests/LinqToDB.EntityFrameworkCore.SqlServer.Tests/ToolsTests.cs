@@ -808,7 +808,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					var exception = Assert.Throws<Microsoft.Data.SqlClient.SqlException>(() =>
 					{
 						var result = query.ToLinqToDB().First();
-					});
+					})!;
 					Assert.AreEqual(exception.Number, timeoutErrorCode);
 				}
 				finally

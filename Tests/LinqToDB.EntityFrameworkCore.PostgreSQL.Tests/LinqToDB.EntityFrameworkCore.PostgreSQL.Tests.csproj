@@ -3,8 +3,8 @@
 	<Import Project="..\..\Build\linq2db.Tests.props" />
 
 	<ItemGroup>
-		<PackageReference Include="FluentAssertions" Version="6.0.0-alpha0001" />
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
+		<PackageReference Include="FluentAssertions" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
 	</ItemGroup>
 
 	<ItemGroup>
