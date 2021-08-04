@@ -34,7 +34,6 @@ stages:
     - task: UseDotNet@2
       displayName: 'Use .NET 6'
       inputs:
-        packageType: sdk
         version: 6.0.x
         includePreviewVersions: true
 

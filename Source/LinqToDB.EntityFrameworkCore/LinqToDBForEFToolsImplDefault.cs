@@ -556,20 +556,20 @@ namespace LinqToDB.EntityFrameworkCore
 		static readonly MethodInfo IncludeMethodInfoString = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.Include(string.Empty));
 
 		static readonly MethodInfo ThenIncludeMethodInfo =
-			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, object>>(q => q.ThenInclude<object, object, object>(null));
+			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, object>>(q => q.ThenInclude<object, object, object>(null!));
 
 		static readonly MethodInfo TagWithMethodInfo =
 			MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.TagWith(string.Empty));
 
 		static readonly MethodInfo ThenIncludeEnumerableMethodInfo =
-			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null));
+			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null!));
 
 		static readonly MethodInfo AsNoTrackingMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsNoTracking());
 
 		static readonly MethodInfo EFProperty = MemberHelper.MethodOfGeneric(() => EF.Property<object>(1, ""));
 
 		static readonly MethodInfo
-			L2DBProperty = typeof(Sql).GetMethod(nameof(Sql.Property)).GetGenericMethodDefinition();
+			L2DBProperty = typeof(Sql).GetMethod(nameof(Sql.Property))!.GetGenericMethodDefinition();
 
 		static readonly MethodInfo L2DBFromSqlMethodInfo = 
 			MemberHelper.MethodOfGeneric<IDataContext>(dc => dc.FromSql<object>(new Common.RawSqlString()));
@@ -1022,7 +1022,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (!IsEnumerableType(type, mappingSchema))
 				return type;
 			if (type.IsArray)
-				return type.GetElementType();
+				return type.GetElementType()!;
 			if (typeof(IGrouping<,>).IsSameOrParentOf(type))
 				return type.GetGenericArguments()[1];
 			return type.GetGenericArguments()[0];
@@ -1045,8 +1045,8 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Current <see cref="DbContext"/> instance.</returns>
 		public virtual DbContext? GetCurrentContext(IQueryable query)
 		{
-			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance);
-			var compiler = (QueryCompiler) compilerField.GetValue(query.Provider);
+			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance)!;
+			var compiler = (QueryCompiler) compilerField.GetValue(query.Provider)!;
 
 			var queryContextFactoryField = compiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -1061,7 +1061,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (dependenciesProperty == null)
 				throw new LinqToDBForEFToolsException($"Can not find private property '{nameof(RelationalQueryContextFactory)}._dependencies' in current EFCore Version.");
 
-			var dependencies = (QueryContextDependencies) dependenciesProperty.GetValue(queryContextFactory);
+			var dependencies = (QueryContextDependencies) dependenciesProperty.GetValue(queryContextFactory)!;
 
 			return dependencies.CurrentContext?.Context;
 		}

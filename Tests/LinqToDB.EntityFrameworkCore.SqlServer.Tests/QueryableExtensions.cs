@@ -79,7 +79,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				_replaceMap = replaceMap ?? throw new ArgumentNullException(nameof(replaceMap));
 			}
 
-			public override Expression Visit(Expression node)
+			public override Expression? Visit(Expression? node)
 			{
 				if (node != null && _replaceMap.TryGetValue(node, out var replacement))
 					return replacement;
@@ -88,12 +88,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 			public static Expression Replace(Expression expr, Expression toReplace, Expression toExpr)
 			{
-				return new ExpressionReplacer(new Dictionary<Expression, Expression> { { toReplace, toExpr } }).Visit(expr);
+				return new ExpressionReplacer(new Dictionary<Expression, Expression> { { toReplace, toExpr } }).Visit(expr)!;
 			}
 
 			public static Expression Replace(Expression expr, IDictionary<Expression, Expression> replaceMap)
 			{
-				return new ExpressionReplacer(replaceMap).Visit(expr);
+				return new ExpressionReplacer(replaceMap).Visit(expr)!;
 			}
 
 			public static Expression GetBody(LambdaExpression lambda, params Expression[] toReplace)
@@ -102,7 +102,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					throw new InvalidOperationException();
 
 				return new ExpressionReplacer(Enumerable.Range(0, lambda.Parameters.Count)
-					.ToDictionary(i => (Expression)lambda.Parameters[i], i => toReplace[i])).Visit(lambda.Body);
+					.ToDictionary(i => (Expression)lambda.Parameters[i], i => toReplace[i])).Visit(lambda.Body)!;
 			}
 		}
 	}

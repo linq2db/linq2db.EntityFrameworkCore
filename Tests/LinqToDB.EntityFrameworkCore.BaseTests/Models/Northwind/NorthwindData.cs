@@ -130,7 +130,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 		{
 			context.Set<Customer>().AddRange(CreateCustomers());
 
-			var titleProperty = context.Model.FindEntityType(typeof(Employee)).FindProperty("Title");
+			var titleProperty = context.Model.FindEntityType(typeof(Employee))!.FindProperty("Title")!;
 			foreach (var employee in CreateEmployees())
 			{
 				context.Set<Employee>().Add(employee);

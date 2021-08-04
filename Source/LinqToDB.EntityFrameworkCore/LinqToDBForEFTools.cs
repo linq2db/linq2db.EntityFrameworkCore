@@ -65,7 +65,7 @@ namespace LinqToDB.EntityFrameworkCore
 				var newExpression = queryable.Expression;
 
 				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
-					.Invoke(null, new object[] { dc, newExpression });
+					.Invoke(null, new object[] { dc, newExpression })!;
 
 				if (prev != null)
 					result = prev(result);
