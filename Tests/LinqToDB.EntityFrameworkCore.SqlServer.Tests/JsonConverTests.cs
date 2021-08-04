@@ -26,7 +26,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			public int Id { get; set; }
 			public virtual LocalizedString NameLocalized { get; set; } = null!;
-			public virtual string JsonColumn { get; set; } = null!;
+			public virtual string? JsonColumn { get; set; }
 		}
 		
 		public enum CrashEnum : byte
@@ -74,7 +74,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					entity.Property(e => e.GuidColumn).HasColumnType("uniqueidentifier");
 				});
 
-				modelBuilder.HasDbFunction(typeof(JsonConverTests).GetMethod(nameof(JsonConverTests.JsonValue)))
+				modelBuilder.HasDbFunction(typeof(JsonConverTests).GetMethod(nameof(JsonConverTests.JsonValue))!)
 					.HasTranslation(e => new SqlFunctionExpression(
 						"JSON_VALUE", e, true, e.Select(_ => false), typeof(string), null));
 			}
@@ -138,9 +138,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 				var item = items.FirstOrDefault();
 
-				Assert.That(item.NameLocalized.English, Is.EqualTo("English"));
-				Assert.That(item.NameLocalized.German,  Is.EqualTo("German"));
-				Assert.That(item.NameLocalized.Slovak,  Is.EqualTo("Slovak"));
+				Assert.IsNotNull(item);
+				Assert.That(item!.NameLocalized.English, Is.EqualTo("English"));
+				Assert.That(item.NameLocalized.German,   Is.EqualTo("German"));
+				Assert.That(item.NameLocalized.Slovak,   Is.EqualTo("Slovak"));
 
 				//TODO: make it work
 				// var concrete = queryable.Select(p => new

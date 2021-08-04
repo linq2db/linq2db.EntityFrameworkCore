@@ -38,7 +38,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		internal ConsoleLoggerOptions? Options { get; set; }
 
-		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
 		{
 			if (!IsEnabled(logLevel))
 			{
@@ -58,7 +58,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			}
 		}
 
-		public virtual void WriteMessage(LogLevel logLevel, string logName, int eventId, string message, Exception exception)
+		public virtual void WriteMessage(LogLevel logLevel, string logName, int eventId, string message, Exception? exception)
 		{
 			var format = Options!.FormatterName;
 			Debug.Assert(format is ConsoleFormatterNames.Simple or ConsoleFormatterNames.Systemd);
@@ -114,7 +114,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			Console.WriteLine(message.Message);
 		}
 
-		private LogMessageEntry CreateDefaultLogMessage(StringBuilder logBuilder, LogLevel logLevel, string logName, int eventId, string message, Exception exception)
+		private LogMessageEntry CreateDefaultLogMessage(StringBuilder logBuilder, LogLevel logLevel, string logName, int eventId, string message, Exception? exception)
 		{
 			// Example:
 			// INFO: ConsoleApp.Program[10]
@@ -166,7 +166,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			);
 		}
 
-		private LogMessageEntry CreateSystemdLogMessage(StringBuilder logBuilder, LogLevel logLevel, string logName, int eventId, string message, Exception exception)
+		private LogMessageEntry CreateSystemdLogMessage(StringBuilder logBuilder, LogLevel logLevel, string logName, int eventId, string message, Exception? exception)
 		{
 			// systemd reads messages from standard out line-by-line in a '<pri>message' format.
 			// newline characters are treated as message delimiters, so we must replace them.

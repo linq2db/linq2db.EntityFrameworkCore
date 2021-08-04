@@ -370,7 +370,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
+#pragma warning disable CA1847 // Use char literal for a single character lookup
 				var query = ctx.Products.AsQueryable().Where(p => p.ProductName.Contains("a"));
+#pragma warning restore CA1847 // Use char literal for a single character lookup
 
 				var expectedArray = await query.ToArrayAsync();
 				var expectedDictionary = await query.ToDictionaryAsync(p => p.ProductId);
@@ -808,7 +810,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					var exception = Assert.Throws<Microsoft.Data.SqlClient.SqlException>(() =>
 					{
 						var result = query.ToLinqToDB().First();
-					});
+					})!;
 					Assert.AreEqual(exception.Number, timeoutErrorCode);
 				}
 				finally
