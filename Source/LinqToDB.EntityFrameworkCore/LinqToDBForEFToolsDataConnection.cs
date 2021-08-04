@@ -152,7 +152,7 @@ namespace LinqToDB.EntityFrameworkCore
 				var keyArray = key.Properties.Where(p => p.PropertyInfo != null || p.FieldInfo != null).Select(p =>
 					p.PropertyInfo != null
 						? p.PropertyInfo.GetValue(args.Entity)
-						: p.FieldInfo.GetValue(args.Entity)).ToArray();
+						: p.FieldInfo!.GetValue(args.Entity)).ToArray();
 
 				if (keyArray.Length == key.Properties.Count)
 				{

@@ -1,0 +1,24 @@
+﻿<Project>
+	<ItemGroup>
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+		<PackageVersion Include="NUnit3TestAdapter" Version="4.0.0" />
+		<PackageVersion Include="NUnit" Version="3.13.2" />
+		<PackageVersion Include="FluentAssertions" Version="5.10.3" />
+
+		<PackageVersion Include="linq2db" Version="3.4.2" />
+		<PackageVersion Include="linq2db.Tools" Version="3.4.2" />
+
+		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.0.0" />
+
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.0-preview.6.21352.1" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.0-preview.6.21352.1" />
+
+		<PackageVersion Include="Microsoft.Extensions.Logging" Version="6.0.0-preview.6.21352.12" />
+		<PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="6.0.0-preview.6.21352.12" />
+
+		<PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0-preview.5" />
+		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.0-preview6" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0-preview.6.21352.1" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.0-preview.6.21352.1" />
+	</ItemGroup>
+</Project>

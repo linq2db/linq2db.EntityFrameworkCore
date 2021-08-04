@@ -18,12 +18,12 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		public static IExternalScopeProvider Instance { get; } = new NullExternalScopeProvider();
 
 		/// <inheritdoc />
-		void IExternalScopeProvider.ForEachScope<TState>(Action<object, TState> callback, TState state)
+		void IExternalScopeProvider.ForEachScope<TState>(Action<object?, TState> callback, TState state)
 		{
 		}
 
 		/// <inheritdoc />
-		IDisposable IExternalScopeProvider.Push(object state)
+		IDisposable IExternalScopeProvider.Push(object? state)
 		{
 			return NullScope.Instance;
 		}
