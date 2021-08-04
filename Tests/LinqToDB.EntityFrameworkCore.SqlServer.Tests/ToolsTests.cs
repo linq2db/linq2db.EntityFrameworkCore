@@ -370,7 +370,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
-				var query = ctx.Products.AsQueryable().Where(p => p.ProductName.Contains('a'));
+				var query = ctx.Products.AsQueryable().Where(p => p.ProductName.Contains("a"));
 
 				var expectedArray = await query.ToArrayAsync();
 				var expectedDictionary = await query.ToDictionaryAsync(p => p.ProductId);
