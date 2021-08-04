@@ -48,7 +48,7 @@ stages:
       inputs:
         solution: '$(solution)'
         configuration: '$(build_configuration)'
-        msbuildArguments: '/t:Restore;Rebuild -m /p:ContinuousIntegrationBuild=true'
+        msbuildArguments: /restore /t:Restore;Rebuild -m /p:ContinuousIntegrationBuild=true
       displayName: Build Solution
 
     - powershell: echo "##vso[task.setvariable variable=packageVersion]$(packageVersion)-rc.$(Build.BuildId)"
