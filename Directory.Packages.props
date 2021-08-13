@@ -5,8 +5,8 @@
 		<PackageVersion Include="NUnit" Version="3.13.2" />
 		<PackageVersion Include="FluentAssertions" Version="5.10.3" />
 
-		<PackageVersion Include="linq2db" Version="3.4.2" />
-		<PackageVersion Include="linq2db.Tools" Version="3.4.2" />
+		<PackageVersion Include="linq2db" Version="3.4.3" />
+		<PackageVersion Include="linq2db.Tools" Version="3.4.3" />
 
 		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.0.0" />
 
