@@ -86,7 +86,7 @@ namespace LinqToDB.EntityFrameworkCore
 		readonly ConcurrentDictionary<ProviderKey, IDataProvider> _knownProviders = new();
 
 		private readonly MemoryCache _schemaCache = new(
-			new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions()
+			new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions
 			{
 				ExpirationScanFrequency = TimeSpan.FromHours(1.0)
 			});
