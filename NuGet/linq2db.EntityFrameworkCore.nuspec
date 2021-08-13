@@ -15,8 +15,8 @@
 		<license type="file">MIT-LICENSE.txt</license>
 		<dependencies>
 			<group targetFramework=".NETStandard2.0">
-				<dependency id="Microsoft.EntityFrameworkCore.Relational" version="3.1.10" />
-				<dependency id="linq2db" version="3.4.2" />
+				<dependency id="Microsoft.EntityFrameworkCore.Relational" version="3.1.11" />
+				<dependency id="linq2db" version="3.4.3" />
 			</group>
 		</dependencies>
 	</metadata>
