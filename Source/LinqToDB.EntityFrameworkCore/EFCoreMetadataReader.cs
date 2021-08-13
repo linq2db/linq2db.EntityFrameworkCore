@@ -85,6 +85,8 @@ namespace LinqToDB.EntityFrameworkCore
 							return e;
 						});
 
+						filterBody = LinqToDBForEFTools.TransformExpression(filterBody, null, null, _model);
+
 						// we have found dependency, check for compatibility
 
 						var filterLambda = Expression.Lambda(filterBody, filter.Parameters[0]);

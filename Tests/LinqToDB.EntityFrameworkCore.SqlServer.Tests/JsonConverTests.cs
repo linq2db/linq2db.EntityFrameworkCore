@@ -133,7 +133,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 						p.NameLocalized,
 						p.CrashEnum,
 						p.GuidColumn,
-						JsonValue = JsonValue(p.JsonColumn, path)
+						JsonValue = JsonValue(p.JsonColumn!, path)
 					});
 
 				var item = items.FirstOrDefault();
