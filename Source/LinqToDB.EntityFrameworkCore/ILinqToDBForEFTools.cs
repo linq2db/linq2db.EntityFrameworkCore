@@ -77,7 +77,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="ctx">Optional DbContext instance.</param>
 		/// <param name="model">EF Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
-		Expression TransformExpression(Expression expression, IDataContext dc, DbContext? ctx, IModel? model);
+		Expression TransformExpression(Expression expression, IDataContext? dc, DbContext? ctx, IModel? model);
 
 		/// <summary>
 		/// Extracts <see cref="DbContext"/> instance from <see cref="IQueryable"/> object.

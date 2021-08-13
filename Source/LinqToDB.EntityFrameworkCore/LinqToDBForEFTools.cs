@@ -231,7 +231,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="ctx">Optional DbContext instance.</param>
 		/// <param name="model">EF Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
-		public static Expression TransformExpression(Expression expression, IDataContext dc, DbContext? ctx, IModel? model)
+		public static Expression TransformExpression(Expression expression, IDataContext? dc, DbContext? ctx, IModel? model)
 		{
 			return Implementation.TransformExpression(expression, dc, ctx, model);
 		}

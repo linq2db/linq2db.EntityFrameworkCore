@@ -2,13 +2,15 @@
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
-
-using Microsoft.EntityFrameworkCore.Metadata;
+using System.Reflection;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -16,6 +18,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Data;
 	using DataProvider;
 	using Linq;
+	using Expressions;
 
 	/// <summary>
 	/// linq2db EF.Core data connection.
@@ -28,6 +31,11 @@ namespace LinqToDB.EntityFrameworkCore
 		private IEntityType?   _lastEntityType;
 		private Type?          _lastType;
 		private IStateManager? _stateManager;
+
+		private static IMemoryCache _entityKeyGetterCache = new MemoryCache(Options.Create(new MemoryCacheOptions()));
+
+		private static MethodInfo TryGetEntryMethodInfo =
+			MemberHelper.MethodOf<IStateManager>(sm => sm.TryGetEntry(null!, Array.Empty<object>()));
 
 		/// <summary>
 		/// Change tracker enable flag.
@@ -121,8 +129,61 @@ namespace LinqToDB.EntityFrameworkCore
 			return _transformFunc(expression, this, Context, _model);
 		}
 
+		private class TypeKey
+		{
+			public TypeKey(IEntityType entityType, IModel? model)
+			{
+				EntityType = entityType;
+				Model = model;
+			}
+
+			public IEntityType EntityType { get; }
+			public IModel? Model { get; }
+
+			protected bool Equals(TypeKey other)
+			{
+				return EntityType.Equals(other.EntityType) && Equals(Model, other.Model);
+			}
+
+			public override bool Equals(object? obj)
+			{
+				if (ReferenceEquals(null, obj))
+				{
+					return false;
+				}
+
+				if (ReferenceEquals(this, obj))
+				{
+					return true;
+				}
+
+				if (obj.GetType() != this.GetType())
+				{
+					return false;
+				}
+
+				return Equals((TypeKey)obj);
+			}
+
+			public override int GetHashCode()
+			{
+				unchecked
+				{
+					return (EntityType.GetHashCode() * 397) ^ (Model != null ? Model.GetHashCode() : 0);
+				}
+			}
+		}
+
 		private void OnEntityCreatedHandler(EntityCreatedEventArgs args)
 		{
+			// Do not allow to store in ChangeTracker temporary tables
+			if ((args.TableOptions & TableOptions.IsTemporaryOptionSet) != 0)
+				return;
+
+			// Do not allow to store in ChangeTracker tables from different server
+			if (args.ServerName != null)
+				return;
+
 			if (!LinqToDBForEFTools.EnableChangeTracker
 			    || !Tracking 
 			    || Context!.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.NoTracking)
@@ -138,6 +199,10 @@ namespace LinqToDB.EntityFrameworkCore
 			if (_lastEntityType == null)
 				return;
 
+			// Do not allow to store in ChangeTracker tables that has different name
+			if (args.TableName != _lastEntityType.GetTableName())
+				return;
+
 			if (_stateManager == null)
 				_stateManager = Context.GetService<IStateManager>();
 
@@ -146,22 +211,18 @@ namespace LinqToDB.EntityFrameworkCore
 			//
 			InternalEntityEntry? entry = null;
 
-			foreach (var key in _lastEntityType.GetKeys())
+			var kacheKey = new TypeKey (_lastEntityType, _model);
+
+			var retrievalFunc = _entityKeyGetterCache.GetOrCreate(kacheKey, ce =>
 			{
-				//TODO: Find faster way
-				var keyArray = key.Properties.Where(p => p.PropertyInfo != null || p.FieldInfo != null).Select(p =>
-					p.PropertyInfo != null
-						? p.PropertyInfo.GetValue(args.Entity)
-						: p.FieldInfo.GetValue(args.Entity)).ToArray();
+				ce.SlidingExpiration = TimeSpan.FromHours(1);
+				return CreateEntityRetrievalFunc(((TypeKey)ce.Key).EntityType);
+			});
 
-				if (keyArray.Length == key.Properties.Count)
-				{
-					entry = _stateManager.TryGetEntry(key, keyArray);
+			if (retrievalFunc == null)
+				return;
 
-					if (entry != null)
-						break;
-				}
-			}
+			entry = retrievalFunc(_stateManager, args.Entity);
 
 			if (entry == null)
 			{
@@ -169,6 +230,37 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 
 			args.Entity = entry.Entity;
+		}
+
+		private Func<IStateManager, object, InternalEntityEntry?>? CreateEntityRetrievalFunc(IEntityType entityType)
+		{
+			var stateManagerParam = Expression.Parameter(typeof(IStateManager), "sm");
+			var objParam = Expression.Parameter(typeof(object), "o");
+
+			var variable = Expression.Variable(entityType.ClrType, "e");
+			var assignExpr = Expression.Assign(variable, Expression.Convert(objParam, entityType.ClrType));
+
+			var key = entityType.GetKeys().FirstOrDefault();
+
+			var arrayExpr = key.Properties.Where(p => p.PropertyInfo != null || p.FieldInfo != null).Select(p =>
+					Expression.Convert(Expression.MakeMemberAccess(variable, p.PropertyInfo ?? (MemberInfo)p.FieldInfo),
+						typeof(object)))
+				.ToArray();
+
+			if (arrayExpr.Length == 0)
+				return null;
+
+			var newArrayExpression = Expression.NewArrayInit(typeof(object), arrayExpr);
+			var body =
+				Expression.Block(new[] { variable },
+					assignExpr,
+					Expression.Call(stateManagerParam, TryGetEntryMethodInfo, Expression.Constant(key),
+						newArrayExpression));
+
+			var lambda =
+				Expression.Lambda<Func<IStateManager, object, InternalEntityEntry?>>(body, stateManagerParam, objParam);
+
+			return lambda.Compile();
 		}
 
 		private void CopyDatabaseProperties()

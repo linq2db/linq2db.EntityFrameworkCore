@@ -86,7 +86,7 @@ namespace LinqToDB.EntityFrameworkCore
 		readonly ConcurrentDictionary<ProviderKey, IDataProvider> _knownProviders = new();
 
 		private readonly MemoryCache _schemaCache = new(
-			new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions()
+			new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions
 			{
 				ExpirationScanFrequency = TimeSpan.FromHours(1.0)
 			});
@@ -762,7 +762,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="ctx">Optional DbContext instance.</param>
 		/// <param name="model">EF Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
-		public virtual Expression TransformExpression(Expression expression, IDataContext dc, DbContext? ctx, IModel? model)
+		public virtual Expression TransformExpression(Expression expression, IDataContext? dc, DbContext? ctx, IModel? model)
 		{
 			var tracking           = true;
 			var ignoreTracking     = false;
@@ -775,7 +775,7 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					case ExpressionType.Constant:
 					{
-						if (typeof(EntityQueryable<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type))
+						if (dc != null && typeof(EntityQueryable<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type))
 						{
 							var entityType = e.Type.GenericTypeArguments[0];
 							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(entityType), Expression.Constant(dc));
@@ -965,7 +965,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 					case ExpressionType.Extension:
 					{
-						if (e is FromSqlQueryRootExpression fromSqlQueryRoot)
+						if (dc != null && e is FromSqlQueryRootExpression fromSqlQueryRoot)
 						{
 							//convert the arguments from the FromSqlOnQueryable method from EF, to a L2DB FromSql call
 							return new TransformInfo(Expression.Call(null,
@@ -974,7 +974,7 @@ namespace LinqToDB.EntityFrameworkCore
 								Expression.New(RawSqlStringConstructor, Expression.Constant(fromSqlQueryRoot.Sql)),
 								fromSqlQueryRoot.Argument));
 						}
-						else if (e is QueryRootExpression queryRoot)
+						else if (dc != null && e is QueryRootExpression queryRoot)
 						{
 							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(queryRoot.EntityType.ClrType), Expression.Constant(dc));
 							return new TransformInfo(newExpr);
