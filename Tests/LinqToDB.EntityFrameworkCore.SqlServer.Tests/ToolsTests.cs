@@ -593,6 +593,23 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		}
 
 		[Test]
+		public async Task TestChangeTrackerTemporaryTable([Values(true, false)] bool enableFilter)
+		{
+			using var ctx = CreateContext(enableFilter);
+
+			var query = ctx.Orders;
+
+			using var db = ctx.CreateLinqToDbConnection();
+
+			using var temp = await db.CreateTempTableAsync(query, tableName: "#Orders");
+
+			var result = temp.Take(2).ToList();
+
+			ctx.Orders.Local.Should().BeEmpty();
+		}
+
+
+		[Test]
 		public void NavigationProperties()
 		{
 			using (var ctx = CreateContext(false))
