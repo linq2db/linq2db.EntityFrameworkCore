@@ -147,7 +147,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 			context.Set<OrderDetail>().AddRange(CreateOrderDetails());
 		}
 
+#pragma warning disable CA2252 // This API requires opting into preview features
 		private class AsyncEnumerable<T> : IAsyncQueryProvider, IOrderedQueryable<T>
+#pragma warning restore CA2252 // This API requires opting into preview features
 		{
 			private readonly EnumerableQuery<T> _enumerableQuery;
 

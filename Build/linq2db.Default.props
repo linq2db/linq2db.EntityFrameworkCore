@@ -27,6 +27,7 @@
 		<GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
 		<GenerateAssemblyFileVersionAttribute>true</GenerateAssemblyFileVersionAttribute>
 		<GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports> 
 
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 

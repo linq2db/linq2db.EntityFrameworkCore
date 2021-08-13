@@ -21,7 +21,9 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 	///		It may change or be removed without further notice.
 	/// </summary>
 	/// <typeparam name="T">Type of query element.</typeparam>
+#pragma warning disable CA2252 // This API requires opting into preview features
 	public class LinqToDBForEFQueryProvider<T> : IAsyncQueryProvider, IQueryProviderAsync, IQueryable<T>, IAsyncEnumerable<T>
+#pragma warning restore CA2252 // This API requires opting into preview features
 	{
 		/// <summary>
 		/// Creates instance of adapter.
