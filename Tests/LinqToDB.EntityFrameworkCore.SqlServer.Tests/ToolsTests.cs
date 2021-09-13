@@ -5,6 +5,7 @@ using FluentAssertions;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
+using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Inheritance;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
@@ -16,7 +17,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	[TestFixture]
 	public class ToolsTests : TestsBase
 	{
-		private readonly DbContextOptions _options;
+		private readonly DbContextOptions _northwindOptions;
+		private DbContextOptions? _inheritanceOptions;
 		private readonly DbContextOptions<NorthwindContext> _inmemoryOptions;
 
 		static ToolsTests()
@@ -25,7 +27,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			DataConnection.TurnTraceSwitchOn();
 		}
 
-		public ToolsTests()
+		static DbContextOptions CreateNorthwindOptions()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
@@ -33,9 +35,27 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			optionsBuilder.UseSqlServer("Server=.;Database=NorthwindEFCore;Integrated Security=SSPI");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
-			_options = optionsBuilder.Options;
+			return optionsBuilder.Options;
+		}
 
-			optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
+		static DbContextOptions CreateInheritanceOptions()
+		{
+			var optionsBuilder = new DbContextOptionsBuilder<InheritanceContext>();
+			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
+
+			optionsBuilder.UseSqlServer("Server=.;Database=InheritanceEFCore;Integrated Security=SSPI");
+			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
+			optionsBuilder.EnableSensitiveDataLogging();
+
+			return optionsBuilder.Options;
+		}
+
+		public ToolsTests()
+		{
+			_northwindOptions = CreateNorthwindOptions();
+
+
+			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
 			optionsBuilder.UseInMemoryDatabase("sample");
@@ -66,13 +86,30 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 		private NorthwindContext CreateContext(bool enableFilter)
 		{
-			var ctx = new NorthwindContext(_options);
+			var ctx = new NorthwindContext(_northwindOptions);
 			ctx.IsSoftDeleteFilterEnabled = enableFilter;
 			//ctx.Database.EnsureDeleted();
 			if (ctx.Database.EnsureCreated())
 			{
 				NorthwindData.Seed(ctx);
 			}			
+			return ctx;
+		}
+
+		private InheritanceContext CreateInheritanceContext()
+		{
+			var recreate = _inheritanceOptions == null;
+
+			if (_inheritanceOptions == null)
+				_inheritanceOptions = CreateInheritanceOptions();
+
+			var ctx = new InheritanceContext(_inheritanceOptions);
+			if (recreate)
+			{
+				ctx.Database.EnsureDeleted();
+				ctx.Database.EnsureCreated();
+			}
+
 			return ctx;
 		}
 
@@ -170,7 +207,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public void TestCreateFromOptions()
 		{
-			using (var db = _options.CreateLinqToDbConnection())
+			using (var db = _northwindOptions.CreateLinqToDbConnection())
 			{
 			}
 		}
@@ -851,6 +888,46 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				str.Should().Contain("Tagged query");
 			}
 		}
+		
+		[Test]
+		public void TestInheritanceBulkCopy([Values] BulkCopyType copyType)
+		{
+			using (var ctx = CreateInheritanceContext())
+			{
+				var data = new BlogBase[] { new Blog() { Url = "BlogUrl" }, new RssBlog() { Url = "RssUrl" } };
+
+				ctx.BulkCopy(new BulkCopyOptions(){ BulkCopyType = BulkCopyType.RowByRow }, data);
+
+				var items = ctx.Blogs.ToArray();
+
+				items[0].Should().BeOfType<Blog>();
+				((Blog)items[0]).Url.Should().Be("BlogUrl");
+
+				items[1].Should().BeOfType<RssBlog>();
+				((RssBlog)items[1]).Url.Should().Be("RssUrl");
+			}
+		}
+
+		/*
+		[Test]
+		public void TestInheritanceShadowBulkCopy([Values] BulkCopyType copyType)
+		{
+			using (var ctx = CreateInheritanceContext())
+			{
+				var data = new ShadowBlogBase[] { new ShadowBlog() { Url = "BlogUrl" }, new ShadowRssBlog() { Url = "RssUrl" } };
+
+				ctx.BulkCopy(new BulkCopyOptions(){ BulkCopyType = BulkCopyType.RowByRow }, data);
+
+				var items = ctx.ShadowBlogs.ToArray();
+
+				items[0].Should().BeOfType<ShadowBlog>();
+				((ShadowBlog)items[0]).Url.Should().Be("BlogUrl");
+
+				items[1].Should().BeOfType<ShadowRssBlog>();
+				((ShadowRssBlog)items[1]).Url.Should().Be("RssUrl");
+			}
+		}
+		*/
 
 	}
 }
