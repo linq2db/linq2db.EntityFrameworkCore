@@ -112,6 +112,24 @@ namespace LinqToDB.EntityFrameworkCore
 				if (tableAttribute != null)
 					return new[] { (T)(Attribute)new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema } };
 			}
+			else if (_model != null && typeof(T) == typeof(InheritanceMappingAttribute))
+			{
+				if (et != null)
+				{
+					var derivedEntities = _model.GetEntityTypes().Where(e => e.BaseType == et && e.GetDiscriminatorValue() != null).ToList();
+
+					return
+						derivedEntities.Select(e =>
+								(T)(Attribute)new InheritanceMappingAttribute
+								{
+									Type = e.ClrType, 
+									Code = e.GetDiscriminatorValue()
+								}
+							)
+							.ToArray();
+				}
+
+			}
 
 			return Array.Empty<T>();
 		}
@@ -174,7 +192,7 @@ namespace LinqToDB.EntityFrameworkCore
 				_ => DataType.Undefined
 			};
 		}
-
+		
 		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
 		{
 			if (typeof(Expression).IsSameOrParentOf(type)) 
@@ -187,9 +205,11 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					var props = et.GetProperties();
 					var prop  = props.FirstOrDefault(p => CompareProperty(p, memberInfo));
-
+					
 					if (prop != null)
 					{
+						var discriminator = et.FindDiscriminatorProperty();
+
 						var isPrimaryKey = prop.IsPrimaryKey();
 						var primaryKeyOrder = 0;
 						if (isPrimaryKey)
@@ -255,6 +275,7 @@ namespace LinqToDB.EntityFrameworkCore
 								IsPrimaryKey    = isPrimaryKey,
 								PrimaryKeyOrder = primaryKeyOrder,
 								IsIdentity      = isIdentity,
+								IsDiscriminator = discriminator == prop
 							}
 						};
 					}
