@@ -39,6 +39,7 @@ namespace LinqToDB.EntityFrameworkCore
 			this IQueryable<TSource> source,
 			Func<TSource, TKey>      keySelector,
 			CancellationToken        cancellationToken = default)
+			where TKey: notnull
 			=> EntityFrameworkQueryableExtensions.ToDictionaryAsync(source, keySelector, cancellationToken);
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.ToDictionaryAsync{TSource, TKey, TElement}(IQueryable{TSource}, Func{TSource, TKey}, Func{TSource, TElement}, CancellationToken)"/>
@@ -47,6 +48,7 @@ namespace LinqToDB.EntityFrameworkCore
 			Func<TSource,TKey>            keySelector,
 			Func<TSource,TElement>        elementSelector,
 			CancellationToken             cancellationToken = default)
+			where TKey : notnull
 			=> EntityFrameworkQueryableExtensions.ToDictionaryAsync(source, keySelector, elementSelector, cancellationToken);
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.ToDictionaryAsync{TSource, TKey, TElement}(IQueryable{TSource}, Func{TSource, TKey}, Func{TSource, TElement}, IEqualityComparer{TKey}, CancellationToken)"/>
@@ -56,6 +58,7 @@ namespace LinqToDB.EntityFrameworkCore
 			Func<TSource,TElement>        elementSelector,
 			IEqualityComparer<TKey>       comparer,
 			CancellationToken             cancellationToken = default)
+			where TKey : notnull
 			=> EntityFrameworkQueryableExtensions.ToDictionaryAsync(source, keySelector, elementSelector, comparer, cancellationToken);
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.FirstAsync{TSource}(IQueryable{TSource}, CancellationToken)"/>

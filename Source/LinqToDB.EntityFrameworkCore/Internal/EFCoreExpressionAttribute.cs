@@ -32,13 +32,13 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			{
 				var mc = (MethodCallExpression) expression;
 				if (!mc.Method.IsStatic)
-					knownExpressions.Add(mc.Object);
+					knownExpressions.Add(mc.Object!);
 				knownExpressions.AddRange(mc.Arguments);
 			}
 			else
 			{
 				var me = (MemberExpression) expression;
-				knownExpressions.Add(me.Expression);
+				knownExpressions.Add(me.Expression!);
 			}
 
 			var pams = new List<ISqlExpression?>(knownExpressions.Select(_ => (ISqlExpression?) null));

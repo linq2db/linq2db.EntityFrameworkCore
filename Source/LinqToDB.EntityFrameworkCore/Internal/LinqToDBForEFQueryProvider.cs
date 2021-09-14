@@ -67,7 +67,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// </summary>
 		/// <param name="expression">Query expression.</param>
 		/// <returns>Query result.</returns>
-		public object Execute(Expression expression)
+		public object? Execute(Expression expression)
 		{
 			return QueryProvider.Execute(expression);
 		}
@@ -109,7 +109,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		{
 			var item = typeof(TResult).GetGenericArguments()[0];
 			var method = _executeAsyncMethodInfo.MakeGenericMethod(item);
-			return (TResult) method.Invoke(QueryProvider, new object[] { expression, cancellationToken });
+			return (TResult) method.Invoke(QueryProvider, new object[] { expression, cancellationToken })!;
 		}
 
 		/// <summary>
@@ -167,7 +167,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// Returns generated SQL for specific LINQ query.
 		/// </summary>
 		/// <returns>Generated SQL.</returns>
-		public override string ToString()
+		public override string? ToString()
 		{
 			return QueryProvider.ToString();
 		}
