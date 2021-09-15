@@ -8,8 +8,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Extensions.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
@@ -137,20 +139,6 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
 
         public static void Seed(NorthwindContext context)
         {
-            AddEntities(context);
-
-            context.SaveChanges();
-        }
-
-        public static Task SeedAsync(NorthwindContext context)
-        {
-            AddEntities(context);
-
-            return context.SaveChangesAsync();
-        }
-
-        private static void AddEntities(NorthwindContext context)
-        {
             context.Set<Customer>().AddRange(CreateCustomers());
 
             var titleProperty = context.Model.FindEntityType(typeof(Employee)).FindProperty("Title");
@@ -163,6 +151,8 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
             context.Set<Order>().AddRange(CreateOrders());
             context.Set<Product>().AddRange(CreateProducts());
             context.Set<OrderDetail>().AddRange(CreateOrderDetails());
+
+            context.SaveChanges();
         }
 
         private class AsyncEnumerable<T> : IAsyncQueryProvider, IOrderedQueryable<T>
@@ -186,6 +176,9 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
                 => ((IQueryProvider)_enumerableQuery)
                     .Execute<TResult>(RewriteShadowPropertyAccess(expression));
 
+            public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+                => Task.FromResult(Execute<TResult>(RewriteShadowPropertyAccess(expression)));
+
             public IEnumerator<T> GetEnumerator() => ((IQueryable<T>)_enumerableQuery).GetEnumerator();
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -196,7 +189,7 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
             private static Expression RewriteShadowPropertyAccess(Expression expression)
                 => new ShadowStateAccessRewriter().Visit(expression);
 
-            private class ShadowStateAccessRewriter : ExpressionVisitor
+            private class ShadowStateAccessRewriter : ExpressionVisitorBase
             {
                 protected override Expression VisitMethodCall(MethodCallExpression expression)
                     => expression.Method.IsEFPropertyMethod()
@@ -216,7 +209,7 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
                 throw new NotImplementedException();
             }
 
-            public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+            public IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
             {
                 throw new NotImplementedException();
             }

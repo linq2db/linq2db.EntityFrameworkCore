@@ -2,7 +2,6 @@
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore;
 using LinqToDB.EntityFrameworkCore.Tests;
-using LinqToDB.EntityFrameworkCore.Tests.Models.AdventuresWorks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlAzure.Model;
 using NUnit.Framework;

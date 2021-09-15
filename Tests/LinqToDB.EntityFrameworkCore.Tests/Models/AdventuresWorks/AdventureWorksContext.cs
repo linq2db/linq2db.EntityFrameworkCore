@@ -2,10 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using LinqToDB.EntityFrameworkCore.Tests.Model;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.SqlAzure.Model;
+using NUnit.Framework.Internal;
 
-namespace LinqToDB.EntityFrameworkCore.Tests.Models.AdventuresWorks
+namespace Microsoft.EntityFrameworkCore.SqlAzure.Model
 {
 	public class AdventureWorksContext : DbContext
 	{

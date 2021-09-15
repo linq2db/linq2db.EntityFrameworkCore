@@ -12,10 +12,9 @@ using System.Threading;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
@@ -27,7 +26,6 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 	using Extensions;
-	using SqlQuery;
 	using Common.Internal.Cache;
 
 	using DataProvider;
@@ -289,20 +287,10 @@ namespace LinqToDB.EntityFrameworkCore
 
 		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string connectionString)
 		{
-			string providerName;
-
 			if (!string.IsNullOrEmpty(connectionString))
-			{
+				return DataConnection.GetDataProvider("System.Data.SqlClient", connectionString);
 
-				if (typeof(DataConnection).Assembly.GetName().Version.Major >= 3)
-					providerName = "Microsoft.Data.SqlClient";
-				else
-					//TODO: Remove after switching to linq2db 3.0
-					providerName = "System.Data.SqlClient";
-
-				return DataConnection.GetDataProvider(providerName, connectionString);
-			}
-
+			string providerName;
 			switch (version)
 			{
 				case SqlServerVersion.v2000:
@@ -354,13 +342,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="dependencies"></param>
-		/// <param name="mappingSource"></param>
 		/// <returns>LINQ To DB metadata provider for specified EF.Core model.</returns>
 		public virtual IMetadataReader CreateMetadataReader(IModel model,
-			RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-			IRelationalTypeMappingSource mappingSource)
+			SqlTranslatingExpressionVisitorDependencies dependencies)
 		{
-			return new EFCoreMetadataReader(model, dependencies, mappingSource);
+			return new EFCoreMetadataReader(model, dependencies);
 		}
 
 		/// <summary>
@@ -368,98 +354,13 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
-		/// <param name="convertorSelector"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public virtual MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader,
-			IValueConverterSelector convertorSelector)
+		public virtual MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader)
 		{
 			var schema = new MappingSchema();
 			if (metadataReader != null)
 				schema.AddMetadataReader(metadataReader);
-
-			DefineConvertors(schema, model, convertorSelector);
-
 			return schema;
-		}
-
-		public virtual void DefineConvertors(
-			[JetBrains.Annotations.NotNull] MappingSchema mappingSchema,
-			[JetBrains.Annotations.NotNull] IModel model, 
-			IValueConverterSelector convertorSelector)
-		{
-			if (mappingSchema == null) throw new ArgumentNullException(nameof(mappingSchema));
-			if (model == null)         throw new ArgumentNullException(nameof(model));
-
-			if (convertorSelector == null)
-				return;
-
-			var entities = model.GetEntityTypes().ToArray();
-
-			var types = entities.SelectMany(e => e.GetProperties().Select(p => p.ClrType))
-				.Distinct()
-				.ToArray();
-
-			foreach (var clrType in types)
-			{
-				// skipping enums
-				if (clrType.IsEnum)
-					continue;
-
-				var currentType = mappingSchema.GetDataType(clrType);
-				if (currentType != SqlDataType.Undefined)
-					continue;
-
-				var infos = convertorSelector.Select(clrType).ToArray();
-				if (infos.Length > 0)
-				{
-					foreach (var info in infos)
-					{
-						currentType = mappingSchema.GetDataType(info.ModelClrType);
-						if (currentType != SqlDataType.Undefined)
-							continue;
-
-						var dataType    = mappingSchema.GetDataType(info.ProviderClrType);
-						var fromParam   = Expression.Parameter(clrType, "t");
-
-						var convertExpression = mappingSchema.GetConvertExpression(clrType, info.ProviderClrType, false);
-						var converter         = convertExpression.GetBody(fromParam);
-
-						var valueExpression   = converter;
-
-						if (clrType.IsClass || clrType.IsInterface)
-						{
-							valueExpression = Expression.Condition(
-								Expression.Equal(fromParam,
-									Expression.Constant(null, clrType)),
-								Expression.Constant(null, clrType),
-								valueExpression
-							);
-						}
-						else if (typeof(Nullable<>).IsSameOrParentOf(clrType))
-						{
-							valueExpression = Expression.Condition(
-								Expression.Property(fromParam, "HasValue"),
-								Expression.Convert(valueExpression, typeof(object)),
-								Expression.Constant(null, typeof(object))
-							);
-						}
-
-						if (valueExpression.Type != typeof(object))
-							valueExpression = Expression.Convert(valueExpression, typeof(object));
-
-						var convertLambda = Expression.Lambda(
-							Expression.New(DataParameterConstructor,
-								Expression.Constant("Conv", typeof(string)),
-								valueExpression,
-								Expression.Constant(dataType.DataType, typeof(DataType)),
-								Expression.Constant(dataType.DbType,   typeof(string))
-							), fromParam);
-
-						mappingSchema.SetConvertExpression(clrType, typeof(DataParameter), convertLambda, false);
-					}
-				}
-			}
-
 		}
 
 		/// <summary>
@@ -467,15 +368,13 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
-		/// <param name="convertorSelector"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader,
-			IValueConverterSelector convertorSelector)
+		public virtual MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader)
 		{
-			var result = _schemaCache.GetOrCreate(Tuple.Create(model, metadataReader, convertorSelector), e =>
+			var result = _schemaCache.GetOrCreate(Tuple.Create(model, metadataReader), e =>
 			{
 				e.SlidingExpiration = TimeSpan.FromHours(1); 
-				return CreateMappingSchema(model, metadataReader, convertorSelector);
+				return CreateMappingSchema(model, metadataReader);
 			});
 
 			return result;
@@ -524,10 +423,8 @@ namespace LinqToDB.EntityFrameworkCore
 		static readonly MethodInfo EFProperty =
 			MemberHelper.MethodOf(() => EF.Property<object>(1, "")).GetGenericMethodDefinition();
 
-		static readonly MethodInfo
+		private static readonly MethodInfo
 			L2DBProperty = typeof(Sql).GetMethod(nameof(Sql.Property)).GetGenericMethodDefinition();
-
-		static readonly ConstructorInfo DataParameterConstructor = MemberHelper.ConstructorOf(() => new DataParameter("", "", DataType.Undefined, ""));
 
 		public static Expression Unwrap(Expression ex)
 		{
@@ -542,7 +439,7 @@ namespace LinqToDB.EntityFrameworkCore
 					{
 						var ue = (UnaryExpression)ex;
 
-						if (!ue.Operand.Type.IsEnum)
+						if (!ue.Operand.Type.IsEnumEx())
 							return Unwrap(ue.Operand);
 
 						break;
@@ -557,7 +454,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var type = method.Method.DeclaringType;
 
 			return type == typeof(Queryable) || (enumerable && type == typeof(Enumerable)) || type == typeof(LinqExtensions) ||
-				   type == typeof(EntityFrameworkQueryableExtensions);
+			       type == typeof(EntityFrameworkQueryableExtensions);
 		}
 
 		public static object EvaluateExpression(Expression expr)
@@ -687,7 +584,6 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="ctx">Optional DbContext instance.</param>
 		/// <param name="model">EF.Core data model instance.</param>
 		/// <returns>Transformed expression.</returns>
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EF1001:Internal EF Core API usage.", Justification = "<Pending>")]
 		public virtual Expression TransformExpression(Expression expression, IDataContext dc, DbContext ctx, IModel model)
 		{
 			var ignoreQueryFilters = false;
@@ -742,7 +638,7 @@ namespace LinqToDB.EntityFrameworkCore
 									var props = navigationPath.Split('.');
 									for (int i = 0; i < props.Length; i++)
 									{
-										var propertyInfo = memberExpression.Type.GetProperty(props[i]);
+										var propertyInfo = memberExpression.Type.GetPropertyEx(props[i]);
 										if (propertyInfo != null)
 											memberExpression = Expression.MakeMemberAccess(memberExpression, propertyInfo);
 									}
@@ -782,7 +678,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 							if (!ignoreQueryFilters)
 							{
-								var filter = model?.FindEntityType(entityType).GetQueryFilter();
+								var filter = model?.FindEntityType(entityType).QueryFilter;
 								if (filter != null)
 								{
 									var filterBody = filter.Body.Transform(l => LocalTransform(l));
@@ -906,14 +802,14 @@ namespace LinqToDB.EntityFrameworkCore
 			if (!(queryContextFactoryField.GetValue(compiler) is RelationalQueryContextFactory queryContextFactory))
 				throw new LinqToDBForEFToolsException("LinqToDB Tools for EFCore support only Relational Databases.");
 
-			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetField("_dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
+			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
 
-			if (dependenciesProperty == null)
-				throw new LinqToDBForEFToolsException($"Can not find private property '{nameof(RelationalQueryContextFactory)}._dependencies' in current EFCore Version.");
+			if (queryContextFactoryField == null)
+				throw new LinqToDBForEFToolsException($"Can not find private property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version.");
 
 			var dependencies = (QueryContextDependencies) dependenciesProperty.GetValue(queryContextFactory);
 
-			return dependencies.CurrentContext?.Context;
+			return dependencies.CurrentDbContext?.Context;
 		}
 
 		/// <summary>

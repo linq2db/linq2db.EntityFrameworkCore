@@ -18,9 +18,15 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
         public int? CategoryID { get; set; }
         public string QuantityPerUnit { get; set; }
         public decimal? UnitPrice { get; set; }
+#if Test20
+        public short UnitsInStock { get; set; }
+        public short? UnitsOnOrder { get; set; }
+        public short? ReorderLevel { get; set; }
+#else
         public ushort UnitsInStock { get; set; }
         public ushort? UnitsOnOrder { get; set; }
         public ushort? ReorderLevel { get; set; }
+#endif
         public bool Discontinued { get; set; }
 
         public virtual List<OrderDetail> OrderDetails { get; set; }
@@ -34,10 +40,13 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
                 return false;
             }
 
-            return ReferenceEquals(this, obj)
-                ? true
-                : obj.GetType() == GetType()
-                  && Equals((Product)obj);
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            return obj.GetType() == GetType()
+                   && Equals((Product)obj);
         }
 
         public override int GetHashCode() => ProductID.GetHashCode();

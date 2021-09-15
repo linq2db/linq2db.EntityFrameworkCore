@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlAzure.Model;
 
 namespace LinqToDB.EntityFrameworkCore.Tests.Models.AdventuresWorks
 {

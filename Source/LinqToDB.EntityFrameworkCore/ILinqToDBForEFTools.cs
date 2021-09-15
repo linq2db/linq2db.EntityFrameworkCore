@@ -4,9 +4,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.Extensions.Logging;
 
 namespace LinqToDB.EntityFrameworkCore
@@ -39,27 +37,24 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="dependencies"></param>
-		/// <param name="mappingSource"></param>
 		/// <returns>LINQ To DB metadata provider for specified EF.Core model. Can return <c>null</c>.</returns>
-		IMetadataReader CreateMetadataReader(IModel model, RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource);
+		IMetadataReader CreateMetadataReader(IModel model, SqlTranslatingExpressionVisitorDependencies dependencies);
 
 		/// <summary>
 		/// Creates mapping schema using provided EF.Core data model and metadata provider.
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
-		/// <param name="convertorSelector">EF Core registry for type conversion.</param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader, IValueConverterSelector convertorSelector);
+		MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader);
 
 		/// <summary>
 		/// Returns mapping schema using provided EF.Core data model and metadata provider.
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
-		/// <param name="convertorSelector">EF Core registry for type conversion.</param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
-		MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader, IValueConverterSelector convertorSelector);
+		MappingSchema GetMappingSchema(IModel model, IMetadataReader metadataReader);
 
 		/// <summary>
 		/// Returns EF.Core <see cref="IDbContextOptions"/> for specific <see cref="DbContext"/> instance.

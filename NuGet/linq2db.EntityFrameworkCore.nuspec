@@ -14,8 +14,8 @@
 		<projectUrl>https://github.com/linq2db/linq2db.EntityFrameworkCore</projectUrl>
 		<license type="file">MIT-LICENSE.txt</license>
 		<dependencies>
-			<group targetFramework=".NETStandard2.1">
-				<dependency id="Microsoft.EntityFrameworkCore.Relational" version="3.0.0" />
+			<group targetFramework=".NETStandard2.0">
+				<dependency id="Microsoft.EntityFrameworkCore.Relational" version="2.2.6" />
 				<dependency id="linq2db" version="2.9.6" />
 			</group>
 		</dependencies>

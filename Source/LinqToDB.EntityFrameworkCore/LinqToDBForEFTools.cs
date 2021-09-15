@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 
 namespace LinqToDB.EntityFrameworkCore
 {
@@ -90,7 +90,7 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				_implementation = value ?? throw new ArgumentNullException(nameof(value));
 				_metadataReaders.Clear();
-				_defaultMeadataReader = new Lazy<IMetadataReader>(() => Implementation.CreateMetadataReader(null, null, null));
+				_defaultMeadataReader = new Lazy<IMetadataReader>(() => Implementation.CreateMetadataReader(null, null));
 			}
 		}
 
@@ -120,15 +120,14 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF.Core data model instance. Could be <c>null</c>.</param>
 		/// <param name="dependencies"></param>
-		/// <param name="mappingSource"></param>
 		/// <returns>LINQ To DB metadata provider.</returns>
 		public static IMetadataReader GetMetadataReader([JetBrains.Annotations.CanBeNull] IModel model,
-			RelationalSqlTranslatingExpressionVisitorDependencies dependencies, IRelationalTypeMappingSource mappingSource)
+			SqlTranslatingExpressionVisitorDependencies dependencies)
 		{
 			if (model == null)
 				return _defaultMeadataReader.Value;
 
-			return _metadataReaders.GetOrAdd(model, m => Implementation.CreateMetadataReader(model, dependencies, mappingSource));
+			return _metadataReaders.GetOrAdd(model, m => Implementation.CreateMetadataReader(model, dependencies));
 		}
 
 		/// <summary>
@@ -212,16 +211,12 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Creates mapping schema using provided EF.Core data model.
 		/// </summary>
 		/// <param name="model">EF.Core data model.</param>
-		/// <param name="convertorSelector">EF Core registry for type conversion.</param>
 		/// <param name="dependencies"></param>
-		/// <param name="mappingSource"></param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		public static MappingSchema GetMappingSchema(IModel model,
-			IValueConverterSelector convertorSelector,
-			RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-			IRelationalTypeMappingSource mappingSource)
+			SqlTranslatingExpressionVisitorDependencies dependencies)
 		{
-			return Implementation.GetMappingSchema(model, GetMetadataReader(model, dependencies, mappingSource), convertorSelector);
+			return Implementation.GetMappingSchema(model, GetMetadataReader(model, dependencies));
 		}
 
 		/// <summary>
@@ -281,10 +276,8 @@ namespace LinqToDB.EntityFrameworkCore
 			if (logger != null)
 				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
-			var dependencies  = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-			var mappingSource = context.GetService<IRelationalTypeMappingSource>();
-			var converters    = context.GetService<IValueConverterSelector>();
-			var mappingSchema = GetMappingSchema(context.Model, converters, dependencies, mappingSource);
+			var dependencies  = context.GetService<SqlTranslatingExpressionVisitorDependencies>();
+			var mappingSchema = GetMappingSchema(context.Model, dependencies);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
@@ -309,10 +302,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var connectionInfo = GetConnectionInfo(info);
 			var provider       = GetDataProvider(info, connectionInfo);
-			var dependencies   = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-			var mappingSource  = context.GetService<IRelationalTypeMappingSource>();
-			var converters     = context.GetService<IValueConverterSelector>();
-			var mappingSchema  = GetMappingSchema(context.Model, converters, dependencies, mappingSource);
+			var dependencies   = context.GetService<SqlTranslatingExpressionVisitorDependencies>();
+			var mappingSchema  = GetMappingSchema(context.Model, dependencies);
 			var logger         = CreateLogger(info.Options);
 
 			if (transaction != null)
@@ -334,7 +325,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 					if (mappingSchema != null)
 						dataContext.MappingSchema = mappingSchema;
-					
+		
 					if (logger != null)
 						dataContext.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 						
@@ -370,10 +361,8 @@ namespace LinqToDB.EntityFrameworkCore
 			if (logger != null)
 				dc.OnTraceConnection = t => Implementation.LogConnectionTrace(t, logger);
 
-			var dependencies  = context.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-			var mappingSource = context.GetService<IRelationalTypeMappingSource>();
-			var converters    = context.GetService<IValueConverterSelector>();
-			var mappingSchema = GetMappingSchema(context.Model, converters, dependencies, mappingSource);
+			var dependencies  = context.GetService<SqlTranslatingExpressionVisitorDependencies>();
+			var mappingSchema = GetMappingSchema(context.Model, dependencies);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
@@ -444,7 +433,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			if (model != null)
 			{
-				var mappingSchema = GetMappingSchema(model, null, null, null);
+				var mappingSchema = GetMappingSchema(model, null);
 				if (mappingSchema != null)
 					dc.AddMappingSchema(mappingSchema);
 			}

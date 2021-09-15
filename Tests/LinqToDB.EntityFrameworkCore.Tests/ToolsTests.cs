@@ -1,18 +1,23 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB.Data;
-using LinqToDB.EntityFrameworkCore.Tests.Models.AdventuresWorks;
+using LinqToDB.EntityFrameworkCore;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
 using NUnit.Framework;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlAzure.Model;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
+
+using LinqToDB;
+using LinqToDB.EntityFrameworkCore.Tests;
+using LinqToDB.EntityFrameworkCore.Tests.Models.AdventuresWorks;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 
 namespace LinqToDB.EntityFrameworkCore.Tests
 {
@@ -284,7 +289,7 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 						DiffMillisecond2 = p.SellEndDate == null ? (int?)null : EF.Functions.DateDiffMillisecond(p.SellStartDate, p.SellStartDate.AddMilliseconds(100)),
 					};
 
-//				var items1 = query.ToArray();
+				var items1 = query.ToArray();
 				var items2 = query.ToLinqToDB().ToArray();
 			}
 		}
@@ -386,10 +391,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
-				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var converters    = ctx.GetService<IValueConverterSelector>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource);
+				var dependencies = ctx.GetService<SqlTranslatingExpressionVisitorDependencies>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies);
 				
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(CustomerAddress),
 					MemberHelper.MemberOf<CustomerAddress>(c => c.CustomerID));
@@ -412,10 +415,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
-				var dependencies = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var converters    = ctx.GetService<IValueConverterSelector>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, null);
+				var dependencies = ctx.GetService<SqlTranslatingExpressionVisitorDependencies>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies);
 				
 				var associationCustomer = ms.GetAttribute<AssociationAttribute>(typeof(CustomerAddress),
 					MemberHelper.MemberOf<CustomerAddress>(c => c.Customer));
@@ -439,10 +440,8 @@ namespace LinqToDB.EntityFrameworkCore.Tests
 		{
 			using (var ctx = CreateAdventureWorksContext())
 			{
-				var dependencies  = ctx.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-				var mappingSource = ctx.GetService<IRelationalTypeMappingSource>();
-				var converters    = ctx.GetService<IValueConverterSelector>();
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, converters, dependencies, mappingSource);
+				var dependencies = ctx.GetService<SqlTranslatingExpressionVisitorDependencies>();
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, dependencies);
 				
 				var identity = ms.GetAttribute<ColumnAttribute>(typeof(SalesOrderDetail),
 					MemberHelper.MemberOf<SalesOrderDetail>(c => c.SalesOrderDetailID));

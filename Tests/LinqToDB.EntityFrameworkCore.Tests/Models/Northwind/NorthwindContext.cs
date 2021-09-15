@@ -20,9 +20,7 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
         public virtual DbSet<OrderDetail> OrderDetails { get; set; }
         public virtual DbSet<Product> Products { get; set; }
 
-#pragma warning disable CS0618 // Type or member is obsolete
         public virtual DbQuery<CustomerView> CustomerQueries { get; set; }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -80,7 +78,6 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
                         });
                 });
 
-#pragma warning disable CS0618 // Type or member is obsolete
             modelBuilder
                 .Query<CustomerView>()
                 .ToQuery(
@@ -133,7 +130,6 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
                                         OrderCount = c.Orders.Count(),
                                         SearchTerm = _searchTerm
                                     }));
-#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public string TenantPrefix { get; set; } = "B";
@@ -143,7 +139,7 @@ namespace Microsoft.EntityFrameworkCore.TestModels.Northwind
 
         public void ConfigureFilters(ModelBuilder modelBuilder)
         {
-            // Called explicitly from filter test fixtures. Code is here
+            // Called explictly from filter test fixtures. Code is here
             // so we can capture TenantPrefix in filter exprs (simulates OnModelCreating).
 
             modelBuilder.Entity<Customer>().HasQueryFilter(c => c.CompanyName.StartsWith(TenantPrefix));
