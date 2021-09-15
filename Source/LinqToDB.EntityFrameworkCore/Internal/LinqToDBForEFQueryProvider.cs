@@ -67,7 +67,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// </summary>
 		/// <param name="expression">Query expression.</param>
 		/// <returns>Query result.</returns>
-		public object Execute(Expression expression)
+		public object? Execute(Expression expression)
 		{
 			return QueryProvider.Execute(expression);
 		}
@@ -109,7 +109,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		{
 			var item = typeof(TResult).GetGenericArguments()[0];
 			var method = _executeAsyncMethodInfo.MakeGenericMethod(item);
-			return (TResult) method.Invoke(QueryProvider, new object[] { expression, cancellationToken });
+			return (TResult) method.Invoke(QueryProvider, new object[] { expression, cancellationToken })!;
 		}
 
 		/// <summary>
@@ -160,14 +160,15 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// <returns>Query result as <see cref="IAsyncEnumerable{T}"/>.</returns>
 		public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
 		{
-			return QueryProvider.ExecuteAsyncEnumerable<T>(Expression, cancellationToken).Result.GetAsyncEnumerator(cancellationToken);
+			return Task.Run(() => QueryProvider.ExecuteAsyncEnumerable<T>(Expression, cancellationToken),
+				cancellationToken).Result.GetAsyncEnumerator(cancellationToken);
 		}
 
 		/// <summary>
 		/// Returns generated SQL for specific LINQ query.
 		/// </summary>
 		/// <returns>Generated SQL.</returns>
-		public override string ToString()
+		public override string? ToString()
 		{
 			return QueryProvider.ToString();
 		}
