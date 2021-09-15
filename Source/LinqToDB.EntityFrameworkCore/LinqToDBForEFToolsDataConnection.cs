@@ -241,9 +241,11 @@ namespace LinqToDB.EntityFrameworkCore
 			var assignExpr = Expression.Assign(variable, Expression.Convert(objParam, entityType.ClrType));
 
 			var key = entityType.GetKeys().FirstOrDefault();
+			if (key == null)
+				return null;
 
 			var arrayExpr = key.Properties.Where(p => p.PropertyInfo != null || p.FieldInfo != null).Select(p =>
-					Expression.Convert(Expression.MakeMemberAccess(variable, p.PropertyInfo ?? (MemberInfo)p.FieldInfo),
+					Expression.Convert(Expression.MakeMemberAccess(variable, p.PropertyInfo ?? (MemberInfo)p.FieldInfo!),
 						typeof(object)))
 				.ToArray();
 

@@ -160,7 +160,8 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// <returns>Query result as <see cref="IAsyncEnumerable{T}"/>.</returns>
 		public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
 		{
-			return QueryProvider.ExecuteAsyncEnumerable<T>(Expression, cancellationToken).Result.GetAsyncEnumerator(cancellationToken);
+			return Task.Run(() => QueryProvider.ExecuteAsyncEnumerable<T>(Expression, cancellationToken),
+				cancellationToken).Result.GetAsyncEnumerator(cancellationToken);
 		}
 
 		/// <summary>
