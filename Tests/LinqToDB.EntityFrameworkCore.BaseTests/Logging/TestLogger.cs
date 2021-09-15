@@ -60,8 +60,8 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		public virtual void WriteMessage(LogLevel logLevel, string logName, int eventId, string message, Exception exception)
 		{
-			var format = Options!.Format;
-			Debug.Assert(format >= ConsoleLoggerFormat.Default && format <= ConsoleLoggerFormat.Systemd);
+			var format = Options!.FormatterName;
+			Debug.Assert(format is ConsoleFormatterNames.Simple or ConsoleFormatterNames.Systemd);
 
 			var logBuilder = _logBuilder;
 			_logBuilder = null;
@@ -72,11 +72,11 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			}
 
 			LogMessageEntry entry;
-			if (format == ConsoleLoggerFormat.Default)
+			if (format == ConsoleFormatterNames.Simple)
 			{
 				entry = CreateDefaultLogMessage(logBuilder, logLevel, logName, eventId, message, exception);
 			}
-			else if (format == ConsoleLoggerFormat.Systemd)
+			else if (format == ConsoleFormatterNames.Systemd)
 			{
 				entry = CreateSystemdLogMessage(logBuilder, logLevel, logName, eventId, message, exception);
 			}
