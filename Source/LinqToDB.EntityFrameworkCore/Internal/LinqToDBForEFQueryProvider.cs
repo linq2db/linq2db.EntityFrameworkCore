@@ -3,17 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
-using JetBrains.Annotations;
-using LinqToDB.Expressions;
-
 namespace LinqToDB.EntityFrameworkCore.Internal
 {
+	extern alias interactive_async;
+	extern alias bcl_async;
 	using Async;
 	using Linq;
 
@@ -22,10 +20,15 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 	///		This is internal API and is not intended for use by Linq To DB applications.
 	///		It may change or be removed without further notice.
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public class LinqToDBForEFQueryProvider<T> : IAsyncQueryProvider, IQueryProviderAsync, IQueryable<T>, System.Collections.Generic.IAsyncEnumerable<T>
+	/// <typeparam name="T">Type of query element.</typeparam>
+	public class LinqToDBForEFQueryProvider<T> : IAsyncQueryProvider, IQueryProviderAsync, IQueryable<T>, interactive_async::System.Collections.Generic.IAsyncEnumerable<T>
 	{
-		public LinqToDBForEFQueryProvider([NotNull] IDataContext dataContext, [NotNull] Expression expression)
+		/// <summary>
+		/// Creates instance of adapter.
+		/// </summary>
+		/// <param name="dataContext">Data context instance.</param>
+		/// <param name="expression">Query expression.</param>
+		public LinqToDBForEFQueryProvider(IDataContext dataContext, Expression expression)
 		{
 			if (expression == null) throw new ArgumentNullException(nameof(expression));
 			var dataContext1 = dataContext ?? throw new ArgumentNullException(nameof(dataContext));
@@ -36,46 +39,118 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		IQueryProviderAsync QueryProvider { get; }
 		IQueryable<T> QueryProviderAsQueryable { get; }
 
+		/// <summary>
+		/// Creates <see cref="IQueryable"/> instance from query expression.
+		/// </summary>
+		/// <param name="expression">Query expression.</param>
+		/// <returns><see cref="IQueryable"/> instance.</returns>
 		public IQueryable CreateQuery(Expression expression)
 		{
 			return QueryProvider.CreateQuery(expression);
 		}
 
+		/// <summary>
+		/// Creates <see cref="IQueryable{T}"/> instance from query expression.
+		/// </summary>
+		/// <typeparam name="TElement">Query element type.</typeparam>
+		/// <param name="expression">Query expression.</param>
+		/// <returns><see cref="IQueryable{T}"/> instance.</returns>
 		public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
 		{
 			return QueryProvider.CreateQuery<TElement>(expression);
 		}
 
-		public object Execute(Expression expression)
+		/// <summary>
+		/// Executes query expression.
+		/// </summary>
+		/// <param name="expression">Query expression.</param>
+		/// <returns>Query result.</returns>
+		public object? Execute(Expression expression)
 		{
 			return QueryProvider.Execute(expression);
 		}
 
+		/// <summary>
+		/// Executes query expression and returns typed result.
+		/// </summary>
+		/// <typeparam name="TResult">Type of result.</typeparam>
+		/// <param name="expression">Query expression.</param>
+		/// <returns>Query result.</returns>
 		public TResult Execute<TResult>(Expression expression)
 		{
 			return QueryProvider.Execute<TResult>(expression);
 		}
 
-		private static MethodInfo _executeAsyncMethodInfo =
-			MemberHelper.MethodOf((IQueryProviderAsync p) => p.ExecuteAsync<int>(null, default)).GetGenericMethodDefinition();
-
-		TResult IAsyncQueryProvider.ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+		/// <summary>
+		/// Executes query expression and returns result as <see cref="bcl_async::System.Collections.Generic.IAsyncEnumerable{T}"/> value.
+		/// </summary>
+		/// <typeparam name="TResult">Type of result element.</typeparam>
+		/// <param name="expression">Query expression.</param>
+		/// <param name="cancellationToken">Cancellation token.</param>
+		/// <returns>Query result as <see cref="bcl_async::System.Collections.Generic.IAsyncEnumerable{T}"/>.</returns>
+		public Task<bcl_async::System.Collections.Generic.IAsyncEnumerable<TResult>> ExecuteAsyncEnumerable<TResult>(Expression expression, CancellationToken cancellationToken)
 		{
-			var item = typeof(TResult).GetGenericArguments()[0];
-			var method = _executeAsyncMethodInfo.MakeGenericMethod(item);
-			return (TResult) method.Invoke(QueryProvider, new object[] { expression, cancellationToken });
+			return QueryProvider.ExecuteAsyncEnumerable<TResult>(expression, cancellationToken);
 		}
 
-		public System.Collections.Generic.IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
+		class AsyncEnumerableWrapper<TResult>: interactive_async::System.Collections.Generic.IAsyncEnumerable<TResult>
 		{
-			return new AsyncEnumerableAdapter<TResult>(QueryProvider.ExecuteAsync<TResult>(expression));
+			public class EnumeratorWrapper : interactive_async::System.Collections.Generic.IAsyncEnumerator<TResult>
+			{
+				private readonly bcl_async::System.Collections.Generic.IAsyncEnumerator<TResult> _enumerator;
+
+				public EnumeratorWrapper(bcl_async::System.Collections.Generic.IAsyncEnumerator<TResult> enumerator)
+				{
+					_enumerator = enumerator;
+				}
+
+				public void Dispose()
+				{
+					Task.Run(() =>_enumerator.DisposeAsync()).Wait();
+				}
+
+				public Task<bool> MoveNext(CancellationToken cancellationToken)
+				{
+					return _enumerator.MoveNextAsync().AsTask();
+				}
+
+				public TResult Current => _enumerator.Current;
+			}
+
+			private readonly bcl_async::System.Collections.Generic.IAsyncEnumerable<TResult> _enumerable;
+
+			public AsyncEnumerableWrapper(bcl_async::System.Collections.Generic.IAsyncEnumerable<TResult> enumerable)
+			{
+				_enumerable = enumerable;
+			}
+
+			public interactive_async::System.Collections.Generic.IAsyncEnumerator<TResult> GetEnumerator()
+			{
+				return new EnumeratorWrapper(_enumerable.GetAsyncEnumerator());
+			}
 		}
 
-		IAsyncEnumerable<TResult> IQueryProviderAsync.ExecuteAsync<TResult>(Expression expression)
+		/// <summary>
+		/// Executes query expression and returns typed result.
+		/// </summary>
+		/// <typeparam name="TResult">Type of result.</typeparam>
+		/// <param name="expression">Query expression.</param>
+		/// <returns>Query result.</returns>
+		public interactive_async::System.Collections.Generic.IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
 		{
-			return QueryProvider.ExecuteAsync<TResult>(expression);
+			var enumerable = Task.Run(() =>
+				QueryProvider.ExecuteAsyncEnumerable<TResult>(expression, CancellationToken.None)).Result;
+
+			return new AsyncEnumerableWrapper<TResult>(enumerable);
 		}
 
+		/// <summary>
+		/// Executes query expression and returns typed result.
+		/// </summary>
+		/// <typeparam name="TResult">Type of result.</typeparam>
+		/// <param name="expression">Query expression.</param>
+		/// <param name="cancellationToken">Cancellation token.</param>
+		/// <returns>Query result.</returns>
 		public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
 		{
 			return QueryProvider.ExecuteAsync<TResult>(expression, cancellationToken);
@@ -93,56 +168,50 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 
 		#region IQueryable
 
+		/// <summary>
+		/// Type of query element.
+		/// </summary>
 		public Type ElementType => typeof(T);
+
+		/// <summary>
+		/// Query expression.
+		/// </summary>
 		public Expression Expression => QueryProviderAsQueryable.Expression;
+
+		/// <summary>
+		/// Query provider.
+		/// </summary>
 		public IQueryProvider Provider => this;
 
 		#endregion
 
-		System.Collections.Generic.IAsyncEnumerator<T> System.Collections.Generic.IAsyncEnumerable<T>.GetAsyncEnumerator(CancellationToken cancellationToken)
+		/// <summary>
+		/// Gets <see cref="bcl_async::System.Collections.Generic.IAsyncEnumerable{T}"/> for current query.
+		/// </summary>
+		/// <param name="cancellationToken">Cancellation token.</param>
+		/// <returns>Query result as <see cref="bcl_async::System.Collections.Generic.IAsyncEnumerable{T}"/>.</returns>
+		public bcl_async::System.Collections.Generic.IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken)
 		{
-			return ExecuteAsync<T>(Expression).GetAsyncEnumerator(cancellationToken);
+			return Task.Run(() => QueryProvider.ExecuteAsyncEnumerable<T>(Expression, cancellationToken)).Result
+				.GetAsyncEnumerator(cancellationToken);
 		}
 
-		class AsyncEnumerableAdapter<TEntity> : System.Collections.Generic.IAsyncEnumerable<TEntity>
+		/// <summary>
+		///     Gets an asynchronous enumerator over the sequence.
+		/// </summary>
+		/// <returns>Enumerator for asynchronous enumeration over the sequence.</returns>
+		public interactive_async::System.Collections.Generic.IAsyncEnumerator<T> GetEnumerator()
 		{
-			private IAsyncEnumerable<TEntity> AsyncEnumerable { get; }
-
-			public AsyncEnumerableAdapter(IAsyncEnumerable<TEntity> asyncEnumerable)
-			{
-				AsyncEnumerable = asyncEnumerable;
-			}
-
-			public System.Collections.Generic.IAsyncEnumerator<TEntity> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-			{
-				return new AsyncEnumeratorAdapter<TEntity>(AsyncEnumerable.GetEnumerator(), cancellationToken);
-			}
+			return new AsyncEnumerableWrapper<T>.EnumeratorWrapper(GetAsyncEnumerator(CancellationToken.None));
 		}
 
-		class AsyncEnumeratorAdapter<TEntity> : System.Collections.Generic.IAsyncEnumerator<TEntity>
+		/// <summary>
+		/// Returns generated SQL for specific LINQ query.
+		/// </summary>
+		/// <returns>Generated SQL.</returns>
+		public override string? ToString()
 		{
-			private readonly CancellationToken _cancellationToken;
-			private IAsyncEnumerator<TEntity> AsyncEnumerator { get; }
-
-			public AsyncEnumeratorAdapter(IAsyncEnumerator<TEntity> asyncEnumerator, CancellationToken cancellationToken)
-			{
-				_cancellationToken = cancellationToken;
-				AsyncEnumerator    = asyncEnumerator;
-			}
-
-			public ValueTask<bool> MoveNextAsync()
-			{
-				return new ValueTask<bool>(AsyncEnumerator.MoveNext(_cancellationToken));
-			}
-
-			public TEntity Current => AsyncEnumerator.Current;
-
-			public ValueTask DisposeAsync()
-			{
-				AsyncEnumerator?.Dispose();
-				return default;
-			}
+			return QueryProvider.ToString();
 		}
-
 	}
 }

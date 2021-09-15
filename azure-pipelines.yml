@@ -1,26 +1,19 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 2.0.6
-  nugetVersion: 2.0.6
+  assemblyVersion: 2.1.0
+  nugetVersion: 2.1.0
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
-# v2: 'master' + 'release'
-# v1: 'version1'+ 'release.1'
+# v2: 'version2' + 'release.2'
 trigger:
-  - master
-  - release
-  - version1
   - version2
-  - release.1
   - release.2
 # don't trigger pr builds by default, users should trigger them manually using /azp bot commands
 # when we have multiple test runs waiting for free job, when nobody needs them
 # we only want to trigger it for pr to release branch
 pr:
-  - master
-  - version1
   - version2
 
 stages:
@@ -51,12 +44,12 @@ stages:
       inputs:
         solution: '$(solution)'
         configuration: '$(build_configuration)'
-        msbuildArguments: '/t:Restore;Rebuild -m'
+        msbuildArguments: '/t:Restore;Rebuild -m /p:ContinuousIntegrationBuild=true'
       displayName: Build Solution
 
     - powershell: echo "##vso[task.setvariable variable=packageVersion]$(packageVersion)-rc.$(Build.BuildId)"
-      condition: and(ne(variables['Build.SourceBranchName'], 'release'), ne(variables['Build.SourceBranchName'], 'release.1'), ne(variables['Build.SourceBranchName'], 'release.2'))
       displayName: Set nuget RC version for non-release branch
+      condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'version2'))
 
     - task: PowerShell@2
       inputs:
@@ -64,24 +57,35 @@ stages:
         workingDirectory: '$(Build.SourcesDirectory)'
         arguments: -path $(Build.SourcesDirectory)/NuGet/linq2db.EntityFrameworkCore.nuspec -version $(packageVersion) -branch $(Build.SourceBranchName)
       displayName: Generate nuspec
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.2'), eq(variables['Build.SourceBranchName'], 'version2')))
 
     - task: NuGetToolInstaller@0
       inputs:
-        versionSpec: '5.4.x'
+        versionSpec: '5.x'
         workingDirectory: $(Build.SourcesDirectory)/NuGet
       displayName: Install nuget
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.2'), eq(variables['Build.SourceBranchName'], 'version2')))
 
     - task: CmdLine@2
       inputs:
         script: 'nuget Pack linq2db.EntityFrameworkCore.nuspec -OutputDirectory built'
         workingDirectory: $(Build.SourcesDirectory)/NuGet
-      displayName: Build nuget
+      displayName: Build nuget (azure artifacts)
+      condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'version2'))
+
+    - task: CmdLine@2
+      inputs:
+        script: 'nuget Pack linq2db.EntityFrameworkCore.nuspec -OutputDirectory built -Symbols -SymbolPackageFormat snupkg'
+        workingDirectory: $(Build.SourcesDirectory)/NuGet
+      displayName: Build nuget (nuget.org)
+      condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'release.2'))
 
     - task: PublishBuildArtifacts@1
       inputs:
         pathToPublish: '$(Build.SourcesDirectory)/NuGet/built'
         artifactName: '$(artifact_nugets)'
       displayName: Publish nugets to artifacts
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.2'), eq(variables['Build.SourceBranchName'], 'version2')))
 
     - task: NuGetCommand@2
       inputs:
@@ -90,7 +94,7 @@ stages:
         nuGetFeedType: 'internal'
         publishVstsFeed: '0dcc414b-ea54-451e-a54f-d63f05367c4b/967a4107-9788-41a4-9f6d-a2318aab1410'
       displayName: Publish to Azure Artifacts feed
-      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.SourceBranchName'], 'version1'), eq(variables['Build.SourceBranchName'], 'version2')))
+      condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'version2'))
 
 # apikey exires around 31/07/2020
     - task: NuGetCommand@2
@@ -100,4 +104,4 @@ stages:
         nuGetFeedType: 'external'
         publishFeedCredentials: 'linq2db nuget.org feed'
       displayName: Publish to Nuget.org
-      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release'), eq(variables['Build.SourceBranchName'], 'release.1'), eq(variables['Build.SourceBranchName'], 'release.2')))
+      condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'release.2'))

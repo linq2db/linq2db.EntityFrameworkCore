@@ -3,14 +3,34 @@
 	<Import Project="..\..\Build\linq2db.Default.props" />
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.1</TargetFramework>
+		<Description>Allows to execute Linq to DB (linq2db) queries in Entity Framework Core DbContext.</Description>
+		<Title>Linq to DB (linq2db) extensions for Entity Framework Core</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
+
+		<TargetFramework>netstandard2.0</TargetFramework>
 		<RootNamespace>LinqToDB.EntityFrameworkCore</RootNamespace>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\linq2db.EntityFrameworkCore.xml</DocumentationFile>
+
+		<NoWarn>EF1001</NoWarn>
+
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<DebugType>portable</DebugType>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="linq2db" Version="2.9.6" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.0.0" />
+		<PackageReference Include="linq2db" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Aliases = "bcl_async"/>
+		<PackageReference Include="System.Interactive.Async" Aliases = "interactive_async"/>
 	</ItemGroup>
 
 </Project>
