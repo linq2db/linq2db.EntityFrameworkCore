@@ -1,67 +1,274 @@
 ﻿using System;
 using System.Data;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
-using Microsoft.EntityFrameworkCore.Metadata;
-
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 namespace LinqToDB.EntityFrameworkCore
 {
-
+	using System.Diagnostics.CodeAnalysis;
 	using Data;
 	using DataProvider;
 	using Linq;
+	using Expressions;
 
+	/// <summary>
+	/// linq2db EF.Core data connection.
+	/// </summary>
 	public class LinqToDBForEFToolsDataConnection : DataConnection, IExpressionPreprocessor
 	{
-		readonly DbContext _context;
-		readonly IModel _model;
-		readonly Func<Expression, IDataContext, DbContext, IModel, Expression> _transformFunc;
+		readonly IModel? _model;
+		readonly Func<Expression, IDataContext, DbContext?, IModel?, Expression>? _transformFunc;
 
+		private IEntityType?   _lastEntityType;
+		private Type?          _lastType;
+		private IStateManager? _stateManager;
+
+		private static IMemoryCache _entityKeyGetterCache = new MemoryCache(Options.Create(new MemoryCacheOptions()));
+
+		private static MethodInfo TryGetEntryMethodInfo =
+			MemberHelper.MethodOf<IStateManager>(sm => sm.TryGetEntry(null!, Array.Empty<object>()));
+
+		/// <summary>
+		/// Change tracker enable flag.
+		/// </summary>
+		public bool      Tracking { get; set; }
+
+		/// <summary>
+		/// EF.Core database context.
+		/// </summary>
+		public DbContext? Context  { get; }
+
+		/// <summary>
+		/// Creates new instance of data connection.
+		/// </summary>
+		/// <param name="context">EF.Core database context.</param>
+		/// <param name="dataProvider">linq2db database provider.</param>
+		/// <param name="connectionString">Connection string.</param>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
-			[CanBeNull] DbContext     context,
-			[NotNull]   IDataProvider dataProvider, 
-			[NotNull]   string        connectionString, 
-			            IModel        model,
-			Func<Expression, IDataContext, DbContext, IModel, Expression> transformFunc) : base(dataProvider, connectionString)
+			DbContext?     context,
+			[NotNull]   IDataProvider dataProvider,
+			[NotNull]   string        connectionString,
+			            IModel?       model,
+			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc) : base(dataProvider, connectionString)
 		{
-			_context       = context;
-			_model         = model;
-			_transformFunc = transformFunc;
+			Context          = context;
+			_model           = model;
+			_transformFunc   = transformFunc;
+			CopyDatabaseProperties();
+			if (LinqToDBForEFTools.EnableChangeTracker)
+				OnEntityCreated += OnEntityCreatedHandler;
 		}
 
+		/// <summary>
+		/// Creates new instance of data connection.
+		/// </summary>
+		/// <param name="context">EF.Core database context.</param>
+		/// <param name="dataProvider">linq2db database provider.</param>
+		/// <param name="transaction">Database transaction.</param>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
-			[CanBeNull] DbContext      context,
-			[NotNull]   IDataProvider  dataProvider, 
+			DbContext?      context,
+			[NotNull]   IDataProvider  dataProvider,
 			[NotNull]   IDbTransaction transaction,
-			            IModel         model,
-			Func<Expression, IDataContext, DbContext, IModel, Expression> transformFunc
+			            IModel?        model,
+			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc
 			) : base(dataProvider, transaction)
 		{
-			_context       = context;
-			_model         = model;
-			_transformFunc = transformFunc;
+			Context          = context;
+			_model           = model;
+			_transformFunc   = transformFunc;
+			CopyDatabaseProperties();
+			if (LinqToDBForEFTools.EnableChangeTracker)
+				OnEntityCreated += OnEntityCreatedHandler;
 		}
 
+		/// <summary>
+		/// Creates new instance of data connection.
+		/// </summary>
+		/// <param name="context">EF.Core database context.</param>
+		/// <param name="dataProvider">linq2db database provider.</param>
+		/// <param name="connection">Database connection instance.</param>
+		/// <param name="model">EF.Core data model.</param>
+		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
-			[CanBeNull] DbContext     context,
-			[NotNull]   IDataProvider dataProvider, 
-			[NotNull]   IDbConnection connection, 
-			            IModel        model,
-			Func<Expression, IDataContext, DbContext, IModel, Expression> transformFunc) : base(dataProvider, connection)
+			DbContext?     context,
+			[NotNull]   IDataProvider dataProvider,
+			[NotNull]   IDbConnection connection,
+			            IModel?       model,
+			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc) : base(dataProvider, connection)
 		{
-			_context       = context;
-			_model         = model;
-			_transformFunc = transformFunc;
+			Context          = context;
+			_model           = model;
+			_transformFunc   = transformFunc;
+			CopyDatabaseProperties();
+			if (LinqToDBForEFTools.EnableChangeTracker)
+				OnEntityCreated += OnEntityCreatedHandler;
 		}
 
+		/// <summary>
+		/// Converts expression using convert function, passed to context.
+		/// </summary>
+		/// <param name="expression">Expression to convert.</param>
+		/// <returns>Converted expression.</returns>
 		public Expression ProcessExpression(Expression expression)
 		{
 			if (_transformFunc == null)
 				return expression;
-			return _transformFunc(expression, this, _context, _model);
+			return _transformFunc(expression, this, Context, _model);
+		}
+
+		private class TypeKey
+		{
+			public TypeKey(IEntityType entityType, IModel? model)
+			{
+				EntityType = entityType;
+				Model = model;
+			}
+
+			public IEntityType EntityType { get; }
+			public IModel? Model { get; }
+
+			protected bool Equals(TypeKey other)
+			{
+				return EntityType.Equals(other.EntityType) && Equals(Model, other.Model);
+			}
+
+			public override bool Equals(object? obj)
+			{
+				if (ReferenceEquals(null, obj))
+				{
+					return false;
+				}
+
+				if (ReferenceEquals(this, obj))
+				{
+					return true;
+				}
+
+				if (obj.GetType() != this.GetType())
+				{
+					return false;
+				}
+
+				return Equals((TypeKey)obj);
+			}
+
+			public override int GetHashCode()
+			{
+				unchecked
+				{
+					return (EntityType.GetHashCode() * 397) ^ (Model != null ? Model.GetHashCode() : 0);
+				}
+			}
+		}
+
+		private void OnEntityCreatedHandler(EntityCreatedEventArgs args)
+		{
+			// Do not allow to store in ChangeTracker temporary tables
+			if ((args.TableOptions & TableOptions.IsTemporaryOptionSet) != 0)
+				return;
+
+			// Do not allow to store in ChangeTracker tables from different server
+			if (args.ServerName != null)
+				return;
+
+			if (!LinqToDBForEFTools.EnableChangeTracker
+			    || !Tracking 
+			    || Context!.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.NoTracking)
+				return;
+
+			var type = args.Entity.GetType();
+			if (_lastType != type)
+			{
+				_lastType       = type;
+				_lastEntityType = Context.Model.FindEntityType(type);
+			}
+
+			if (_lastEntityType == null)
+				return;
+
+
+			// Do not allow to store in ChangeTracker tables that has different name
+			if (args.TableName != _lastEntityType.Relational().TableName)
+				return;
+
+			if (_stateManager == null)
+				_stateManager = Context.GetService<IStateManager>();
+
+
+			// It is a real pain to register entity in change tracker
+			//
+			InternalEntityEntry? entry = null;
+
+			var kacheKey = new TypeKey (_lastEntityType, _model);
+
+			var retrievalFunc = _entityKeyGetterCache.GetOrCreate(kacheKey, ce =>
+			{
+				ce.SlidingExpiration = TimeSpan.FromHours(1);
+				return CreateEntityRetrievalFunc(((TypeKey)ce.Key).EntityType);
+			});
+
+			if (retrievalFunc == null)
+				return;
+
+			entry = retrievalFunc(_stateManager, args.Entity);
+
+			if (entry == null)
+			{
+				entry = _stateManager.StartTrackingFromQuery(_lastEntityType, args.Entity, ValueBuffer.Empty, null);
+			}
+
+			args.Entity = entry.Entity;
+		}
+
+		private Func<IStateManager, object, InternalEntityEntry?>? CreateEntityRetrievalFunc(IEntityType entityType)
+		{
+			var stateManagerParam = Expression.Parameter(typeof(IStateManager), "sm");
+			var objParam = Expression.Parameter(typeof(object), "o");
+
+			var variable = Expression.Variable(entityType.ClrType, "e");
+			var assignExpr = Expression.Assign(variable, Expression.Convert(objParam, entityType.ClrType));
+
+			var key = entityType.GetKeys().FirstOrDefault();
+
+			var arrayExpr = key.Properties.Where(p => p.PropertyInfo != null || p.FieldInfo != null).Select(p =>
+					Expression.Convert(Expression.MakeMemberAccess(variable, p.PropertyInfo ?? (MemberInfo)p.FieldInfo),
+						typeof(object)))
+				.ToArray();
+
+			if (arrayExpr.Length == 0)
+				return null;
+
+			var newArrayExpression = Expression.NewArrayInit(typeof(object), arrayExpr);
+			var body =
+				Expression.Block(new[] { variable },
+					assignExpr,
+					Expression.Call(stateManagerParam, TryGetEntryMethodInfo, Expression.Constant(key),
+						newArrayExpression));
+
+			var lambda =
+				Expression.Lambda<Func<IStateManager, object, InternalEntityEntry?>>(body, stateManagerParam, objParam);
+
+			return lambda.Compile();
+		}
+
+		private void CopyDatabaseProperties()
+		{
+			var commandTimeout = Context?.Database.GetCommandTimeout();
+			if (commandTimeout != null)
+				CommandTimeout = commandTimeout.Value;
 		}
 	}
 }

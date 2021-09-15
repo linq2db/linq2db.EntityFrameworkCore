@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<Import Project="..\..\Build\linq2db.Tests.props" />
+
+	<ItemGroup>
+	  <Compile Remove="Models\UniversalEntities\**" />
+	  <EmbeddedResource Remove="Models\UniversalEntities\**" />
+	  <None Remove="Models\UniversalEntities\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.csproj" />
+		<ProjectReference Include="..\LinqToDB.EntityFrameworkCore.BaseTests\LinqToDB.EntityFrameworkCore.BaseTests.csproj" />
+	</ItemGroup>
+
+</Project>

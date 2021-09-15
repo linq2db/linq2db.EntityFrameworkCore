@@ -92,27 +92,6 @@ namespace LinqToDB.EntityFrameworkCore
 
 				Linq.Expressions.MapMember(method, lambda);
 			}
-
-			var freeTextMethod = sqlServerMethods.FirstOrDefault(m => m.Name == "FreeText" && m.GetParameters().Length == 3);
-			if (freeTextMethod != null)
-			{
-				var propertyReferenceParam = Expression.Parameter(typeof(string), "propertyReference");
-				var freeTextParam = Expression.Parameter(typeof(string), "freeText");
-
-				var lambda = Expression.Lambda(
-					Expression.Call(
-						MemberHelper.MethodOf(() => Sql.FreeText(null, null)),
-						propertyReferenceParam,
-						freeTextParam
-					),
-					dbFunctionsParameter,
-					propertyReferenceParam,
-					freeTextParam
-				);
-
-				Linq.Expressions.MapMember(freeTextMethod, lambda);
-			}
-
 		}
 		
 		#endregion	

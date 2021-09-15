@@ -6,7 +6,7 @@
 
 ## Build status
 
-[![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7/version1?label=v1%20master)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
+[![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7/master?label=master)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
 [![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7?label=latest)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
 [![Azure DevOps builds](https://img.shields.io/azure-devops/build/linq2db/0dcc414b-ea54-451e-a54f-d63f05367c4b/7/version1?label=efcore%202%20master)](https://dev.azure.com/linq2db/linq2db/_build?definitionId=7)
 
@@ -15,6 +15,20 @@
 * NuGet [![NuGet](https://img.shields.io/nuget/vpre/linq2db.EntityFrameworkCore.svg)](https://www.nuget.org/packages/linq2db.EntityFrameworkCore)
 * Azure Artifacts [![MyGet](https://img.shields.io/badge/azure-download-yellowgreen)](https://dev.azure.com/linq2db/linq2db/_packaging?_a=package&feed=linq2db&view=versions&package=linq2db.EntityFrameworkCore&protocolType=NuGet) ([feed]( https://pkgs.dev.azure.com/linq2db/linq2db/_packaging/linq2db/nuget/v3/index.json))
 
+# Unique features
+* Fast Eager Loading (incomparable faster on massive `Include` query)
+* Global Query Filters optimization
+* Better SQL optimization
+* [Use CTE in LINQ queries](https://linq2db.github.io/articles/sql/CTE.html)
+* [MERGE statement support](https://linq2db.github.io/articles/sql/merge/Merge-API-Description.html)
+* Table hints
+* [Full Window functions support](https://linq2db.github.io/articles/sql/Window-Functions-(Analytic-Functions).html)
+* Fast [BulkCopy](https://linq2db.github.io/articles/sql/Bulk-Copy.html) of millions records
+* Native SQL operations for updating, deleting, inserting records via LINQ query
+* Temporary Tables support
+* Cross Database/Linked Server queries.
+* Full Text Search extensions
+* A lot of extensions to cover ANSI SQL
 # How to use
 
 In your code you need to initialize integration using following call:
@@ -141,10 +155,8 @@ Below is a list of providers, that should work right now:
 - SQL Server CE
 
 # Know limitations
-- No Eager loading
 - No Lazy loading
 - No way to work with in-memory database
-- `Include` function supported with limitations
 
 # Help! It doesn't work!
 
