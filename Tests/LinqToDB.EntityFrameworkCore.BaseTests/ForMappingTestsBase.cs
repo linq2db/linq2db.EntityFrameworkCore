@@ -20,7 +20,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			using var connection = context.CreateLinqToDbConnection();
 
 			var ed = connection.MappingSchema.GetEntityDescriptor(typeof(WithIdentity));
-			var pk = ed.Columns.Where(c => c.IsPrimaryKey).Single();
+			var pk = ed.Columns.Single(c => c.IsPrimaryKey);
 
 			pk.IsIdentity.Should().BeTrue();
 		}
@@ -32,7 +32,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			using var connection = context.CreateLinqToDbConnection();
 
 			var ed = connection.MappingSchema.GetEntityDescriptor(typeof(NoIdentity));
-			var pk = ed.Columns.Where(c => c.IsPrimaryKey).Single();
+			var pk = ed.Columns.Single(c => c.IsPrimaryKey);
 
 			pk.IsIdentity.Should().BeFalse();
 		}

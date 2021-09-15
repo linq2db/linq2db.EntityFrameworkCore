@@ -112,6 +112,24 @@ namespace LinqToDB.EntityFrameworkCore
 				if (tableAttribute != null)
 					return new[] { (T)(Attribute)new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema } };
 			}
+			else if (_model != null && typeof(T) == typeof(InheritanceMappingAttribute))
+			{
+				if (et != null)
+				{
+					var derivedEntities = _model.GetEntityTypes().Where(e => e.BaseType == et && e.GetDiscriminatorValue() != null).ToList();
+
+					return
+						derivedEntities.Select(e =>
+								(T)(Attribute)new InheritanceMappingAttribute
+								{
+									Type = e.ClrType, 
+									Code = e.GetDiscriminatorValue()
+								}
+							)
+							.ToArray();
+				}
+
+			}
 
 			return Array.Empty<T>();
 		}
@@ -190,11 +208,13 @@ namespace LinqToDB.EntityFrameworkCore
 					
 					if (prop != null)
 					{
+						var discriminator = et.GetDiscriminatorProperty();
+
 						var isPrimaryKey = prop.IsPrimaryKey();
 						var primaryKeyOrder = 0;
 						if (isPrimaryKey)
 						{
-							var pk = prop.FindContainingPrimaryKey();
+							var pk = prop.FindContainingPrimaryKey()!;
 							primaryKeyOrder = pk.Properties.Select((p, i) => new { p, index = i })
 								                  .FirstOrDefault(v => CompareProperty(v.p, memberInfo))?.index ?? 0;
 						}
@@ -204,8 +224,7 @@ namespace LinqToDB.EntityFrameworkCore
 						var annotations = prop.GetAnnotations();
 						if (_annotationProvider != null && storeObjectId != null)
 						{
-							var column = prop.FindColumn(storeObjectId.Value) as IColumn;
-							if (column != null)
+							if (prop.FindColumn(storeObjectId.Value) is IColumn column)
 								annotations = annotations.Concat(_annotationProvider.For(column));
 						}
 
@@ -213,7 +232,7 @@ namespace LinqToDB.EntityFrameworkCore
 							.Any(a =>
 							{
 								if (a.Name.EndsWith(":ValueGenerationStrategy"))
-									return a.Value?.ToString().Contains("Identity") == true;
+									return a.Value?.ToString()!.Contains("Identity") == true;
 
 								if (a.Name.EndsWith(":Autoincrement"))
 									return a.Value is bool b && b;
@@ -256,6 +275,7 @@ namespace LinqToDB.EntityFrameworkCore
 								IsPrimaryKey    = isPrimaryKey,
 								PrimaryKeyOrder = primaryKeyOrder,
 								IsIdentity      = isIdentity,
+								IsDiscriminator = discriminator == prop
 							}
 						};
 					}
@@ -413,7 +433,7 @@ namespace LinqToDB.EntityFrameworkCore
 				return ReferenceEquals(this, other);
 			}
 
-			public override bool Equals(object obj)
+			public override bool Equals(object? obj)
 			{
 				if (obj is null) return false;
 				if (ReferenceEquals(this, obj)) return true;
@@ -459,7 +479,7 @@ namespace LinqToDB.EntityFrameworkCore
 								Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType),
 								_mappingSource?.FindMapping(p.ParameterType))).ToArray();
 
-					var newExpression = _dependencies.MethodCallTranslatorProvider.Translate(_model, objExpr, methodInfo, parametersArray, _logger);
+					var newExpression = _dependencies.MethodCallTranslatorProvider.Translate(_model, objExpr, methodInfo, parametersArray, _logger!);
 					if (newExpression != null)
 					{
 						if (!methodInfo.IsStatic)
@@ -492,7 +512,7 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource?.FindMapping(propInfo));
 
-					var newExpression = _dependencies.MemberTranslatorProvider.Translate(objExpr, propInfo, propInfo.GetMemberType(), _logger);
+					var newExpression = _dependencies.MemberTranslatorProvider.Translate(objExpr, propInfo, propInfo.GetMemberType(), _logger!);
 					if (newExpression != null)
 					{
 						var parametersArray = new Expression[] { objExpr };
@@ -572,7 +592,7 @@ namespace LinqToDB.EntityFrameworkCore
 					var left  = newExpression.GetType().GetProperty("Left")?.GetValue(newExpression) as Expression;
 					var right = newExpression.GetType().GetProperty("Right")?.GetValue(newExpression) as Expression;
 
-					var operand = newExpression.GetType().GetProperty("OperatorType")?.GetValue(newExpression).ToString();
+					var operand = newExpression.GetType().GetProperty("OperatorType")?.GetValue(newExpression)!.ToString();
 
 					var operandExpr = operand switch
 					{
@@ -643,7 +663,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (expr is SqlFunctionExpression func)
 			{
 				if (string.Equals(func.Name, "COALESCE", StringComparison.InvariantCultureIgnoreCase) &&
-				    func.Arguments.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Extension)
+				    func.Arguments!.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Extension)
 					return UnwrapConverted(func.Arguments[0]);
 			}
 
