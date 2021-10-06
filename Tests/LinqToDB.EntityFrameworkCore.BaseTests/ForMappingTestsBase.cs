@@ -108,5 +108,14 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			var item = await context.UIntTable.FirstOrDefaultAsyncLinqToDB(e => e.Field64 == field64);
 		}
 
+		[Test]
+		public virtual void TestAmbiguousProperties()
+		{
+			using var context = CreateContext();
+
+			FluentActions.Awaiting(() => context.WithDuplicateProperties.Where(x => x.Value == 1)
+				.ToArrayAsyncLinqToDB()).Should().NotThrow();
+		}
+
 	}
 }

@@ -484,12 +484,23 @@ namespace LinqToDB.EntityFrameworkCore
 			return found;
 		}
 
+		private static PropertyInfo GetPropertyInfoForType(Type type, PropertyInfo propInfo)
+		{
+			if (propInfo.DeclaringType == type)
+				return propInfo;
+
+			var found = type.GetProperties()
+				.FirstOrDefault(x => x.Module == propInfo.Module && x.MetadataToken == propInfo.MetadataToken);
+
+			return found ?? propInfo;
+		}
+
 		private Sql.ExpressionAttribute? GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
 
-			propInfo = (PropertyInfo?) type.GetMemberEx(propInfo) ?? propInfo;
+			propInfo = GetPropertyInfoForType(type, propInfo);
 
 			var found = _calculatedExtensions.GetOrAdd(propInfo, mi =>
 			{
