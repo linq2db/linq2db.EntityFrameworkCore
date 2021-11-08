@@ -55,7 +55,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Inheritance
 
 			foreach (var modifiedEntry in modifiedEntries)
 			{
-				var cloned = (IVersionable)Activator.CreateInstance(modifiedEntry.Entity.GetType());
+				var cloned = (IVersionable)Activator.CreateInstance(modifiedEntry.Entity.GetType())!;
 				modifiedEntry.CurrentValues.SetValues(cloned);
 
 				// rollback

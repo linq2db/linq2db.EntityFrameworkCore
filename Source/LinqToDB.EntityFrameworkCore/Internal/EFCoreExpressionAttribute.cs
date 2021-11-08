@@ -8,7 +8,7 @@ using LinqToDB.SqlQuery;
 namespace LinqToDB.EntityFrameworkCore.Internal
 {
 	/// <summary>
-	/// Maps linq2db exression.
+	/// Maps linq2db expression.
 	/// </summary>
 	public class EFCoreExpressionAttribute : Sql.ExpressionAttribute
 	{
@@ -20,12 +20,13 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		{
 		}
 
-		/// <inheritdoc cref="Sql.ExpressionAttribute.GetExpression(IDataContext, SelectQuery, System.Linq.Expressions.Expression, Func{Expression, ColumnDescriptor?, ISqlExpression})" />
-		public override ISqlExpression GetExpression(
+		/// <inheritdoc />
+		public override ISqlExpression? GetExpression<TContext>(
+			TContext context,
 			IDataContext dataContext,
 			SelectQuery query,
 			Expression expression,
-			Func<Expression, ColumnDescriptor?, ISqlExpression> converter)
+			Func<TContext, Expression, ColumnDescriptor?, ISqlExpression> converter)
 		{
 			var knownExpressions = new List<Expression>();
 			if (expression.NodeType == ExpressionType.Call)
@@ -41,20 +42,20 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 				knownExpressions.Add(me.Expression!);
 			}
 
-			var pams = new List<ISqlExpression?>(knownExpressions.Select(_ => (ISqlExpression?) null));
+			var parms = new List<ISqlExpression?>(knownExpressions.Select(_ => (ISqlExpression?) null));
 
-			_ = Sql.ExtensionAttribute.ResolveExpressionValues(Expression!,
-				(v, d) =>
+			_ = ResolveExpressionValues((context, parms, knownExpressions, converter), Expression!,
+				static (ctx, v, d) =>
 				{
 					var idx = int.Parse(v);
 
-					if (pams[idx] == null)
-						pams[idx] = converter(knownExpressions[idx], null);
+					if (ctx.parms[idx] == null)
+						ctx.parms[idx] = ctx.converter(ctx.context, ctx.knownExpressions[idx], null);
 
 					return v;
 				});
 
-			var parameters = pams.Select(p => p ?? new SqlExpression("!!!")).ToArray();
+			var parameters = parms.Select(p => p ?? new SqlExpression("!!!")).ToArray();
 			return new SqlExpression(expression.Type, Expression!, Precedence, parameters);
 		}
 	}
