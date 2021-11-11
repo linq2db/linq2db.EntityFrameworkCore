@@ -1109,6 +1109,7 @@ namespace LinqToDB.EntityFrameworkCore
 				_ => LogLevel.Trace,
 			};
 
+#pragma warning disable CA1848 // Use the LoggerMessage delegates
 			using var _ = logger.BeginScope("TraceInfoStep: {TraceInfoStep}, IsAsync: {IsAsync}", info.TraceInfoStep, info.IsAsync);
 
 			switch (info.TraceInfoStep)
@@ -1147,6 +1148,7 @@ namespace LinqToDB.EntityFrameworkCore
 					break;
 				}
 			}
+#pragma warning restore CA1848 // Use the LoggerMessage delegates
 		}
 
 		/// <summary>
