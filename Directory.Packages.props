@@ -5,15 +5,15 @@
 		<PackageVersion Include="NUnit" Version="3.13.2" />
 		<PackageVersion Include="FluentAssertions" Version="5.10.3" />
 
-		<PackageVersion Include="linq2db" Version="3.5.0" />
-		<PackageVersion Include="linq2db.Tools" Version="3.5.0" />
+		<PackageVersion Include="linq2db" Version="3.5.2" />
+		<PackageVersion Include="linq2db.Tools" Version="3.5.2" />
 
-		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.0.0" />
+		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
 		<PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
 
 
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.11" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.11" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.21" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.21" />
 
 		<PackageVersion Include="Microsoft.Extensions.Logging" Version="5.0.0" />
 		<PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
