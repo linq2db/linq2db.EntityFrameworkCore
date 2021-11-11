@@ -113,8 +113,8 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 		{
 			using var context = CreateContext();
 
-			FluentActions.Awaiting(() => context.WithDuplicateProperties.Where(x => x.Value == 1)
-				.ToArrayAsyncLinqToDB()).Should().NotThrow();
+			FluentActions.Invoking(() =>  context.WithDuplicateProperties.Where(x => x.Value == 1)
+				.ToArray()).Should().NotThrow();
 		}
 
 	}
