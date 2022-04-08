@@ -24,10 +24,17 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.NpgSqlEntities
 			modelBuilder.Entity<EntityWithArrays>(entity =>
 			{
 			});
+
+			modelBuilder.Entity<EntityWithXmin>(entity =>
+			{
+				entity.UseXminAsConcurrencyToken();
+			});
+
 		}
 
 		public virtual DbSet<Event> Events { get; set; } = null!;
 		public virtual DbSet<EntityWithArrays> EntityWithArrays { get; set; } = null!;
+		public virtual DbSet<EntityWithXmin> EntityWithXmin { get; set; } = null!;
 
 	}
 }

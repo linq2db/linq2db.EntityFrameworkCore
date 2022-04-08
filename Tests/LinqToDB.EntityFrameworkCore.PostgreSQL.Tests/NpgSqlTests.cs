@@ -88,6 +88,19 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 		}
 
 		[Test]
+		public void TestConcurrencyToken()
+		{
+			using var db = CreateNpgSqlEntitiesContext();
+
+			var toInsert = Enumerable.Range(1, 10)
+				.Select(i => new EntityWithXmin { Value = "Str" + i })
+				.ToArray();
+
+			db.BulkCopy(toInsert);
+		}
+
+
+		[Test]
 		public void TestUnnest()
 		{
 			using var db = CreateNpgSqlEntitiesContext();

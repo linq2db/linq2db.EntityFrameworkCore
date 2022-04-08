@@ -256,6 +256,17 @@ namespace LinqToDB.EntityFrameworkCore
 							}
 						}
 
+						var behaviour = prop.GetBeforeSaveBehavior();
+						var skipOnInsert = prop.ValueGenerated.HasFlag(ValueGenerated.OnAdd);
+
+						if (skipOnInsert)
+						{
+							skipOnInsert = isIdentity || behaviour != PropertySaveBehavior.Save;
+						}
+
+						var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
+						                   prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
+
 						return new T[]
 						{
 							(T)(Attribute)new ColumnAttribute
@@ -268,7 +279,9 @@ namespace LinqToDB.EntityFrameworkCore
 								IsPrimaryKey    = isPrimaryKey,
 								PrimaryKeyOrder = primaryKeyOrder,
 								IsIdentity      = isIdentity,
-								IsDiscriminator = discriminator == prop
+								IsDiscriminator = discriminator == prop,
+								SkipOnInsert    = skipOnInsert,
+								SkipOnUpdate    = skipOnUpdate
 							}
 						};
 					}
