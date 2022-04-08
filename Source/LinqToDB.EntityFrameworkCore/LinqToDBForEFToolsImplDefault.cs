@@ -772,12 +772,24 @@ namespace LinqToDB.EntityFrameworkCore
 			var tracking           = true;
 			var ignoreTracking     = false;
 
+			var nonEvaluatableParameters = new HashSet<ParameterExpression>();
+
 			TransformInfo LocalTransform(Expression e)
 			{
 				e = CompactExpression(e);
 
 				switch (e.NodeType)
 				{
+					case ExpressionType.Lambda:
+					{
+						foreach (var parameter in ((LambdaExpression)e).Parameters)
+						{
+							nonEvaluatableParameters.Add(parameter);
+						}
+
+						break;
+					}
+
 					case ExpressionType.Constant:
 					{
 						if (dc != null && typeof(EntityQueryable<>).IsSameOrParentOf(e.Type) || typeof(DbSet<>).IsSameOrParentOf(e.Type))
@@ -919,14 +931,18 @@ namespace LinqToDB.EntityFrameworkCore
 
 						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type))
 						{
-							// Invoking function to evaluate EF's Subquery located in function
-
-							var obj = EvaluateExpression(methodCall.Object);
-							var arguments = methodCall.Arguments.Select(EvaluateExpression).ToArray();
-							if (methodCall.Method.Invoke(obj, arguments) is IQueryable result)
+							if (null == methodCall.Find(nonEvaluatableParameters,
+								    (c, t) => t.NodeType == ExpressionType.Parameter && c.Contains(t)))
 							{
-								if (!ExpressionEqualityComparer.Instance.Equals(methodCall, result.Expression))
-									return new TransformInfo(result.Expression, false, true);
+								// Invoking function to evaluate EF's Subquery located in function
+
+								var obj = EvaluateExpression(methodCall.Object);
+								var arguments = methodCall.Arguments.Select(EvaluateExpression).ToArray();
+								if (methodCall.Method.Invoke(obj, arguments) is IQueryable result)
+								{
+									if (!ExpressionEqualityComparer.Instance.Equals(methodCall, result.Expression))
+										return new TransformInfo(result.Expression, false, true);
+								}
 							}
 						}
 
