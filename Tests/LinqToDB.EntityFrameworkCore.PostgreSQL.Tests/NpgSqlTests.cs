@@ -89,5 +89,23 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 		}
 		*/
 
+		[Test]
+		public void TestUnnest()
+		{
+			using var db = CreateNpgSqlEntitiesContext();
+			using var dc = db.CreateLinqToDbConnection();
+
+			var guids = new Guid[] { Guid.Parse("271425b1-ebe8-400d-b71d-a6e47a460ae3"),
+				Guid.Parse("b75de94e-6d7b-4c70-bfa1-f8639a6a5b35") };
+
+			var query = 
+				from m in db.EntityWithArrays.ToLinqToDBTable()
+				from g in dc.Unnest(m.Guids) 
+				where Sql.Ext.PostgreSQL().Overlaps(m.Guids, guids)
+				select m;
+
+			query.Invoking(q => q.ToArray()).Should().NotThrow();
+		}
+
 	}
 }

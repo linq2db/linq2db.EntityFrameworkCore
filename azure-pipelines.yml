@@ -1,8 +1,8 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 2.4.0
-  nugetVersion: 2.4.0
+  assemblyVersion: 2.5.0
+  nugetVersion: 2.5.0
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
@@ -26,7 +26,7 @@ stages:
   jobs:
   - job: build_job
     pool:
-      vmImage: 'windows-2019'
+      vmImage: 'windows-2022'
     variables:
       packageVersion: $(nugetVersion)
     displayName: 'Build'
