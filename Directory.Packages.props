@@ -1,26 +1,26 @@
 ﻿<Project>
 	<ItemGroup>
-		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
-		<PackageVersion Include="NUnit3TestAdapter" Version="4.0.0" />
-		<PackageVersion Include="NUnit" Version="3.13.2" />
-		<PackageVersion Include="FluentAssertions" Version="5.10.3" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
+		<PackageVersion Include="NUnit3TestAdapter" Version="4.2.1" />
+		<PackageVersion Include="NUnit" Version="3.13.3" />
+		<PackageVersion Include="FluentAssertions" Version="6.6.0" />
 
-		<PackageVersion Include="linq2db" Version="3.7.0" />
-		<PackageVersion Include="linq2db.Tools" Version="3.7.0" />
+		<PackageVersion Include="linq2db" Version="4.0.0-rc.2" />
+		<PackageVersion Include="linq2db.Tools" Version="4.0.0-rc.2" />
 
 		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
-		<PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
+		<PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
 
 
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.6" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.6" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.25" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.25" />
 
 		<PackageVersion Include="Microsoft.Extensions.Logging" Version="5.0.0" />
 		<PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
 
-		<PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.4" />
-		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.15" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.10" />
+		<PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.7" />
+		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.18" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.25" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.25" />
 	</ItemGroup>
 </Project>
