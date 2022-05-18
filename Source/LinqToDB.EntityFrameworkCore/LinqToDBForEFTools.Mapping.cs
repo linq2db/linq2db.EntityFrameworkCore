@@ -59,7 +59,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var dateDiffStr = "DateDiff";
 			var dateDiffMethods = sqlServerMethods.Where(m => m.Name.StartsWith(dateDiffStr)).ToArray();
 
-			var dateDiffMethod = MemberHelper.MethodOf(() => Sql.DateDiff(Sql.DateParts.Day, null, null));
+			var dateDiffMethod = MemberHelper.MethodOf(() => Sql.DateDiff(Sql.DateParts.Day, (DateTime?)null, null));
 
 			foreach (var method in dateDiffMethods)
 			{

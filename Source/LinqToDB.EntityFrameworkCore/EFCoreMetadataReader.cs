@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
@@ -20,11 +19,11 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LinqToDB.EntityFrameworkCore
 {
+	using Common;
+	using Extensions;
+	using Internal;
 	using Mapping;
 	using Metadata;
-	using Extensions;
-	using Common;
-	using Internal;
 	using SqlQuery;
 	using SqlExpression = SqlExpression;
 
@@ -321,8 +320,7 @@ namespace LinqToDB.EntityFrameworkCore
 							{
 								ThisKey         = thisKey,
 								OtherKey        = otherKey,
-								CanBeNull       = !fk.IsRequiredDependent,
-								IsBackReference = false
+								CanBeNull       = !fk.IsRequiredDependent
 							});
 						}
 						else
@@ -333,8 +331,7 @@ namespace LinqToDB.EntityFrameworkCore
 							{
 								ThisKey         = thisKey,
 								OtherKey        = otherKey,
-								CanBeNull       = !fk.IsRequired,
-								IsBackReference = true
+								CanBeNull       = !fk.IsRequired
 							});
 						}
 					}
@@ -578,7 +575,7 @@ namespace LinqToDB.EntityFrameworkCore
 				if (expr is SqlFunctionExpression sqlFunction)
 				{
 					var text = sqlFunction.Name;
-					if (!sqlFunction.Schema.IsNullOrEmpty())
+					if (!string.IsNullOrEmpty(sqlFunction.Schema))
 						text = sqlFunction.Schema + "." + sqlFunction.Name;
 
 					if (!sqlFunction.IsNiladic)
