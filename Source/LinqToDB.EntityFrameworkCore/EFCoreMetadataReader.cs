@@ -319,10 +319,9 @@ namespace LinqToDB.EntityFrameworkCore
 							var otherKey = string.Join(",", fk.Properties.Select(p => p.Name));
 							associations.Add(new AssociationAttribute
 							{
-								ThisKey         = thisKey,
-								OtherKey        = otherKey,
-								CanBeNull       = !fk.IsRequiredDependent,
-								IsBackReference = false
+								ThisKey   = thisKey,
+								OtherKey  = otherKey,
+								CanBeNull = !fk.IsRequiredDependent,
 							});
 						}
 						else
@@ -331,10 +330,9 @@ namespace LinqToDB.EntityFrameworkCore
 							var otherKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
 							associations.Add(new AssociationAttribute
 							{
-								ThisKey         = thisKey,
-								OtherKey        = otherKey,
-								CanBeNull       = !fk.IsRequired,
-								IsBackReference = true
+								ThisKey   = thisKey,
+								OtherKey  = otherKey,
+								CanBeNull = !fk.IsRequired
 							});
 						}
 					}
@@ -578,7 +576,7 @@ namespace LinqToDB.EntityFrameworkCore
 				if (expr is SqlFunctionExpression sqlFunction)
 				{
 					var text = sqlFunction.Name;
-					if (!sqlFunction.Schema.IsNullOrEmpty())
+					if (!string.IsNullOrEmpty(sqlFunction.Schema))
 						text = sqlFunction.Schema + "." + sqlFunction.Name;
 
 					if (!sqlFunction.IsNiladic)
