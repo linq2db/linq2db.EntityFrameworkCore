@@ -58,12 +58,7 @@ stages:
       displayName: Generate nuspec
       condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release'), eq(variables['Build.SourceBranchName'], 'master')))
 
-    - task: NuGetToolInstaller@0
-      inputs:
-        versionSpec: '5.x'
-        workingDirectory: $(Build.SourcesDirectory)/NuGet
-      displayName: Install nuget
-      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release'), eq(variables['Build.SourceBranchName'], 'master')))
+    - task: NuGetToolInstaller@1
 
     - task: CmdLine@2
       inputs:
