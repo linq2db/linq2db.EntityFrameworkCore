@@ -59,12 +59,7 @@ stages:
       displayName: Generate nuspec
       condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.3'), eq(variables['Build.SourceBranchName'], 'version3')))
 
-    - task: NuGetToolInstaller@0
-      inputs:
-        versionSpec: '5.x'
-        workingDirectory: $(Build.SourcesDirectory)/NuGet
-      displayName: Install nuget
-      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.3'), eq(variables['Build.SourceBranchName'], 'version3')))
+    - task: NuGetToolInstaller@1
 
     - task: CmdLine@2
       inputs:

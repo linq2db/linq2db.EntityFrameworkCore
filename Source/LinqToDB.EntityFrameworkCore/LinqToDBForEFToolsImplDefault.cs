@@ -6,40 +6,36 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.Extensions.Logging;
-
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace LinqToDB.EntityFrameworkCore
 {
-	using Data;
-	using Expressions;
-	using Mapping;
-	using Metadata;
-	using Extensions;
-	using SqlQuery;
-	using Reflection;
+	using System.Diagnostics.CodeAnalysis;
 	using Common.Internal.Cache;
-
+	using Data;
 	using DataProvider;
 	using DataProvider.DB2;
 	using DataProvider.Firebird;
 	using DataProvider.MySql;
 	using DataProvider.Oracle;
 	using DataProvider.PostgreSQL;
+	using DataProvider.SqlCe;
 	using DataProvider.SQLite;
 	using DataProvider.SqlServer;
-	using DataProvider.SqlCe;
-	using System.Diagnostics.CodeAnalysis;
+	using Expressions;
+	using Extensions;
+	using Mapping;
+	using Metadata;
+	using Reflection;
+	using SqlQuery;
 
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	/// <summary>
@@ -169,23 +165,22 @@ namespace LinqToDB.EntityFrameworkCore
 						return CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString);
 					case ProviderName.MySql:
 					case ProviderName.MySqlConnector:
-						return new MySqlDataProvider(provInfo.ProviderName);
+						return MySqlTools.GetDataProvider(provInfo.ProviderName);
 					case ProviderName.PostgreSQL:
 						return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
 					case ProviderName.SQLite:
-						return new SQLiteDataProvider(provInfo.ProviderName);
+						return SQLiteTools.GetDataProvider(provInfo.ProviderName);
 					case ProviderName.Firebird:
-						return new FirebirdDataProvider();
+						return FirebirdTools.GetDataProvider();
 					case ProviderName.DB2:
-						return new DB2DataProvider(ProviderName.DB2, DB2Version.LUW);
 					case ProviderName.DB2LUW:
-						return new DB2DataProvider(ProviderName.DB2, DB2Version.LUW);
+						return DB2Tools.GetDataProvider(DB2Version.LUW);
 					case ProviderName.DB2zOS:
-						return new DB2DataProvider(ProviderName.DB2, DB2Version.zOS);
+						return DB2Tools.GetDataProvider(DB2Version.zOS);
 					case ProviderName.Oracle:
-						return new OracleDataProvider(provInfo.ProviderName, OracleVersion.v11);
+						return OracleTools.GetDataProvider(provInfo.ProviderName, version: OracleVersion.v11);
 					case ProviderName.SqlCe:
-						return new SqlCeDataProvider();
+						return SqlCeTools.GetDataProvider();
 					//case ProviderName.Access:
 					//	return new AccessDataProvider();
 
@@ -326,34 +321,10 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>linq2db SQL Server provider instance.</returns>
 		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string? connectionString)
 		{
-			string providerName;
-
 			if (!string.IsNullOrEmpty(connectionString))
-			{
-				providerName = "Microsoft.Data.SqlClient";
+				return DataConnection.GetDataProvider("Microsoft.Data.SqlClient", connectionString!)!;
 
-				return DataConnection.GetDataProvider(providerName, connectionString!)!;
-			}
-
-			switch (version)
-			{
-				case SqlServerVersion.v2000:
-					providerName = ProviderName.SqlServer2000;
-					break;
-				case SqlServerVersion.v2005:
-					providerName = ProviderName.SqlServer2005;
-					break;
-				case SqlServerVersion.v2008:
-					providerName = ProviderName.SqlServer2008;
-					break;
-				case SqlServerVersion.v2012:
-					providerName = ProviderName.SqlServer2012;
-					break;
-				default:
-					throw new ArgumentOutOfRangeException($"Version '{version}' is not supported.");
-			}
-
-			return new SqlServerDataProvider(providerName, version);
+			return DataProvider.SqlServer.SqlServerTools.GetDataProvider(version, SqlServerProvider.MicrosoftDataSqlClient);
 		}
 
 		/// <summary>
@@ -367,23 +338,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (!string.IsNullOrEmpty(connectionString))
 				return DataConnection.GetDataProvider(ProviderName.PostgreSQL, connectionString!)!;
 
-			string providerName;
-			switch (version)
-			{
-				case PostgreSQLVersion.v92:
-					providerName = ProviderName.PostgreSQL92;
-					break;
-				case PostgreSQLVersion.v93:
-					providerName = ProviderName.PostgreSQL93;
-					break;
-				case PostgreSQLVersion.v95:
-					providerName = ProviderName.PostgreSQL95;
-					break;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(version), version, null);
-			}
-
-			return new PostgreSQLDataProvider(providerName, version);
+			return PostgreSQLTools.GetDataProvider(version);
 		}
 
 		/// <summary>
