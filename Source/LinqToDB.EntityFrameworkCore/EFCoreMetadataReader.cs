@@ -226,7 +226,12 @@ namespace LinqToDB.EntityFrameworkCore
 							.Any(a =>
 							{
 								if (a.Name.EndsWith(":ValueGenerationStrategy"))
-									return a.Value?.ToString().Contains("Identity") == true;
+								{
+									var value = a.Value?.ToString();
+
+									if (value != null && (value.Contains("Identity") || value.Contains("Serial")))
+										return true;
+								};
 
 								if (a.Name.EndsWith(":Autoincrement"))
 									return a.Value is bool b && b;
@@ -568,7 +573,7 @@ namespace LinqToDB.EntityFrameworkCore
 				if (expr is SqlFunctionExpression sqlFunction)
 				{
 					var text = sqlFunction.FunctionName;
-					if (!sqlFunction.Schema.IsNullOrEmpty())
+					if (!string.IsNullOrEmpty(sqlFunction.Schema))
 						text = sqlFunction.Schema + "." + sqlFunction.FunctionName;
 
 					if (!sqlFunction.IsNiladic)
