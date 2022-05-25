@@ -109,12 +109,12 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 		}
 
 		[Test]
-		public virtual void TestAmbiguousProperties()
+		public virtual async Task TestAmbiguousProperties()
 		{
 			using var context = CreateContext();
 
-			FluentActions.Awaiting(() => context.WithDuplicateProperties.Where(x => x.Value == 1)
-				.ToArrayAsyncLinqToDB()).Should().NotThrow();
+			await FluentActions.Awaiting(() => context.WithDuplicateProperties.Where(x => x.Value == 1)
+				.ToArrayAsyncLinqToDB()).Should().NotThrowAsync();
 		}
 
 	}

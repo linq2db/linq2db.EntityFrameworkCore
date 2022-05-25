@@ -19,11 +19,13 @@ namespace LinqToDB.EntityFrameworkCore
 	using DataProvider;
 	using Linq;
 	using Expressions;
+	using LinqToDB.Interceptors;
+	using System.Data.Common;
 
 	/// <summary>
 	/// linq2db EF.Core data connection.
 	/// </summary>
-	public class LinqToDBForEFToolsDataConnection : DataConnection, IExpressionPreprocessor
+	public class LinqToDBForEFToolsDataConnection : DataConnection, IExpressionPreprocessor, IEntityServiceInterceptor
 	{
 		readonly IModel? _model;
 		readonly Func<Expression, IDataContext, DbContext?, IModel?, Expression>? _transformFunc;
@@ -67,7 +69,7 @@ namespace LinqToDB.EntityFrameworkCore
 			_transformFunc   = transformFunc;
 			CopyDatabaseProperties();
 			if (LinqToDBForEFTools.EnableChangeTracker)
-				OnEntityCreated += OnEntityCreatedHandler;
+				AddInterceptor(this);
 		}
 
 		/// <summary>
@@ -80,9 +82,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
 			DbContext?      context,
-			[NotNull]   IDataProvider  dataProvider,
-			[NotNull]   IDbTransaction transaction,
-			            IModel?        model,
+			[NotNull]   IDataProvider dataProvider,
+			[NotNull]   DbTransaction transaction,
+			            IModel?       model,
 			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc
 			) : base(dataProvider, transaction)
 		{
@@ -91,7 +93,7 @@ namespace LinqToDB.EntityFrameworkCore
 			_transformFunc   = transformFunc;
 			CopyDatabaseProperties();
 			if (LinqToDBForEFTools.EnableChangeTracker)
-				OnEntityCreated += OnEntityCreatedHandler;
+				AddInterceptor(this);
 		}
 
 		/// <summary>
@@ -105,7 +107,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public LinqToDBForEFToolsDataConnection(
 			DbContext?     context,
 			[NotNull]   IDataProvider dataProvider,
-			[NotNull]   IDbConnection connection,
+			[NotNull]   DbConnection  connection,
 			            IModel?       model,
 			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc) : base(dataProvider, connection)
 		{
@@ -114,7 +116,7 @@ namespace LinqToDB.EntityFrameworkCore
 			_transformFunc   = transformFunc;
 			CopyDatabaseProperties();
 			if (LinqToDBForEFTools.EnableChangeTracker)
-				OnEntityCreated += OnEntityCreatedHandler;
+				AddInterceptor(this);
 		}
 
 		/// <summary>
@@ -157,7 +159,7 @@ namespace LinqToDB.EntityFrameworkCore
 					return true;
 				}
 
-				if (obj.GetType() != this.GetType())
+				if (obj.GetType() != GetType())
 				{
 					return false;
 				}
@@ -174,22 +176,22 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 		}
 
-		private void OnEntityCreatedHandler(EntityCreatedEventArgs args)
+		object IEntityServiceInterceptor.EntityCreated(EntityCreatedEventData eventData, object entity)
 		{
 			// Do not allow to store in ChangeTracker temporary tables
-			if ((args.TableOptions & TableOptions.IsTemporaryOptionSet) != 0)
-				return;
+			if ((eventData.TableOptions & TableOptions.IsTemporaryOptionSet) != 0)
+				return entity;
 
 			// Do not allow to store in ChangeTracker tables from different server
-			if (args.ServerName != null)
-				return;
+			if (eventData.ServerName != null)
+				return entity;
 
 			if (!LinqToDBForEFTools.EnableChangeTracker
 			    || !Tracking 
 			    || Context!.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.NoTracking)
-				return;
+				return entity;
 
-			var type = args.Entity.GetType();
+			var type = entity.GetType();
 			if (_lastType != type)
 			{
 				_lastType       = type;
@@ -197,12 +199,11 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 
 			if (_lastEntityType == null)
-				return;
-
+				return entity;
 
 			// Do not allow to store in ChangeTracker tables that has different name
-			if (args.TableName != _lastEntityType.Relational().TableName)
-				return;
+			if (eventData.TableName != _lastEntityType.Relational().TableName)
+				return entity;
 
 			if (_stateManager == null)
 				_stateManager = Context.GetService<IStateManager>();
@@ -221,16 +222,16 @@ namespace LinqToDB.EntityFrameworkCore
 			});
 
 			if (retrievalFunc == null)
-				return;
+				return entity;
 
-			entry = retrievalFunc(_stateManager, args.Entity);
+			entry = retrievalFunc(_stateManager, entity);
 
 			if (entry == null)
 			{
-				entry = _stateManager.StartTrackingFromQuery(_lastEntityType, args.Entity, ValueBuffer.Empty, null);
+				entry = _stateManager.StartTrackingFromQuery(_lastEntityType, entity, ValueBuffer.Empty, null);
 			}
 
-			args.Entity = entry.Entity;
+			return entry.Entity;
 		}
 
 		private Func<IStateManager, object, InternalEntityEntry?>? CreateEntityRetrievalFunc(IEntityType entityType)
