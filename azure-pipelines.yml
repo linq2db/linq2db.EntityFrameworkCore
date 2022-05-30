@@ -1,8 +1,8 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 5.10.0
-  nugetVersion: 5.10.0
+  assemblyVersion: 5.11.0
+  nugetVersion: 5.11.0
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
@@ -58,12 +58,7 @@ stages:
       displayName: Generate nuspec
       condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release'), eq(variables['Build.SourceBranchName'], 'master')))
 
-    - task: NuGetToolInstaller@0
-      inputs:
-        versionSpec: '5.x'
-        workingDirectory: $(Build.SourcesDirectory)/NuGet
-      displayName: Install nuget
-      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release'), eq(variables['Build.SourceBranchName'], 'master')))
+    - task: NuGetToolInstaller@1
 
     - task: CmdLine@2
       inputs:
