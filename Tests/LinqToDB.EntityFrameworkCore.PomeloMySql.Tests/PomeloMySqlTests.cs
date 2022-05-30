@@ -38,7 +38,6 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 			return ctx;
 		}
 
-
 		[Test]
 		public void SimpleProviderTest()
 		{
@@ -47,7 +46,5 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 				var items = db.Customers.Where(e => e.Address != null).ToLinqToDB().ToArray();
 			}
 		}
-
-	
 	}
 }
