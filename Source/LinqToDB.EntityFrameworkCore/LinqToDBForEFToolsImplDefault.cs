@@ -173,16 +173,16 @@ namespace LinqToDB.EntityFrameworkCore
 					case ProviderName.SQLite:
 						return SQLiteTools.GetDataProvider(provInfo.ProviderName);
 					case ProviderName.Firebird:
-						return new FirebirdDataProvider();
+						return FirebirdTools.GetDataProvider();
 					case ProviderName.DB2:
 					case ProviderName.DB2LUW:
-					return DB2Tools.GetDataProvider(DB2Version.LUW);
+						return DB2Tools.GetDataProvider(DB2Version.LUW);
 					case ProviderName.DB2zOS:
 					return DB2Tools.GetDataProvider(DB2Version.zOS);
-				case ProviderName.Oracle:
+					case ProviderName.Oracle:
 						return OracleTools.GetDataProvider(provInfo.ProviderName, version: OracleVersion.v11);
 					case ProviderName.SqlCe:
-						return new SqlCeDataProvider();
+						return SqlCeTools.GetDataProvider();
 					//case ProviderName.Access:
 					//	return new AccessDataProvider();
 
