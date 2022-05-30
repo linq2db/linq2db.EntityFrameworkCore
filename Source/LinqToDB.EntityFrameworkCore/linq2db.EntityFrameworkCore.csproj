@@ -12,8 +12,6 @@
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\linq2db.EntityFrameworkCore.xml</DocumentationFile>
 
 		<NoWarn>EF1001</NoWarn>
-
-		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">

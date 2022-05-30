@@ -226,7 +226,12 @@ namespace LinqToDB.EntityFrameworkCore
 							.Any(a =>
 							{
 								if (a.Name.EndsWith(":ValueGenerationStrategy"))
-									return a.Value?.ToString().Contains("Identity") == true;
+								{
+									var value = a.Value?.ToString();
+
+									if (value != null && (value.Contains("Identity") || value.Contains("Serial")))
+										return true;
+								};
 
 								if (a.Name.EndsWith(":Autoincrement"))
 									return a.Value is bool b && b;
@@ -259,6 +264,17 @@ namespace LinqToDB.EntityFrameworkCore
 							}
 						}
 
+						var behaviour = prop.BeforeSaveBehavior;
+						var skipOnInsert = prop.ValueGenerated.HasFlag(ValueGenerated.OnAdd);
+
+						if (skipOnInsert)
+						{
+							skipOnInsert = isIdentity || behaviour != PropertySaveBehavior.Save;
+						}
+
+						var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
+						                   prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
+
 						return new T[]
 						{
 							(T)(Attribute)new ColumnAttribute
@@ -271,7 +287,9 @@ namespace LinqToDB.EntityFrameworkCore
 								IsPrimaryKey    = isPrimaryKey,
 								PrimaryKeyOrder = primaryKeyOrder,
 								IsIdentity      = isIdentity,
-								IsDiscriminator = discriminator == prop
+								IsDiscriminator = discriminator == prop,
+								SkipOnInsert    = skipOnInsert,
+								SkipOnUpdate    = skipOnUpdate
 							}
 						};
 					}
@@ -555,7 +573,7 @@ namespace LinqToDB.EntityFrameworkCore
 				if (expr is SqlFunctionExpression sqlFunction)
 				{
 					var text = sqlFunction.FunctionName;
-					if (!sqlFunction.Schema.IsNullOrEmpty())
+					if (!string.IsNullOrEmpty(sqlFunction.Schema))
 						text = sqlFunction.Schema + "." + sqlFunction.FunctionName;
 
 					if (!sqlFunction.IsNiladic)
