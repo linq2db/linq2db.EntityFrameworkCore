@@ -187,30 +187,30 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.LongCountAsync(source, predicate, token);
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.MinAsync{TSource}(IQueryable{TSource}, CancellationToken)"/>
-		public Task<TSource> MinAsync<TSource>(
+		public Task<TSource?> MinAsync<TSource>(
 			IQueryable<TSource> source,
 			CancellationToken   token)
-			=> EntityFrameworkQueryableExtensions.MinAsync(source, token);
+			=> EntityFrameworkQueryableExtensions.MinAsync(source, token)!;
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.MinAsync{TSource, TResult}(IQueryable{TSource}, Expression{Func{TSource, TResult}}, CancellationToken)"/>
-		public Task<TResult> MinAsync<TSource,TResult>(
+		public Task<TResult?> MinAsync<TSource,TResult>(
 			IQueryable<TSource>               source,
 			Expression<Func<TSource,TResult>> selector,
 			CancellationToken                 token)
-			=> EntityFrameworkQueryableExtensions.MinAsync(source, selector, token);
+			=> EntityFrameworkQueryableExtensions.MinAsync(source, selector, token)!;
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.MaxAsync{TSource}(IQueryable{TSource}, CancellationToken)"/>
-		public Task<TSource> MaxAsync<TSource>(
+		public Task<TSource?> MaxAsync<TSource>(
 			IQueryable<TSource> source,
 			CancellationToken   token)
-			=> EntityFrameworkQueryableExtensions.MaxAsync(source, token);
+			=> EntityFrameworkQueryableExtensions.MaxAsync(source, token)!;
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.MaxAsync{TSource, TResult}(IQueryable{TSource}, Expression{Func{TSource, TResult}}, CancellationToken)"/>
-		public Task<TResult> MaxAsync<TSource,TResult>(
+		public Task<TResult?> MaxAsync<TSource,TResult>(
 			IQueryable<TSource>               source,
 			Expression<Func<TSource,TResult>> selector,
 			CancellationToken                 token)
-			=> EntityFrameworkQueryableExtensions.MaxAsync(source, selector, token);
+			=> EntityFrameworkQueryableExtensions.MaxAsync(source, selector, token)!;
 
 		#region SumAsync
 

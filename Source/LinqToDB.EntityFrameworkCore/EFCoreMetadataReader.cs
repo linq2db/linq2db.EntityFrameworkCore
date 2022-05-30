@@ -256,6 +256,17 @@ namespace LinqToDB.EntityFrameworkCore
 							}
 						}
 
+						var behaviour = prop.GetBeforeSaveBehavior();
+						var skipOnInsert = prop.ValueGenerated.HasFlag(ValueGenerated.OnAdd);
+
+						if (skipOnInsert)
+						{
+							skipOnInsert = isIdentity || behaviour != PropertySaveBehavior.Save;
+						}
+
+						var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
+						                   prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
+
 						return new T[]
 						{
 							(T)(Attribute)new ColumnAttribute
@@ -268,7 +279,9 @@ namespace LinqToDB.EntityFrameworkCore
 								IsPrimaryKey    = isPrimaryKey,
 								PrimaryKeyOrder = primaryKeyOrder,
 								IsIdentity      = isIdentity,
-								IsDiscriminator = discriminator == prop
+								IsDiscriminator = discriminator == prop,
+								SkipOnInsert    = skipOnInsert,
+								SkipOnUpdate    = skipOnUpdate
 							}
 						};
 					}
@@ -304,8 +317,7 @@ namespace LinqToDB.EntityFrameworkCore
 							{
 								ThisKey         = thisKey,
 								OtherKey        = otherKey,
-								CanBeNull       = canBeNull,
-								IsBackReference = false
+								CanBeNull       = canBeNull
 							});
 						}
 						else
@@ -316,8 +328,7 @@ namespace LinqToDB.EntityFrameworkCore
 							{
 								ThisKey         = thisKey,
 								OtherKey        = otherKey,
-								CanBeNull       = !fk.IsRequired,
-								IsBackReference = true
+								CanBeNull       = !fk.IsRequired
 							});
 						}
 					}
@@ -433,7 +444,7 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				if (ReferenceEquals(null, obj)) return false;
 				if (ReferenceEquals(this, obj)) return true;
-				if (obj.GetType() != this.GetType()) return false;
+				if (obj.GetType() != GetType()) return false;
 				return Equals((SqlTransparentExpression) obj);
 			}
 
@@ -552,7 +563,7 @@ namespace LinqToDB.EntityFrameworkCore
 				if (expr is SqlFunctionExpression sqlFunction)
 				{
 					var text = sqlFunction.Name;
-					if (!sqlFunction.Schema.IsNullOrEmpty())
+					if (!string.IsNullOrEmpty(sqlFunction.Schema))
 						text = sqlFunction.Schema + "." + sqlFunction.Name;
 
 					if (!sqlFunction.IsNiladic)
