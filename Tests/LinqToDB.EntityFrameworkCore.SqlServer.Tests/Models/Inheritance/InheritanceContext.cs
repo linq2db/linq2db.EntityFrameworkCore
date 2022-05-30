@@ -36,41 +36,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Inheritance
 		public string Url { get; set; } = null!;
 	}
 
-	public interface IVersionable
-	{
-		int Id { get; set; }
-		int? ParentVersionId { get; set; }
-	}
-
 	public class InheritanceContext : DbContext
 	{
 		public InheritanceContext(DbContextOptions options) : base(options)
 		{
-		}
-
-		private void VersionEntity()
-		{
-			ChangeTracker.DetectChanges();
-			var modifiedEntries = ChangeTracker.Entries().Where(e => e.State == EntityState.Modified && e.Entity is IVersionable);
-
-			foreach (var modifiedEntry in modifiedEntries)
-			{
-				var cloned = (IVersionable)Activator.CreateInstance(modifiedEntry.Entity.GetType())!;
-				modifiedEntry.CurrentValues.SetValues(cloned);
-
-				// rollback
-				modifiedEntry.CurrentValues.SetValues(modifiedEntry.OriginalValues);
-
-				cloned.Id = 0;
-				cloned.ParentVersionId = ((IVersionable)(modifiedEntry).Entity).Id;
-
-				Add((object)cloned);
-			}
-		}
-		
-		public override int SaveChanges()
-		{
-			return base.SaveChanges();
+			
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)

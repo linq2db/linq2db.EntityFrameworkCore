@@ -20,7 +20,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		{
 		}
 
-		/// <inheritdoc />
+		/// <inheritdoc/>
 		public override ISqlExpression? GetExpression<TContext>(
 			TContext context,
 			IDataContext dataContext,
