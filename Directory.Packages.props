@@ -20,5 +20,8 @@
 		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
 		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.5" />
 		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.5" />
+
+		<PackageVersion Include="EntityFrameworkCore.FSharp" Version="6.0.7" />
+		<PackageVersion Include="FSharp.Core" Version="6.0.5" />
 	</ItemGroup>
 </Project>
