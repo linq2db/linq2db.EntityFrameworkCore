@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Inheritance
 {

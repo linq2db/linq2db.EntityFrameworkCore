@@ -2,7 +2,7 @@
 	<Import Project="linq2db.Default.props" />
 	
 	<PropertyGroup>
-		<TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+		<TargetFramework>net5.0</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>
