@@ -523,7 +523,7 @@ namespace LinqToDB.EntityFrameworkCore
 					var objExpr = new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type), _mappingSource?.FindMapping(propInfo));
 
 					var newExpression = _dependencies.MemberTranslatorProvider.Translate(objExpr, propInfo, propInfo.GetMemberType(), _logger!);
-					if (newExpression != null)
+					if (newExpression != null && newExpression != objExpr)
 					{
 						var parametersArray = new Expression[] { objExpr };
 						result = ConvertToExpressionAttribute(propInfo, newExpression, parametersArray);

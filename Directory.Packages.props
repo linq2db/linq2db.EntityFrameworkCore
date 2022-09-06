@@ -5,8 +5,8 @@
 		<PackageVersion Include="NUnit" Version="3.13.3" />
 		<PackageVersion Include="FluentAssertions" Version="6.6.0" />
 
-		<PackageVersion Include="linq2db" Version="4.0.1" />
-		<PackageVersion Include="linq2db.Tools" Version="4.0.1" />
+		<PackageVersion Include="linq2db" Version="4.2.0" />
+		<PackageVersion Include="linq2db.Tools" Version="4.2.0" />
 
 		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
 
@@ -20,5 +20,8 @@
 		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
 		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.5" />
 		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.5" />
+
+		<PackageVersion Include="EntityFrameworkCore.FSharp" Version="6.0.7" />
+		<PackageVersion Include="FSharp.Core" Version="6.0.5" />
 	</ItemGroup>
 </Project>
