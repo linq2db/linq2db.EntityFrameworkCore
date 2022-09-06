@@ -1,11 +1,11 @@
 ﻿<Project>
 	<PropertyGroup>
-		<Version>3.19.0</Version>
+		<Version>3.20.0</Version>
 
 		<Authors>Svyatoslav Danyliv, Igor Tkachev, Dmitry Lukashenko, Ilya Chudin</Authors>
 		<Product>Linq to DB</Product>
 		<Company>linq2db.net</Company>
-		<Copyright>2002-2021 linq2db.net</Copyright>
+		<Copyright>2002-2022 linq2db.net</Copyright>
 		<RepositoryUrl>https://github.com/linq2db/linq2db.EntityFrameworkCore</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 
