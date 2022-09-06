@@ -140,7 +140,7 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 
 			public IEntityType EntityType { get; }
-			public IModel? Model { get; }
+			public IModel?     Model      { get; }
 
 			protected bool Equals(TypeKey other)
 			{
@@ -187,7 +187,7 @@ namespace LinqToDB.EntityFrameworkCore
 				return entity;
 
 			if (!LinqToDBForEFTools.EnableChangeTracker
-			    || !Tracking 
+			    || !Tracking
 			    || Context!.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.NoTracking)
 				return entity;
 
