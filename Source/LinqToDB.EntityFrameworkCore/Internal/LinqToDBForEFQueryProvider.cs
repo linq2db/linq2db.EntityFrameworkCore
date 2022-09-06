@@ -163,7 +163,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			{
 				var asyncEnumerable = await QueryProvider.ExecuteAsyncEnumerable<T>(Expression, ct)
 					.ConfigureAwait(false);
-				await foreach (var item in asyncEnumerable.WithCancellation(ct))
+				await foreach (var item in asyncEnumerable.WithCancellation(ct).ConfigureAwait(false))
 				{
 					yield return item;
 				}
