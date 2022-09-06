@@ -1062,6 +1062,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="logger">Logger instance.</param>
 		public virtual void LogConnectionTrace(TraceInfo info, ILogger logger)
 		{
+#pragma warning disable CA1848 // Use the LoggerMessage delegates
 			var logLevel = info.TraceLevel switch
 			{
 				TraceLevel.Off => LogLevel.None,
@@ -1072,7 +1073,6 @@ namespace LinqToDB.EntityFrameworkCore
 				_ => LogLevel.Trace,
 			};
 
-#pragma warning disable CA1848 // Use the LoggerMessage delegates
 			using var _ = logger.BeginScope("TraceInfoStep: {TraceInfoStep}, IsAsync: {IsAsync}", info.TraceInfoStep, info.IsAsync);
 
 			switch (info.TraceInfoStep)

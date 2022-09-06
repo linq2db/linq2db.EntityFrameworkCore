@@ -85,8 +85,8 @@ namespace LinqToDB.EntityFrameworkCore
 			[NotNull]   IDataProvider dataProvider,
 			[NotNull]   DbTransaction transaction,
 			            IModel?       model,
-			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc
-			) : base(dataProvider, transaction)
+			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc)
+				: base(dataProvider, transaction)
 		{
 			Context          = context;
 			_model           = model;
@@ -140,7 +140,7 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 
 			public IEntityType EntityType { get; }
-			public IModel? Model { get; }
+			public IModel?     Model      { get; }
 
 			protected bool Equals(TypeKey other)
 			{
@@ -187,7 +187,7 @@ namespace LinqToDB.EntityFrameworkCore
 				return entity;
 
 			if (!LinqToDBForEFTools.EnableChangeTracker
-			    || !Tracking 
+			    || !Tracking
 			    || Context!.ChangeTracker.QueryTrackingBehavior == QueryTrackingBehavior.NoTracking)
 				return entity;
 
@@ -243,9 +243,11 @@ namespace LinqToDB.EntityFrameworkCore
 			var assignExpr = Expression.Assign(variable, Expression.Convert(objParam, entityType.ClrType));
 
 			var key = entityType.GetKeys().FirstOrDefault();
+			if (key == null)
+				return null;
 
 			var arrayExpr = key.Properties.Where(p => p.PropertyInfo != null || p.FieldInfo != null).Select(p =>
-					Expression.Convert(Expression.MakeMemberAccess(variable, p.PropertyInfo ?? (MemberInfo)p.FieldInfo),
+					Expression.Convert(Expression.MakeMemberAccess(variable, p.PropertyInfo ?? (MemberInfo)p.FieldInfo!),
 						typeof(object)))
 				.ToArray();
 

@@ -27,7 +27,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			public int Id { get; set; }
 			public virtual LocalizedString NameLocalized { get; set; } = null!;
-			public virtual string JsonColumn { get; set; } = null!;
+			public virtual string? JsonColumn { get; set; }
 		}
 		
 		public enum CrashEnum : byte
