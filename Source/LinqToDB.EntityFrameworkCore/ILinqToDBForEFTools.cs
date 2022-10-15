@@ -14,6 +14,8 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 	using Data;
+	using System.Collections.Generic;
+	using LinqToDB.Interceptors;
 
 	/// <summary>
 	/// Interface for EF Core - LINQ To DB integration bridge.
@@ -120,5 +122,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		bool EnableChangeTracker { get; set; }
 		
+		/// <summary>
+		/// List of interceptors that should be added by default to data connections/contexts created from EF Core provider
+		/// </summary>
+		List<IInterceptor> DefaultLinq2DbInterceptors { get; set; }
 	}
 }

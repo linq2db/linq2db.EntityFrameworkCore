@@ -25,6 +25,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Expressions;
 
 	using Internal;
+	using LinqToDB.Interceptors;
 
 	/// <summary>
 	/// EF Core <see cref="DbContext"/> extensions to call LINQ To DB functionality.
@@ -288,6 +289,8 @@ namespace LinqToDB.EntityFrameworkCore
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
+			AddDefaultInterceptorsToDataContext(dc);
+
 			return dc;
 		}
 
@@ -371,6 +374,8 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				EnableTracing(dc, logger);
 			}
+
+			AddDefaultInterceptorsToDataContext(dc);
 
 			return dc;
 		}
@@ -497,6 +502,8 @@ namespace LinqToDB.EntityFrameworkCore
 					dc.AddMappingSchema(mappingSchema);
 			}
 
+			AddDefaultInterceptorsToDataContext(dc);
+
 			return dc;
 		}
 
@@ -513,6 +520,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null)
 				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
+			AddDefaultInterceptorsToDataContext(dc);
 			return new LinqToDBForEFQueryProvider<T>(dc, query.Expression);
 		}
 
@@ -558,5 +566,27 @@ namespace LinqToDB.EntityFrameworkCore
 			set => Implementation.EnableChangeTracker = value;
 		}
 
+		private static void AddDefaultInterceptorsToDataContext(IDataContext dc)
+		{
+			if (dc != null && Implementation.DefaultLinq2DbInterceptors?.Any() == true)
+			{
+				foreach (var interceptor in Implementation.DefaultLinq2DbInterceptors)
+				{
+					var commandInterceptable = dc as IInterceptable<ICommandInterceptor>;
+					var connectionInterceptable = dc as IInterceptable<IConnectionInterceptor>;
+					var entityServiceInterceptable = dc as IInterceptable<IEntityServiceInterceptor>;
+					var dataContextInterceptable = dc as IInterceptable<IDataContextInterceptor>;
+
+					if (commandInterceptable?.Interceptor?.GetType().FullName != interceptor.GetType().FullName
+						&& connectionInterceptable?.Interceptor?.GetType().FullName != interceptor.GetType().FullName
+						&& entityServiceInterceptable?.Interceptor?.GetType().FullName != interceptor.GetType().FullName
+						&& dataContextInterceptable?.Interceptor?.GetType().FullName != interceptor.GetType().FullName
+						)	//this prevents adding same interceptor multiple times
+					{
+						dc.AddInterceptor(interceptor);
+					}
+				}
+			}
+		}
 	}
 }
