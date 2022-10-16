@@ -25,7 +25,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Expressions;
 
 	using Internal;
-	using LinqToDB.Interceptors;
+	using Interceptors;
 
 	/// <summary>
 	/// EF Core <see cref="DbContext"/> extensions to call LINQ To DB functionality.
@@ -568,7 +568,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		private static void AddDefaultInterceptorsToDataContext(IDataContext dc)
 		{
-			if (dc != null && Implementation.DefaultLinq2DbInterceptors?.Any() == true)
+			if (dc != null && Implementation.DefaultLinq2DbInterceptors.Any())
 			{
 				foreach (var interceptor in Implementation.DefaultLinq2DbInterceptors)
 				{

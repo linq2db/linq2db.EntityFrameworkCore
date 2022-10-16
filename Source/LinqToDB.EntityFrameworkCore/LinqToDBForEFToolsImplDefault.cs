@@ -38,7 +38,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using DataProvider.SqlServer;
 	using DataProvider.SqlCe;
 	using System.Diagnostics.CodeAnalysis;
-	using LinqToDB.Interceptors;
+	using Interceptors;
 
 	// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 	/// <summary>
@@ -1160,6 +1160,6 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// List of default interceptors that should be added to data connections created from EF Core provider
 		/// </summary>
-		public List<IInterceptor> DefaultLinq2DbInterceptors { get; set; } = new List<IInterceptor>();
+		public IList<IInterceptor> DefaultLinq2DbInterceptors { get; } = new List<IInterceptor>();
 	}
 }

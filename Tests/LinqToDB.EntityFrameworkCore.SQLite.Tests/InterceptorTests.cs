@@ -67,8 +67,11 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			{
 				NorthwindData.Seed(ctx);
 			}
-			LinqToDBForEFTools.Implementation.DefaultLinq2DbInterceptors
-				.ForEach(x => ((TestInterceptor)x).ResetInvocations());
+
+			foreach (var interceptor in LinqToDBForEFTools.Implementation.DefaultLinq2DbInterceptors)
+			{
+				((TestInterceptor)interceptor).ResetInvocations();
+			}
 		}
 
 		[TearDown]
