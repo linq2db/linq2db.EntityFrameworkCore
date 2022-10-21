@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -15,7 +14,6 @@ namespace LinqToDB.EntityFrameworkCore
 	using Mapping;
 	using Metadata;
 	using Data;
-	using Interceptors;
 
 	/// <summary>
 	/// Interface for EF Core - LINQ To DB integration bridge.
@@ -121,10 +119,5 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Entities will be attached only if AsNoTracking() is not used in query and DbContext is configured to track entities. 
 		/// </summary>
 		bool EnableChangeTracker { get; set; }
-		
-		/// <summary>
-		/// List of interceptors that should be added by default to data connections/contexts created from EF Core provider
-		/// </summary>
-		IList<IInterceptor> DefaultLinq2DbInterceptors { get; }
 	}
 }

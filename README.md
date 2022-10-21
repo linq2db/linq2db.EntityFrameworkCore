@@ -39,12 +39,17 @@ LinqToDBForEFTools.Initialize();
 
 After that you can just call DbContext and IQueryable extension methods, provided by `LINQ To DB`.
 
-You can also optionally after invoking the above method define default interceptors to be used by LINQ To DB engine, here is an example:
+You can also register additional options (like interceptors) for LinqToDB during EF context registration, here is an example:
 
 ```cs
-var myInterceptor = new MyInterceptor(); //where MyInterceptor implements IInterceptor interface
-LinqToDBForEFTools.Implementation.DefaultLinq2DbInterceptors.Add(myInterceptor);
+var optionsBuilder = new DbContextOptionsBuilder<MyDbContext>();
+optionsBuilder.UseSqlite();
+optionsBuilder.UseLinqToDb(builder => 
+{
+    builder.AddInterceptor(new MyCommandInterceptor());
+});
 ```
+As for the interceptors, if the interceptors added for EF Core do implement the `LinqToDB.Interceptors.IInterceptor` interface, they will be taken into consideration by LinqToDB automatically without any additional configuration.
 
 There are many extensions for CRUD Operations missing in vanilla EF ([watch our video](https://www.youtube.com/watch?v=m--oX73EGeQ)):
 

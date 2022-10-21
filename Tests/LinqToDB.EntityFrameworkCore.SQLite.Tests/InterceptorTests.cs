@@ -16,11 +16,13 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 	{
 		private const string SQLITE_CONNECTION_STRING = "DataSource=NorthwindInMemory;Mode=Memory;Cache=Shared";
 		private readonly DbContextOptions _northwindOptions;
+		private readonly DbContextOptions _northwindOptionsWithoutLinq2DbExtensions;
 		private DbConnection? _dbConnection;
 		static TestCommandInterceptor defaultCommandInterceptor;
 		static TestDataContextInterceptor defaultDataContextInterceptor;
 		static TestConnectionInterceptor defaultConnectionInterceptor;
 		static TestEntityServiceInterceptor defaultEntityServiceInterceptor;
+		static TestEfCoreAndLinq2DbComboInterceptor defaultTestEfCoreAndLinq2DbInterceptor;
 
 		static InterceptorTests()
 		{
@@ -28,11 +30,8 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			defaultDataContextInterceptor = new TestDataContextInterceptor();
 			defaultConnectionInterceptor = new TestConnectionInterceptor();
 			defaultEntityServiceInterceptor = new TestEntityServiceInterceptor();
+			defaultTestEfCoreAndLinq2DbInterceptor = new TestEfCoreAndLinq2DbComboInterceptor();
 			LinqToDBForEFTools.Initialize();
-			LinqToDBForEFTools.Implementation.DefaultLinq2DbInterceptors.Add(defaultCommandInterceptor);
-			LinqToDBForEFTools.Implementation.DefaultLinq2DbInterceptors.Add(defaultDataContextInterceptor);
-			LinqToDBForEFTools.Implementation.DefaultLinq2DbInterceptors.Add(defaultConnectionInterceptor);
-			LinqToDBForEFTools.Implementation.DefaultLinq2DbInterceptors.Add(defaultEntityServiceInterceptor);
 			DataConnection.TurnTraceSwitchOn();
 		}
 
@@ -40,6 +39,23 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
+			optionsBuilder.UseLinqToDb(builder => 
+			{
+				builder.AddInterceptor(defaultCommandInterceptor);
+				builder.AddInterceptor(defaultDataContextInterceptor);
+				builder.AddInterceptor(defaultConnectionInterceptor);
+				builder.AddInterceptor(defaultEntityServiceInterceptor);
+			});
+			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
+
+			return optionsBuilder.Options;
+		}
+
+		static DbContextOptions CreateNorthwindOptionsWithoutLinq2DbExtensions()
+		{
+			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
+			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
+			optionsBuilder.AddInterceptors(defaultTestEfCoreAndLinq2DbInterceptor);
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			return optionsBuilder.Options;
@@ -48,11 +64,18 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		public InterceptorTests()
 		{
 			_northwindOptions = CreateNorthwindOptions();
+			_northwindOptionsWithoutLinq2DbExtensions = CreateNorthwindOptionsWithoutLinq2DbExtensions();
 		}
 
 		private NorthwindContext CreateContext()
 		{
 			var ctx = new NorthwindContext(_northwindOptions);
+			return ctx;
+		}
+
+		private NorthwindContext CreateContextWithountLinq2DbExtensions()
+		{
+			var ctx = new NorthwindContext(_northwindOptionsWithoutLinq2DbExtensions);
 			return ctx;
 		}
 
@@ -68,7 +91,13 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 				NorthwindData.Seed(ctx);
 			}
 
-			foreach (var interceptor in LinqToDBForEFTools.Implementation.DefaultLinq2DbInterceptors)
+			foreach (var interceptor in ctx.GetLinq2DbInterceptors())
+			{
+				((TestInterceptor)interceptor).ResetInvocations();
+			}
+
+			using var ctx2 = new NorthwindContext(_northwindOptionsWithoutLinq2DbExtensions);
+			foreach (var interceptor in ctx2.GetLinq2DbInterceptors())
 			{
 				((TestInterceptor)interceptor).ResetInvocations();
 			}
@@ -119,6 +148,36 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			Assert.IsTrue(defaultDataContextInterceptor.HasInterceptorBeenInvoked);
 			Assert.IsTrue(defaultConnectionInterceptor.HasInterceptorBeenInvoked);
 			Assert.IsTrue(defaultEntityServiceInterceptor.HasInterceptorBeenInvoked);
+		}
+
+		[Test]
+		public void TestEfCoreSideOfComboInterceptor()
+		{
+			using (var ctx = CreateContextWithountLinq2DbExtensions())
+			{
+				var query =
+					from pd in ctx.Products
+					where pd.ProductId > 0
+					orderby pd.ProductId
+					select pd;
+				var items = query.Take(2).ToArray();
+			}
+			Assert.IsTrue(defaultTestEfCoreAndLinq2DbInterceptor.HasInterceptorBeenInvoked);
+		}
+
+		[Test]
+		public void TestLinq2DbSideOfComboInterceptor()
+		{
+			using (var ctx = CreateContextWithountLinq2DbExtensions())
+			{
+				var query =
+					from pd in ctx.Products
+					where pd.ProductId > 0
+					orderby pd.ProductId
+					select pd;
+				var items = query.Take(2).ToLinqToDB().ToArray();
+			}
+			Assert.IsTrue(defaultTestEfCoreAndLinq2DbInterceptor.HasInterceptorBeenInvoked);
 		}
 	}
 }

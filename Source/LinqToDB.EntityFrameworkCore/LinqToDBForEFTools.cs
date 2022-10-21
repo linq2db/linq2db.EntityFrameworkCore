@@ -289,7 +289,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
-			AddDefaultInterceptorsToDataContext(dc);
+			AddDefaultInterceptorsToDataContext(context, dc);
 
 			return dc;
 		}
@@ -375,7 +375,7 @@ namespace LinqToDB.EntityFrameworkCore
 				EnableTracing(dc, logger);
 			}
 
-			AddDefaultInterceptorsToDataContext(dc);
+			AddDefaultInterceptorsToDataContext(context, dc);
 
 			return dc;
 		}
@@ -502,7 +502,7 @@ namespace LinqToDB.EntityFrameworkCore
 					dc.AddMappingSchema(mappingSchema);
 			}
 
-			AddDefaultInterceptorsToDataContext(dc);
+			AddDefaultInterceptorsToDataContext(options, dc);
 
 			return dc;
 		}
@@ -520,7 +520,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null)
 				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
-			AddDefaultInterceptorsToDataContext(dc);
+			AddDefaultInterceptorsToDataContext(context, dc);
 			return new LinqToDBForEFQueryProvider<T>(dc, query.Expression);
 		}
 
@@ -566,11 +566,23 @@ namespace LinqToDB.EntityFrameworkCore
 			set => Implementation.EnableChangeTracker = value;
 		}
 
-		private static void AddDefaultInterceptorsToDataContext(IDataContext dc)
+		private static void AddDefaultInterceptorsToDataContext(DbContext efContext, IDataContext dc)
 		{
-			if (dc != null && Implementation.DefaultLinq2DbInterceptors.Any())
+			var contextOptions = ((IInfrastructure<IServiceProvider>)efContext.Database)?
+				.Instance?.GetService(typeof(IDbContextOptions)) as IDbContextOptions;
+			
+			AddDefaultInterceptorsToDataContext(contextOptions, dc);
+		}
+
+		private static void AddDefaultInterceptorsToDataContext(IDbContextOptions? contextOptions,
+			IDataContext dc)
+		{
+			var registeredInterceptors = contextOptions?.GetLinq2DbInterceptors();
+
+			if (registeredInterceptors?.Any() == true
+				&& dc != null )
 			{
-				foreach (var interceptor in Implementation.DefaultLinq2DbInterceptors)
+				foreach (var interceptor in registeredInterceptors)
 				{
 					var commandInterceptable = dc as IInterceptable<ICommandInterceptor>;
 					var connectionInterceptable = dc as IInterceptable<IConnectionInterceptor>;
