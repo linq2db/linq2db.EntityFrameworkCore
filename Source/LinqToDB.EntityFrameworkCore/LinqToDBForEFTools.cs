@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
@@ -289,7 +290,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
-			AddDefaultInterceptorsToDataContext(context, dc);
+			AddInterceptorsToDataContext(context, dc);
 
 			return dc;
 		}
@@ -375,7 +376,7 @@ namespace LinqToDB.EntityFrameworkCore
 				EnableTracing(dc, logger);
 			}
 
-			AddDefaultInterceptorsToDataContext(context, dc);
+			AddInterceptorsToDataContext(context, dc);
 
 			return dc;
 		}
@@ -502,7 +503,7 @@ namespace LinqToDB.EntityFrameworkCore
 					dc.AddMappingSchema(mappingSchema);
 			}
 
-			AddDefaultInterceptorsToDataContext(options, dc);
+			AddInterceptorsToDataContext(options, dc);
 
 			return dc;
 		}
@@ -520,7 +521,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null)
 				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
-			AddDefaultInterceptorsToDataContext(context, dc);
+			AddInterceptorsToDataContext(context, dc);
 			return new LinqToDBForEFQueryProvider<T>(dc, query.Expression);
 		}
 
@@ -566,15 +567,15 @@ namespace LinqToDB.EntityFrameworkCore
 			set => Implementation.EnableChangeTracker = value;
 		}
 
-		private static void AddDefaultInterceptorsToDataContext(DbContext efContext, IDataContext dc)
+		private static void AddInterceptorsToDataContext(DbContext efContext, IDataContext dc)
 		{
 			var contextOptions = ((IInfrastructure<IServiceProvider>)efContext.Database)?
 				.Instance?.GetService(typeof(IDbContextOptions)) as IDbContextOptions;
 			
-			AddDefaultInterceptorsToDataContext(contextOptions, dc);
+			AddInterceptorsToDataContext(contextOptions, dc);
 		}
 
-		private static void AddDefaultInterceptorsToDataContext(IDbContextOptions? contextOptions,
+		private static void AddInterceptorsToDataContext(IDbContextOptions? contextOptions,
 			IDataContext dc)
 		{
 			var registeredInterceptors = contextOptions?.GetLinq2DbInterceptors();
@@ -582,23 +583,55 @@ namespace LinqToDB.EntityFrameworkCore
 			if (registeredInterceptors?.Any() == true
 				&& dc != null )
 			{
+				var commandInterceptable = dc as IInterceptable<ICommandInterceptor>;
+				var connectionInterceptable = dc as IInterceptable<IConnectionInterceptor>;
+				var entityServiceInterceptable = dc as IInterceptable<IEntityServiceInterceptor>;
+				var dataContextInterceptable = dc as IInterceptable<IDataContextInterceptor>;
+
 				foreach (var interceptor in registeredInterceptors)
 				{
-					var commandInterceptable = dc as IInterceptable<ICommandInterceptor>;
-					var connectionInterceptable = dc as IInterceptable<IConnectionInterceptor>;
-					var entityServiceInterceptable = dc as IInterceptable<IEntityServiceInterceptor>;
-					var dataContextInterceptable = dc as IInterceptable<IDataContextInterceptor>;
+					string interceptorTypeFullName = interceptor.GetType().FullName;
+					var existingMainInterceptors = new List<IInterceptor>();
+					existingMainInterceptors.Add(commandInterceptable?.Interceptor!);
+					existingMainInterceptors.Add(connectionInterceptable?.Interceptor!);
+					existingMainInterceptors.Add(entityServiceInterceptable?.Interceptor!);
+					existingMainInterceptors.Add(dataContextInterceptable?.Interceptor!);
+					existingMainInterceptors = existingMainInterceptors
+						.Where(x => x != null)
+						.ToList();
 
-					if (commandInterceptable?.Interceptor?.GetType().FullName != interceptor.GetType().FullName
-						&& connectionInterceptable?.Interceptor?.GetType().FullName != interceptor.GetType().FullName
-						&& entityServiceInterceptable?.Interceptor?.GetType().FullName != interceptor.GetType().FullName
-						&& dataContextInterceptable?.Interceptor?.GetType().FullName != interceptor.GetType().FullName
-						)	//this prevents adding same interceptor multiple times
+					if (!existingMainInterceptors.Any(existingInterceptor =>
+						{
+							bool result = existingInterceptor.GetType().FullName == interceptorTypeFullName;
+							
+							//below code checks for aggregated interceptors
+							//we use reflection below because the aggregated interceptors types are not public ones
+							if (!result && existingInterceptor.GetType().Name.Contains("Aggregated"))
+							{
+								var internalInterceptorsProperty =
+									existingInterceptor.GetType()
+										.GetProperty("Interceptors", BindingFlags.Instance |
+																	 BindingFlags.Public);
+								if (internalInterceptorsProperty != null)
+								{
+									var internalInterceptors = internalInterceptorsProperty
+										.GetValue(existingInterceptor) as IEnumerable<IInterceptor>;
+									if (internalInterceptors != null)
+									{
+										result = internalInterceptors.Any(x => x.GetType().FullName == interceptorTypeFullName);
+									}
+								}
+							}
+							return result;
+						})
+						)	//this check prevents adding same interceptor multiple times
 					{
 						dc.AddInterceptor(interceptor);
 					}
 				}
 			}
 		}
+
+
 	}
 }
