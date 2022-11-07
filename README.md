@@ -47,9 +47,9 @@ optionsBuilder.UseSqlite();
 optionsBuilder.UseLinqToDb(builder => 
 {
     builder.AddInterceptor(new MyCommandInterceptor());
+    builder.TryToUseEfCoreRegisteredInterceptors();
 });
 ```
-As for the interceptors, if the interceptors added for EF Core do implement the `LinqToDB.Interceptors.IInterceptor` interface, they will be taken into consideration by LinqToDB automatically without any additional configuration.
 
 There are many extensions for CRUD Operations missing in vanilla EF ([watch our video](https://www.youtube.com/watch?v=m--oX73EGeQ)):
 

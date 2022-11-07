@@ -58,6 +58,10 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
 			optionsBuilder.AddInterceptors(testEfCoreAndLinq2DbInterceptor);
+			optionsBuilder.UseLinqToDb(builder =>
+			{
+				builder.TryToUseEfCoreRegisteredInterceptors();
+			});
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			return optionsBuilder.Options;

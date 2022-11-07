@@ -31,5 +31,16 @@ namespace LinqToDB.EntityFrameworkCore
 			_extension.Interceptors.Add(interceptor);
 			return this;
 		}
+
+		/// <summary>
+		/// Make the Linq2Db try to use EF Core registered interceptors
+		/// As long as they also implement Linq2Db interfaces
+		/// </summary>
+		/// <returns></returns>
+		public LinqToDBContextOptionsBuilder TryToUseEfCoreRegisteredInterceptors(bool tryUseEfCoreInterceptors = true)
+		{
+			_extension.TryToUseEfCoreInterceptors = tryUseEfCoreInterceptors;
+			return this;
+		}
 	}
 }

@@ -292,15 +292,15 @@ namespace LinqToDB.EntityFrameworkCore
 			var linq2DbExtension = contextOptions?.FindExtension<LinqToDBOptionsExtension>();
 			var coreEfExtension = contextOptions?.FindExtension<CoreOptionsExtension>();
 			List<IInterceptor> interceptors = new List<IInterceptor>();
-			if (coreEfExtension?.Interceptors?.OfType<IInterceptor>().Any() == true)
-			{
-				interceptors.AddRange(coreEfExtension.Interceptors.OfType<IInterceptor>());
-			}
-
 			if (linq2DbExtension?.Interceptors != null)
-
 			{
 				interceptors.AddRange(linq2DbExtension.Interceptors);
+			}
+
+			if (linq2DbExtension?.TryToUseEfCoreInterceptors == true
+				&& coreEfExtension?.Interceptors?.OfType<IInterceptor>().Any() == true)
+			{
+				interceptors.AddRange(coreEfExtension.Interceptors.OfType<IInterceptor>());
 			}
 
 			return interceptors;

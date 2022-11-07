@@ -29,6 +29,12 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			=> _interceptors ??= new List<IInterceptor>();
 
 		/// <summary>
+		/// If set to true the EF Core registered interceptors will be taken into consideration in Linq2Db logic
+		/// As long as they also implement Linq2Db interfaces
+		/// </summary>
+		public virtual bool TryToUseEfCoreInterceptors { get; internal set; }
+
+		/// <summary>
 		/// .ctor
 		/// </summary>
 		public LinqToDBOptionsExtension()
