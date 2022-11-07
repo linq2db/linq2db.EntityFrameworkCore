@@ -578,7 +578,8 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			var registeredInterceptors = contextOptions?.GetLinq2DbInterceptors();
 
-			if (registeredInterceptors?.Any() == true
+			if (registeredInterceptors != null
+
 				&& dc != null )
 			{
 				foreach (var interceptor in registeredInterceptors)
