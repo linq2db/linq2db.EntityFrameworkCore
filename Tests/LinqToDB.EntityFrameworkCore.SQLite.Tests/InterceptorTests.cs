@@ -105,7 +105,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			var ctx2Interceptors = ctx2.GetLinq2DbInterceptors();
 			if (ctx2Interceptors != null)
 			{
-				foreach (var interceptor in ctx2.GetLinq2DbInterceptors())
+				foreach (var interceptor in ctx2Interceptors)
 				{
 					((TestInterceptor)interceptor).ResetInvocations();
 				}

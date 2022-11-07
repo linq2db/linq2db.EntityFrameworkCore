@@ -269,7 +269,6 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Returns list of registered Linq2Db interceptors from EF Context
 		/// </summary>
-		/// <typeparam name="T">Mapping class type.</typeparam>
 		/// <returns>Db context object</returns>
 		public static IList<IInterceptor>? GetLinq2DbInterceptors(this DbContext context)
 
@@ -285,7 +284,6 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Returns list of registered Linq2Db interceptors from EF Context options
 		/// </summary>
-		/// <typeparam name="T">Mapping class type.</typeparam>
 		/// <returns>Db context options</returns>
 		public static IList<IInterceptor> GetLinq2DbInterceptors(this IDbContextOptions contextOptions)
 		{
