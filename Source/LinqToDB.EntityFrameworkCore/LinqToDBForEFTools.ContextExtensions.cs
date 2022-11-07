@@ -299,7 +299,8 @@ namespace LinqToDB.EntityFrameworkCore
 				interceptors.AddRange(coreEfExtension.Interceptors.OfType<IInterceptor>());
 			}
 
-			if (linq2DbExtension?.Interceptors.Any() == true)
+			if (linq2DbExtension?.Interceptors != null)
+
 			{
 				interceptors.AddRange(linq2DbExtension.Interceptors);
 			}
