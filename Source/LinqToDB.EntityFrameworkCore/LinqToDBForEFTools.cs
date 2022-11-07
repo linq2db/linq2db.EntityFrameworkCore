@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
@@ -26,7 +25,6 @@ namespace LinqToDB.EntityFrameworkCore
 	using Expressions;
 
 	using Internal;
-	using Interceptors;
 
 	/// <summary>
 	/// EF Core <see cref="DbContext"/> extensions to call LINQ To DB functionality.
@@ -583,55 +581,11 @@ namespace LinqToDB.EntityFrameworkCore
 			if (registeredInterceptors?.Any() == true
 				&& dc != null )
 			{
-				var commandInterceptable = dc as IInterceptable<ICommandInterceptor>;
-				var connectionInterceptable = dc as IInterceptable<IConnectionInterceptor>;
-				var entityServiceInterceptable = dc as IInterceptable<IEntityServiceInterceptor>;
-				var dataContextInterceptable = dc as IInterceptable<IDataContextInterceptor>;
-
 				foreach (var interceptor in registeredInterceptors)
 				{
-					string interceptorTypeFullName = interceptor.GetType().FullName;
-					var existingMainInterceptors = new List<IInterceptor>();
-					existingMainInterceptors.Add(commandInterceptable?.Interceptor!);
-					existingMainInterceptors.Add(connectionInterceptable?.Interceptor!);
-					existingMainInterceptors.Add(entityServiceInterceptable?.Interceptor!);
-					existingMainInterceptors.Add(dataContextInterceptable?.Interceptor!);
-					existingMainInterceptors = existingMainInterceptors
-						.Where(x => x != null)
-						.ToList();
-
-					if (!existingMainInterceptors.Any(existingInterceptor =>
-						{
-							bool result = existingInterceptor.GetType().FullName == interceptorTypeFullName;
-							
-							//below code checks for aggregated interceptors
-							//we use reflection below because the aggregated interceptors types are not public ones
-							if (!result && existingInterceptor.GetType().Name.Contains("Aggregated"))
-							{
-								var internalInterceptorsProperty =
-									existingInterceptor.GetType()
-										.GetProperty("Interceptors", BindingFlags.Instance |
-																	 BindingFlags.Public);
-								if (internalInterceptorsProperty != null)
-								{
-									var internalInterceptors = internalInterceptorsProperty
-										.GetValue(existingInterceptor) as IEnumerable<IInterceptor>;
-									if (internalInterceptors != null)
-									{
-										result = internalInterceptors.Any(x => x.GetType().FullName == interceptorTypeFullName);
-									}
-								}
-							}
-							return result;
-						})
-						)	//this check prevents adding same interceptor multiple times
-					{
-						dc.AddInterceptor(interceptor);
-					}
+					dc.AddInterceptor(interceptor);
 				}
 			}
 		}
-
-
 	}
 }
