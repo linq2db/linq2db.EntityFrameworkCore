@@ -271,7 +271,8 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <typeparam name="T">Mapping class type.</typeparam>
 		/// <returns>Db context object</returns>
-		public static IList<IInterceptor> GetLinq2DbInterceptors(this DbContext context)
+		public static IList<IInterceptor>? GetLinq2DbInterceptors(this DbContext context)
+
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
