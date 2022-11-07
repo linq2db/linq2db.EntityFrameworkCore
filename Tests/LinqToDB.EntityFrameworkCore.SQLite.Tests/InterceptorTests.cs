@@ -60,7 +60,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			optionsBuilder.AddInterceptors(testEfCoreAndLinq2DbInterceptor);
 			optionsBuilder.UseLinqToDb(builder =>
 			{
-				builder.TryToUseEfCoreRegisteredInterceptors();
+				builder.UseEfCoreRegisteredInterceptorsIfPossible();
 			});
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 

@@ -47,7 +47,7 @@ optionsBuilder.UseSqlite();
 optionsBuilder.UseLinqToDb(builder => 
 {
     builder.AddInterceptor(new MyCommandInterceptor());
-    builder.TryToUseEfCoreRegisteredInterceptors();
+    builder.UseEfCoreRegisteredInterceptorsIfPossible();
 });
 ```
 
