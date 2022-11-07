@@ -87,14 +87,14 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 				{
 					if (_logFragment == null)
 					{
-						var builder = new StringBuilder();
+						string logFragment = string.Empty;
 
 						if (Extension.Interceptors.Any())
 						{
-							builder.Append($"Interceptors count: {Extension.Interceptors.Count}");
+							logFragment += $"Interceptors count: {Extension.Interceptors.Count}";
 						}
 
-						_logFragment = builder.ToString();
+						_logFragment = logFragment;
 					}
 
 					return _logFragment;

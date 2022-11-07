@@ -278,7 +278,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var contextOptions = ((IInfrastructure<IServiceProvider>)context.Database)?
 				.Instance?.GetService(typeof(IDbContextOptions)) as IDbContextOptions;
 
-			return contextOptions?.GetLinq2DbInterceptors() ?? new List<IInterceptor>();
+			return contextOptions?.GetLinq2DbInterceptors();
 		}
 
 		/// <summary>

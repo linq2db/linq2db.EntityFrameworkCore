@@ -92,16 +92,23 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			{
 				NorthwindData.Seed(ctx);
 			}
-
-			foreach (var interceptor in ctx.GetLinq2DbInterceptors())
+			var ctxInterceptors = ctx.GetLinq2DbInterceptors();
+			if (ctxInterceptors != null)
 			{
-				((TestInterceptor)interceptor).ResetInvocations();
+				foreach (var interceptor in ctxInterceptors)
+				{
+					((TestInterceptor)interceptor).ResetInvocations();
+				}
 			}
 
 			using var ctx2 = new NorthwindContext(_northwindOptionsWithoutLinq2DbExtensions);
-			foreach (var interceptor in ctx2.GetLinq2DbInterceptors())
+			var ctx2Interceptors = ctx2.GetLinq2DbInterceptors();
+			if (ctx2Interceptors != null)
 			{
-				((TestInterceptor)interceptor).ResetInvocations();
+				foreach (var interceptor in ctx2.GetLinq2DbInterceptors())
+				{
+					((TestInterceptor)interceptor).ResetInvocations();
+				}
 			}
 		}
 
