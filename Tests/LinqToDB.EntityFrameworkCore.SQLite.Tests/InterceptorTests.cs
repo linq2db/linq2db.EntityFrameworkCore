@@ -17,7 +17,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 	{
 		private const string SQLITE_CONNECTION_STRING = "DataSource=NorthwindInMemory;Mode=Memory;Cache=Shared";
 		private readonly DbContextOptions _northwindOptions;
-		private readonly DbContextOptions _northwindOptionsWithoutLinq2DbExtensions;
+		private readonly DbContextOptions _northwindOptionsWithEfCoreInterceptorsOnly;
 		private DbConnection? _dbConnection;
 		static TestCommandInterceptor testCommandInterceptor;
 		static TestDataContextInterceptor testDataContextInterceptor;
@@ -54,7 +54,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			return optionsBuilder.Options;
 		}
 
-		static DbContextOptions CreateNorthwindOptionsWithoutLinq2DbExtensions()
+		static DbContextOptions CreateNorthwindOptionsWithEfCoreInterceptorsOnly()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
@@ -71,7 +71,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		public InterceptorTests()
 		{
 			_northwindOptions = CreateNorthwindOptions();
-			_northwindOptionsWithoutLinq2DbExtensions = CreateNorthwindOptionsWithoutLinq2DbExtensions();
+			_northwindOptionsWithEfCoreInterceptorsOnly = CreateNorthwindOptionsWithEfCoreInterceptorsOnly();
 		}
 
 		private NorthwindContext CreateContext()
@@ -82,7 +82,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 
 		private NorthwindContext CreateContextWithountLinq2DbExtensions()
 		{
-			var ctx = new NorthwindContext(_northwindOptionsWithoutLinq2DbExtensions);
+			var ctx = new NorthwindContext(_northwindOptionsWithEfCoreInterceptorsOnly);
 			return ctx;
 		}
 
@@ -106,7 +106,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 				}
 			}
 
-			using var ctx2 = new NorthwindContext(_northwindOptionsWithoutLinq2DbExtensions);
+			using var ctx2 = new NorthwindContext(_northwindOptionsWithEfCoreInterceptorsOnly);
 			var ctx2Interceptors = ctx2.GetLinq2DbInterceptors();
 			if (ctx2Interceptors != null)
 			{
