@@ -13,12 +13,18 @@ namespace LinqToDB.EntityFrameworkCore
 		private readonly LinqToDBOptionsExtension _extension;
 
 		/// <summary>
+		/// Db context options
+		/// </summary>
+		public DbContextOptions DbContextOptions { get; private set; }
+
+		/// <summary>
 		/// .ctor
 		/// </summary>
 		/// <param name="optionsBuilder"></param>
 		public LinqToDBContextOptionsBuilder(DbContextOptionsBuilder optionsBuilder)
 		{
 			_extension = optionsBuilder.Options.FindExtension<LinqToDBOptionsExtension>();
+			DbContextOptions = optionsBuilder.Options;
 		}
 
 		/// <summary>
@@ -29,17 +35,6 @@ namespace LinqToDB.EntityFrameworkCore
 		public LinqToDBContextOptionsBuilder AddInterceptor(IInterceptor interceptor)
 		{
 			_extension.Interceptors.Add(interceptor);
-			return this;
-		}
-
-		/// <summary>
-		/// Make the Linq2Db use EF Core registered interceptors
-		/// as long as they also implement Linq2Db interfaces
-		/// </summary>
-		/// <returns></returns>
-		public LinqToDBContextOptionsBuilder UseEfCoreRegisteredInterceptorsIfPossible(bool useEfCoreInterceptors = true)
-		{
-			_extension.TryToUseEfCoreInterceptors = useEfCoreInterceptors;
 			return this;
 		}
 	}

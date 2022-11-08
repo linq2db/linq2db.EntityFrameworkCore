@@ -3,6 +3,7 @@ using System.Linq;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Interceptors;
+using LinqToDB.EntityFrameworkCore.BaseTests.Interceptors.Extensions;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
 using LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.Northwind;
 using Microsoft.Data.Sqlite;

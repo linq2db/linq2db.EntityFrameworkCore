@@ -13,7 +13,6 @@ namespace LinqToDB.EntityFrameworkCore
 	using Linq;
 	using Internal;
 	using Interceptors;
-	using System.Linq;
 
 	public static partial class LinqToDBForEFTools
 	{
@@ -290,18 +289,10 @@ namespace LinqToDB.EntityFrameworkCore
 			if (contextOptions == null) throw new ArgumentNullException(nameof(contextOptions));
 
 			var linq2DbExtension = contextOptions?.FindExtension<LinqToDBOptionsExtension>();
-			var coreEfExtension = contextOptions?.FindExtension<CoreOptionsExtension>();
 			List<IInterceptor> interceptors = new List<IInterceptor>();
 			if (linq2DbExtension?.Interceptors != null)
 			{
 				interceptors.AddRange(linq2DbExtension.Interceptors);
-			}
-
-			if (linq2DbExtension?.TryToUseEfCoreInterceptors == true
-				&& coreEfExtension?.Interceptors != null)
-
-			{
-				interceptors.AddRange(coreEfExtension.Interceptors.OfType<IInterceptor>());
 			}
 
 			return interceptors;
