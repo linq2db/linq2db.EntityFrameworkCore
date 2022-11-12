@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 using JetBrains.Annotations;
 
@@ -10,6 +11,8 @@ namespace LinqToDB.EntityFrameworkCore
 {
 	using Data;
 	using Linq;
+	using Internal;
+	using Interceptors;
 
 	public static partial class LinqToDBForEFTools
 	{
@@ -257,7 +260,44 @@ namespace LinqToDB.EntityFrameworkCore
 
 			return context.CreateLinqToDbContext().GetTable<T>();
 		}
-		
+
+		#endregion
+
+		#region Interceptors
+
+		/// <summary>
+		/// Returns list of registered Linq2Db interceptors from EF Context
+		/// </summary>
+		/// <returns>Db context object</returns>
+		public static IList<IInterceptor>? GetLinq2DbInterceptors(this DbContext context)
+
+		{
+			if (context == null) throw new ArgumentNullException(nameof(context));
+
+			var contextOptions = ((IInfrastructure<IServiceProvider>)context.Database)?
+				.Instance?.GetService(typeof(IDbContextOptions)) as IDbContextOptions;
+
+			return contextOptions?.GetLinq2DbInterceptors();
+		}
+
+		/// <summary>
+		/// Returns list of registered Linq2Db interceptors from EF Context options
+		/// </summary>
+		/// <returns>Db context options</returns>
+		public static IList<IInterceptor> GetLinq2DbInterceptors(this IDbContextOptions contextOptions)
+		{
+			if (contextOptions == null) throw new ArgumentNullException(nameof(contextOptions));
+
+			var linq2DbExtension = contextOptions?.FindExtension<LinqToDBOptionsExtension>();
+			List<IInterceptor> interceptors = new List<IInterceptor>();
+			if (linq2DbExtension?.Interceptors != null)
+			{
+				interceptors.AddRange(linq2DbExtension.Interceptors);
+			}
+
+			return interceptors;
+		}
+
 		#endregion
 	}
 }
