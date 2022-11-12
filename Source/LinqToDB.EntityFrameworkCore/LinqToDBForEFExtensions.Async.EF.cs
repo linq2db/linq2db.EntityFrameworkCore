@@ -75,13 +75,13 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.FirstAsync(source, predicate, cancellationToken);
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.FirstOrDefaultAsync{TSource}(IQueryable{TSource}, CancellationToken)"/>
-		public static Task<TSource> FirstOrDefaultAsyncEF<TSource>(
+		public static Task<TSource?> FirstOrDefaultAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        cancellationToken = default)
 			=> EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(source, cancellationToken);
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.FirstOrDefaultAsync{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}}, CancellationToken)"/>
-		public static Task<TSource> FirstOrDefaultAsyncEF<TSource>(
+		public static Task<TSource?> FirstOrDefaultAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              cancellationToken = default)
@@ -101,13 +101,13 @@ namespace LinqToDB.EntityFrameworkCore
 			=> EntityFrameworkQueryableExtensions.SingleAsync(source, predicate, cancellationToken);
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.SingleOrDefaultAsync{TSource}(IQueryable{TSource}, CancellationToken)"/>
-		public static Task<TSource> SingleOrDefaultAsyncEF<TSource>(
+		public static Task<TSource?> SingleOrDefaultAsyncEF<TSource>(
 			this IQueryable<TSource> source,
 			CancellationToken        cancellationToken = default)
 			=> EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(source, cancellationToken);
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.SingleOrDefaultAsync{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}}, CancellationToken)"/>
-		public static Task<TSource> SingleOrDefaultAsyncEF<TSource>(
+		public static Task<TSource?> SingleOrDefaultAsyncEF<TSource>(
 			this IQueryable<TSource>       source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              cancellationToken = default)

@@ -58,7 +58,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 			builder.Property(e => e.TitleOfCourtesy).HasMaxLength(25);
 
 			builder.HasOne(d => d.ReportsToNavigation)
-				.WithMany(p => p!.InverseReportsToNavigation)
+				.WithMany(p => p.InverseReportsToNavigation)
 				.HasForeignKey(d => d.ReportsTo)
 				.HasConstraintName("FK_Employees_Employees");
 		}

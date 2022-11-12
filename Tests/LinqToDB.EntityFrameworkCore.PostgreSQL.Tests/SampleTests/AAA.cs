@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-#pragma warning disable 8604
-#pragma warning disable CS8625
-
 namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 {
 	public class Unit
 	{
-
 	}
 	
 	public static class ExceptionExtensions
@@ -60,7 +56,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 			}
 		}
 
-		public static void Assert<T, TMock>(this ActResult<T, TMock> act, Action<T> assert)
+		public static void Assert<T, TMock>(this ActResult<T, TMock> act, Action<T?> assert)
 			where T : notnull
 			where TMock : notnull
 		{
@@ -68,7 +64,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 			assert(act.Object);
 		}
 
-		public static void Assert<T, TMock>(this ActResult<T, TMock> act, Action<T, TMock> assert)
+		public static void Assert<T, TMock>(this ActResult<T, TMock> act, Action<T?, TMock?> assert)
 			where T : notnull
 			where TMock : notnull
 		{
@@ -94,7 +90,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 			}
 		}
 
-		public static async Task Assert<T, TMock>(this Task<ActResult<T, TMock>> act, Func<T, Task> assert)
+		public static async Task Assert<T, TMock>(this Task<ActResult<T, TMock>> act, Func<T?, Task> assert)
 			where T : notnull
 			where TMock : notnull
 		{
@@ -105,18 +101,18 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 		public readonly struct ArrangeResult<T, TMock>
 			where TMock : notnull
 		{
-			internal ArrangeResult(T @object, TMock mock) => (Object, Mock) = (@object, mock);
+			internal ArrangeResult(T @object, TMock? mock) => (Object, Mock) = (@object, mock);
 			internal T Object { get; }
-			internal TMock Mock { get; }
+			internal TMock? Mock { get; }
 		}
 
 		public readonly struct ActResult<T, TMock>
 			where T: notnull
 		{
-			internal ActResult(T @object, TMock mock, Exception? exception)
+			internal ActResult(T? @object, TMock? mock, Exception? exception)
 				=> (Object, Mock, Exception) = (@object, mock, exception);
-			internal T Object { get; }
-			internal TMock Mock { get; }
+			internal T? Object { get; }
+			internal TMock? Mock { get; }
 			internal Exception? Exception { get; }
 		}
 	}

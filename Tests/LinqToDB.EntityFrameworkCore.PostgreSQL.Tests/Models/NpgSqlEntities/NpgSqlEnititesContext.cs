@@ -27,7 +27,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.NpgSqlEntities
 
 			modelBuilder.Entity<EntityWithXmin>(entity =>
 			{
-				entity.UseXminAsConcurrencyToken();
+				entity.Property<uint>(nameof(NpgSqlEntities.EntityWithXmin.xmin)).IsRowVersion();
 			});
 
 		}

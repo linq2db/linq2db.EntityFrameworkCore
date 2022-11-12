@@ -26,7 +26,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 
 		public NorthwindContext(DbContextOptions options) : base(options)
 		{
-			
 		}
 
 		[DbFunction("ProcessLong", "dbo")]
@@ -73,7 +72,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 			MemberHelper.MethodOf(() => ((NorthwindContext)null!).ConfigureEntityFilter<BaseEntity>(null!)).GetGenericMethodDefinition();
 
 		public void ConfigureEntityFilter<TEntity>(ModelBuilder builder)
-		where TEntity: class, ISoftDelete
+			where TEntity: class, ISoftDelete
 		{
 			NorthwindContext? obj = null;
 

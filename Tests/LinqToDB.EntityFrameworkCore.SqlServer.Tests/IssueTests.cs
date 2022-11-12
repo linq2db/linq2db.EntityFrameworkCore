@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using FluentAssertions;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel;
@@ -10,7 +11,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	[TestFixture]
 	public class IssueTests : TestsBase
 	{
-		private DbContextOptions<IssueContext>? _options;
+		private DbContextOptions<IssueContext> _options;
 		private bool _created;
 
 		public IssueTests()
@@ -18,6 +19,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			InitOptions();
 		}
 
+		[MemberNotNull(nameof(_options))]
 		private void InitOptions()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<IssueContext>();
@@ -30,7 +32,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 		private IssueContext CreateContext()
 		{
-			var ctx = new IssueContext(_options!);
+			var ctx = new IssueContext(_options);
 
 			if (!_created)
 			{

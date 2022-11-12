@@ -4,5 +4,4 @@
 	{
 		public TKey Id { get; }
 	}
-
 }

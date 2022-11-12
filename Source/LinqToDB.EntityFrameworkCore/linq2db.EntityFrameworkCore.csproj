@@ -7,7 +7,6 @@
 		<Title>Linq to DB (linq2db) extensions for Entity Framework Core</Title>
 		<AssemblyTitle>$(Title)</AssemblyTitle>
 
-		<TargetFrameworks>netstandard2.1</TargetFrameworks>
 		<RootNamespace>LinqToDB.EntityFrameworkCore</RootNamespace>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\linq2db.EntityFrameworkCore.xml</DocumentationFile>
 

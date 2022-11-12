@@ -12,9 +12,8 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 		public override ForMappingContextBase CreateContext()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
-			optionsBuilder.UseMySql(
-				"Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;",
-				ServerVersion.AutoDetect("Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;"));
+			var connectionString = "Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;";
+			optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			var options = optionsBuilder.Options;

@@ -131,7 +131,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return _transformFunc(expression, this, Context, _model);
 		}
 
-		private class TypeKey
+		private sealed class TypeKey
 		{
 			public TypeKey(IEntityType entityType, IModel? model)
 			{
@@ -142,7 +142,7 @@ namespace LinqToDB.EntityFrameworkCore
 			public IEntityType EntityType { get; }
 			public IModel?     Model      { get; }
 
-			protected bool Equals(TypeKey other)
+			private bool Equals(TypeKey other)
 			{
 				return EntityType.Equals(other.EntityType) && Equals(Model, other.Model);
 			}
@@ -205,9 +205,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (eventData.TableName != _lastEntityType.GetTableName())
 				return entity;
 
-			if (_stateManager == null)
-				_stateManager = Context.GetService<IStateManager>();
-
+			_stateManager ??= Context.GetService<IStateManager>();
 
 			// It is a real pain to register entity in change tracker
 			//
@@ -226,10 +224,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			entry = retrievalFunc(_stateManager, entity);
 
-			if (entry == null)
-			{
-				entry = _stateManager.StartTrackingFromQuery(_lastEntityType, entity, ValueBuffer.Empty);
-			}
+			entry ??= _stateManager.StartTrackingFromQuery(_lastEntityType, entity, ValueBuffer.Empty);
 
 			return entry.Entity;
 		}

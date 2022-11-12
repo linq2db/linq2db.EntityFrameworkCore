@@ -4,18 +4,18 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.Northwind.Mapping
 {
-    public class CustomerDemographicsMap : IEntityTypeConfiguration<CustomerDemographics>
-    {
-        public void Configure(EntityTypeBuilder<CustomerDemographics> builder)
-        {
-            builder.HasKey(e => e.CustomerTypeId);
+	public class CustomerDemographicsMap : IEntityTypeConfiguration<CustomerDemographics>
+	{
+		public void Configure(EntityTypeBuilder<CustomerDemographics> builder)
+		{
+			builder.HasKey(e => e.CustomerTypeId);
 
-            builder.Property(e => e.CustomerTypeId)
-                .HasColumnName("CustomerTypeID")
-                .HasMaxLength(10)
-                .ValueGeneratedNever();
+			builder.Property(e => e.CustomerTypeId)
+				.HasColumnName("CustomerTypeID")
+				.HasMaxLength(10)
+				.ValueGeneratedNever();
 
-            builder.Property(e => e.CustomerDesc).HasColumnType("text");
-        }
-    }
+			builder.Property(e => e.CustomerDesc).HasColumnType("text");
+		}
+	}
 }

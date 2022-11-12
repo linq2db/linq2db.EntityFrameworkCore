@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
@@ -31,7 +30,7 @@ namespace LinqToDB.EntityFrameworkCore
 	/// <summary>
 	/// LINQ To DB metadata reader for EF.Core model.
 	/// </summary>
-	internal class EFCoreMetadataReader : IMetadataReader
+	internal sealed class EFCoreMetadataReader : IMetadataReader
 	{
 		readonly IModel? _model;
 		private readonly RelationalSqlTranslatingExpressionVisitorDependencies? _dependencies;
@@ -40,8 +39,7 @@ namespace LinqToDB.EntityFrameworkCore
 		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new();
 		private readonly IDiagnosticsLogger<DbLoggerCategory.Query>? _logger;
 
-		public EFCoreMetadataReader(
-			IModel? model, IInfrastructure<IServiceProvider>? accessor)
+		public EFCoreMetadataReader(IModel? model, IInfrastructure<IServiceProvider>? accessor)
 		{
 			_model = model;
 			if (accessor != null)
@@ -61,7 +59,7 @@ namespace LinqToDB.EntityFrameworkCore
 				if (typeof(T) == typeof(TableAttribute))
 				{
 					var storeObjectId = GetStoreObjectIdentifier(et);
-					return new[] { (T)(Attribute)new TableAttribute(storeObjectId!.Value.Name) { Schema = storeObjectId!.Value.Schema } };
+					return new[] { (T)(Attribute)new TableAttribute() { Schema = storeObjectId?.Schema, Name = storeObjectId?.Name } };
 				}
 				if (typeof(T) == typeof(QueryFilterAttribute))
 				{
@@ -208,7 +206,7 @@ namespace LinqToDB.EntityFrameworkCore
 					
 					if (prop != null)
 					{
-						var discriminator = et.GetDiscriminatorProperty();
+						var discriminator = et.FindDiscriminatorProperty();
 
 						var isPrimaryKey = prop.IsPrimaryKey();
 						var primaryKeyOrder = 0;
@@ -225,14 +223,14 @@ namespace LinqToDB.EntityFrameworkCore
 						if (_annotationProvider != null && storeObjectId != null)
 						{
 							if (prop.FindColumn(storeObjectId.Value) is IColumn column)
-								annotations = annotations.Concat(_annotationProvider.For(column));
+								annotations = annotations.Concat(_annotationProvider.For(column, false));
 						}
 
 						var isIdentity = annotations
 							.Any(a =>
 							{
 								if (a.Name.EndsWith(":ValueGenerationStrategy"))
-									return a.Value?.ToString()!.Contains("Identity") == true;
+									return a.Value?.ToString()?.Contains("Identity") == true;
 
 								if (a.Name.EndsWith(":Autoincrement"))
 									return a.Value is bool b && b;
@@ -242,7 +240,7 @@ namespace LinqToDB.EntityFrameworkCore
 								{
 									if (a.Value is string str)
 									{
-										return str.ToLower().Contains("nextval");
+										return str.ToLowerInvariant().Contains("nextval");
 									}
 								}
 
@@ -259,7 +257,8 @@ namespace LinqToDB.EntityFrameworkCore
 							}
 							else
 							{
-								dataType = SqlDataType.GetDataType(typeMapping.ClrType).Type.DataType;
+								var ms = _model != null ? LinqToDBForEFTools.GetMappingSchema(_model, null) : MappingSchema.Default;
+								dataType = ms.GetDataType(typeMapping.ClrType).Type.DataType;
 							}
 						}
 
@@ -278,7 +277,7 @@ namespace LinqToDB.EntityFrameworkCore
 						{
 							(T)(Attribute)new ColumnAttribute
 							{
-								Name            = prop.GetColumnName(storeObjectId!.Value),
+								Name            = storeObjectId != null ? prop.GetColumnName(storeObjectId.Value) : null,
 								Length          = prop.GetMaxLength() ?? 0,
 								CanBeNull       = prop.IsNullable,
 								DbType          = prop.GetColumnType(),
@@ -408,7 +407,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return Array.Empty<T>();
 		}
 
-		class ValueConverter : IValueConverter
+		sealed class ValueConverter : IValueConverter
 		{
 			public ValueConverter(
 				LambdaExpression convertToProviderExpression,
@@ -425,7 +424,7 @@ namespace LinqToDB.EntityFrameworkCore
 		
 		}
 
-		class SqlTransparentExpression : SqlExpression
+		sealed class SqlTransparentExpression : SqlExpression
 		{
 			public Expression Expression { get; }
 
@@ -439,7 +438,7 @@ namespace LinqToDB.EntityFrameworkCore
 				expressionPrinter.Print(Expression);
 			}
 
-			protected bool Equals(SqlTransparentExpression other)
+			private bool Equals(SqlTransparentExpression other)
 			{
 				return ReferenceEquals(this, other);
 			}
@@ -600,19 +599,19 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					// Handling NpgSql's PostgresBinaryExpression
 
-					var left  = newExpression.GetType().GetProperty("Left")?.GetValue(newExpression) as Expression;
-					var right = newExpression.GetType().GetProperty("Right")?.GetValue(newExpression) as Expression;
+					var left  = (Expression)newExpression.GetType().GetProperty("Left")?.GetValue(newExpression)!;
+					var right = (Expression)newExpression.GetType().GetProperty("Right")?.GetValue(newExpression)!;
 
 					var operand = newExpression.GetType().GetProperty("OperatorType")?.GetValue(newExpression)!.ToString();
 
 					var operandExpr = operand switch
 					{
 						"Contains"
-							when left!.Type.Name == "NpgsqlInetTypeMapping" ||
+							when left.Type.Name == "NpgsqlInetTypeMapping" ||
 							     left.Type.Name == "NpgsqlCidrTypeMapping"
 							=> ">>",
 						"ContainedBy"
-							when left!.Type.Name == "NpgsqlInetTypeMapping" ||
+							when left.Type.Name == "NpgsqlInetTypeMapping" ||
 							     left.Type.Name == "NpgsqlCidrTypeMapping"
 							=> "<<",
 						"Contains"                      => "@>",
@@ -674,7 +673,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (expr is SqlFunctionExpression func)
 			{
 				if (string.Equals(func.Name, "COALESCE", StringComparison.InvariantCultureIgnoreCase) &&
-				    func.Arguments!.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Extension)
+				    func.Arguments?.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Extension)
 					return UnwrapConverted(func.Arguments[0]);
 			}
 

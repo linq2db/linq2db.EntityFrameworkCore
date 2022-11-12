@@ -9,7 +9,6 @@ using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 {
-
 	[TestFixture]
 	public class JsonConverTests : TestsBase
 	{
@@ -69,7 +68,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					entity.Property(e => e.NameLocalized)
 						.HasColumnName("NameLocalized_JSON")
 						.HasConversion(v => JsonConvert.SerializeObject(v),
-							v => JsonConvert.DeserializeObject<LocalizedString>(v));
+							v => JsonConvert.DeserializeObject<LocalizedString>(v) ?? new());
 					entity.Property(e => e.CrashEnum).HasColumnType("tinyint");
 					entity.Property(e => e.GuidColumn).HasColumnType("uniqueidentifier");
 				});
@@ -91,7 +90,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			_options = optionsBuilder.Options;
 		}
 
-		public static string JsonValue(string column, [NotParameterized] string path)
+		public static string JsonValue(string? column, [NotParameterized] string path)
 		{
 			throw new NotSupportedException();
 		}
@@ -133,7 +132,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 						p.NameLocalized,
 						p.CrashEnum,
 						p.GuidColumn,
-						JsonValue = JsonValue(p.JsonColumn!, path)
+						JsonValue = JsonValue(p.JsonColumn, path)
 					});
 
 				var item = items.FirstOrDefault();
@@ -152,7 +151,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				//
 				// Assert.That(concrete.English, Is.EqualTo("English"));
 			}
-
 		}
 	}
 }
