@@ -595,14 +595,15 @@ namespace LinqToDB.EntityFrameworkCore
 					return text;
 				}
 
+				// https://github.com/npgsql/efcore.pg/blob/main/src/EFCore.PG/Query/Expressions/Internal/PostgresBinaryExpression.cs
 				if (newExpression.GetType().Name == "PostgresBinaryExpression")
 				{
 					// Handling NpgSql's PostgresBinaryExpression
 
-					var left  = (Expression)newExpression.GetType().GetProperty("Left")?.GetValue(newExpression)!;
-					var right = (Expression)newExpression.GetType().GetProperty("Right")?.GetValue(newExpression)!;
+					var left  = (Expression)newExpression.GetType().GetProperty("Left")!.GetValue(newExpression)!;
+					var right = (Expression)newExpression.GetType().GetProperty("Right")!.GetValue(newExpression)!;
 
-					var operand = newExpression.GetType().GetProperty("OperatorType")?.GetValue(newExpression)!.ToString();
+					var operand = newExpression.GetType().GetProperty("OperatorType")!.GetValue(newExpression)!.ToString()!;
 
 					var operandExpr = operand switch
 					{
