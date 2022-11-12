@@ -29,6 +29,8 @@
 		<GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
 
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
+		<CheckEolTargetFramework>false</CheckEolTargetFramework>
 	</PropertyGroup>
 
 	<PropertyGroup>
