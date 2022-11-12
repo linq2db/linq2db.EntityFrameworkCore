@@ -26,6 +26,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
 			optionsBuilder.UseNpgsql("Server=DBHost;Port=5432;Database=TestData;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
+			//optionsBuilder.UseNpgsql("Server=localhost;Port=5415;Database=TestData;User Id=postgres;Password=Password12!;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;

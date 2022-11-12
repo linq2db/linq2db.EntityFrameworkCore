@@ -98,25 +98,25 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 
 		public static ModelBuilder UseSnakeCase(this ModelBuilder modelBuilder)
 		{
-			modelBuilder.Model.SetDefaultSchema(modelBuilder.Model.GetDefaultSchema().ToSnakeCase());
+			modelBuilder.Model.SetDefaultSchema(modelBuilder.Model.GetDefaultSchema()?.ToSnakeCase());
 			foreach (var entity in modelBuilder.Model.GetEntityTypes())
 			{
-				entity.SetTableName(entity.GetTableName().ToSnakeCase());
-				var storeObjectId = StoreObjectIdentifier.Create(entity,  StoreObjectType.Table);
+				entity.SetTableName(entity.GetTableName()?.ToSnakeCase());
+				var storeObjectId = StoreObjectIdentifier.Create(entity, StoreObjectType.Table)!;
 
 				foreach (var property in entity.GetProperties())
 				{
-					property.SetColumnName(property.GetColumnName(storeObjectId!.Value).ToSnakeCase());
+					property.SetColumnName(property.GetColumnName(storeObjectId.Value)?.ToSnakeCase());
 				}
 
-				foreach (var key in entity.GetKeys()) 
-					key.SetName(key.GetName().ToSnakeCase());
+				foreach (var key in entity.GetKeys())
+					key.SetName(key.GetName()?.ToSnakeCase());
 
-				foreach (var key in entity.GetForeignKeys()) 
-					key.SetConstraintName(key.GetConstraintName().ToSnakeCase());
+				foreach (var key in entity.GetForeignKeys())
+					key.SetConstraintName(key.GetConstraintName()?.ToSnakeCase());
 
-				foreach (var index in entity.GetIndexes()) 
-					index.SetDatabaseName(index.GetDatabaseName().ToSnakeCase());
+				foreach (var index in entity.GetIndexes())
+					index.SetDatabaseName(index.GetDatabaseName()?.ToSnakeCase());
 			}
 			return modelBuilder;
 		}

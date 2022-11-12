@@ -25,6 +25,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Expressions;
 
 	using Internal;
+	using System.Diagnostics.CodeAnalysis;
 
 	/// <summary>
 	/// EF Core <see cref="DbContext"/> extensions to call LINQ To DB functionality.
@@ -65,7 +66,7 @@ namespace LinqToDB.EntityFrameworkCore
 				var newExpression = queryable.Expression;
 
 				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
-					.Invoke(null, new object[] { dc, newExpression });
+					.Invoke(null, new object[] { dc, newExpression })!;
 
 				if (prev != null)
 					result = prev(result);
@@ -78,7 +79,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return true;
 		}
 
-		static ILinqToDBForEFTools _implementation = null!;
+		static ILinqToDBForEFTools _implementation;
 
 		/// <summary>
 		/// Gets or sets EF Core to LINQ To DB integration bridge implementation.
@@ -86,6 +87,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public static ILinqToDBForEFTools Implementation
 		{
 			get => _implementation;
+			[MemberNotNull(nameof(_implementation), nameof(_defaultMetadataReader))]
 			set
 			{
 				_implementation = value ?? throw new ArgumentNullException(nameof(value));
@@ -96,7 +98,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static readonly ConcurrentDictionary<IModel, IMetadataReader?> _metadataReaders = new();
 
-		static Lazy<IMetadataReader?> _defaultMetadataReader = null!;
+		static Lazy<IMetadataReader?> _defaultMetadataReader;
 
 		/// <summary>
 		/// Clears internal caches

@@ -12,7 +12,7 @@ namespace LinqToDB.EntityFrameworkCore
 	/// <summary>
 	/// LINQ To DB async extensions adapter to call EF.Core functionality instead of default implementation.
 	/// </summary>
-	public class LinqToDBExtensionsAdapter : IExtensionsAdapter
+	public sealed class LinqToDBExtensionsAdapter : IExtensionsAdapter
 	{
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.AsAsyncEnumerable{TSource}(IQueryable{TSource})"/>
 		public IAsyncEnumerable<TSource> AsAsyncEnumerable<TSource>(IQueryable<TSource> source)
@@ -90,18 +90,14 @@ namespace LinqToDB.EntityFrameworkCore
 		public Task<TSource?> FirstOrDefaultAsync<TSource>(
 			IQueryable<TSource> source,
 			CancellationToken   token)
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 			=> EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(source, token);
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.FirstOrDefaultAsync{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}}, CancellationToken)"/>
 		public Task<TSource?> FirstOrDefaultAsync<TSource>(
 			IQueryable<TSource>            source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token)
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 			=> EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(source, predicate, token);
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.SingleAsync{TSource}(IQueryable{TSource}, CancellationToken)"/>
 		public Task<TSource> SingleAsync<TSource>(
@@ -120,18 +116,14 @@ namespace LinqToDB.EntityFrameworkCore
 		public Task<TSource?> SingleOrDefaultAsync<TSource>(
 			IQueryable<TSource> source,
 			CancellationToken   token)
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 			=> EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(source, token);
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.SingleOrDefaultAsync{TSource}(IQueryable{TSource}, Expression{Func{TSource, bool}}, CancellationToken)"/>
 		public Task<TSource?> SingleOrDefaultAsync<TSource>(
 			IQueryable<TSource>            source,
 			Expression<Func<TSource,bool>> predicate,
 			CancellationToken              token)
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 			=> EntityFrameworkQueryableExtensions.SingleOrDefaultAsync(source, predicate, token);
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
 		/// <inheritdoc cref="EntityFrameworkQueryableExtensions.ContainsAsync{TSource}(IQueryable{TSource}, TSource, CancellationToken)"/>
 		public Task<bool> ContainsAsync<TSource>(

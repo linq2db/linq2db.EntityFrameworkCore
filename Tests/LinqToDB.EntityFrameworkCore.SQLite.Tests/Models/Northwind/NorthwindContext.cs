@@ -23,7 +23,6 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.Northwind
 
 		public NorthwindContext(DbContextOptions options) : base(options)
 		{
-			
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)

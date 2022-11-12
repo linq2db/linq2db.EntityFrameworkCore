@@ -15,7 +15,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		private readonly IOptionsMonitor<ConsoleLoggerOptions> _options;
 		private readonly ConcurrentDictionary<string, TestLogger> _loggers;
 
-		private readonly IDisposable _optionsReloadToken;
+		private readonly IDisposable? _optionsReloadToken;
 		private IExternalScopeProvider _scopeProvider = NullExternalScopeProvider.Instance;
 
 		/// <summary>

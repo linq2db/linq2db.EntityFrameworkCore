@@ -29,7 +29,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 
 			optionsBuilder
 				.ReplaceService<IValueConverterSelector, IdValueConverterSelector>()
-				.UseSqlServer("Server=.;Database=ConverterTests;Integrated Security=SSPI")
+				.UseSqlServer("Server=.;Database=ConverterTests;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true")
 				.UseLoggerFactory(TestUtils.LoggerFactory);;
 
 			_options = optionsBuilder.Options;
@@ -58,7 +58,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 				var ef   = ctx.Subdivisions.Where(s => s.Id == 1L).ToArray();
 				var ltdb = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == 1L).ToArray();
 				
-				var id = new Nullable<Id<SubDivision, long>>(0L.AsId<SubDivision>());
+				var id = new Id<SubDivision, long>?(0L.AsId<SubDivision>());
 				var ltdb2 = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == id).ToArray();
 				
 				var ids = new[] {1L.AsId<SubDivision>(), 2L.AsId<SubDivision>(),};

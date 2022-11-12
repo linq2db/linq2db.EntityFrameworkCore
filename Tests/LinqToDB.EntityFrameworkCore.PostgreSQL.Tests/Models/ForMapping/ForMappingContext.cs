@@ -5,10 +5,8 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.ForMapping
 {
 	public class ForMappingContext : ForMappingContextBase
 	{
-
 		public ForMappingContext(DbContextOptions options) : base(options)
 		{
-			
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)

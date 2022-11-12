@@ -16,7 +16,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		public override ForMappingContextBase CreateContext()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
-			optionsBuilder.UseSqlServer("Server=.;Database=ForMapping;Integrated Security=SSPI");
+			optionsBuilder.UseSqlServer("Server=.;Database=ForMapping;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			var options = optionsBuilder.Options;

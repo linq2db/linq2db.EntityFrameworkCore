@@ -5,7 +5,6 @@ using FluentAssertions;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
-using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Inheritance;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
@@ -17,8 +16,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	[TestFixture]
 	public class ToolsTests : TestsBase
 	{
-		private readonly DbContextOptions _northwindOptions;
-		private DbContextOptions? _inheritanceOptions;
+		private readonly DbContextOptions _options;
 		private readonly DbContextOptions<NorthwindContext> _inmemoryOptions;
 
 		static ToolsTests()
@@ -27,35 +25,17 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			DataConnection.TurnTraceSwitchOn();
 		}
 
-		static DbContextOptions CreateNorthwindOptions()
-		{
-			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
-			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
-
-			optionsBuilder.UseSqlServer("Server=.;Database=NorthwindEFCore;Integrated Security=SSPI");
-			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
-
-			return optionsBuilder.Options;
-		}
-
-		static DbContextOptions CreateInheritanceOptions()
-		{
-			var optionsBuilder = new DbContextOptionsBuilder<InheritanceContext>();
-			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
-
-			optionsBuilder.UseSqlServer("Server=.;Database=InheritanceEFCore;Integrated Security=SSPI");
-			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
-			optionsBuilder.EnableSensitiveDataLogging();
-
-			return optionsBuilder.Options;
-		}
-
 		public ToolsTests()
 		{
-			_northwindOptions = CreateNorthwindOptions();
-
-
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
+			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
+
+			optionsBuilder.UseSqlServer("Server=.;Database=NorthwindEFCore;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true");
+			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
+
+			_options = optionsBuilder.Options;
+
+			optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
 			optionsBuilder.UseInMemoryDatabase("sample");
@@ -86,30 +66,13 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 		private NorthwindContext CreateContext(bool enableFilter)
 		{
-			var ctx = new NorthwindContext(_northwindOptions);
+			var ctx = new NorthwindContext(_options);
 			ctx.IsSoftDeleteFilterEnabled = enableFilter;
 			//ctx.Database.EnsureDeleted();
 			if (ctx.Database.EnsureCreated())
 			{
 				NorthwindData.Seed(ctx);
 			}			
-			return ctx;
-		}
-
-		private InheritanceContext CreateInheritanceContext()
-		{
-			var recreate = _inheritanceOptions == null;
-
-			if (_inheritanceOptions == null)
-				_inheritanceOptions = CreateInheritanceOptions();
-
-			var ctx = new InheritanceContext(_inheritanceOptions);
-			if (recreate)
-			{
-				ctx.Database.EnsureDeleted();
-				ctx.Database.EnsureCreated();
-			}
-
 			return ctx;
 		}
 
@@ -207,7 +170,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public void TestCreateFromOptions()
 		{
-			using (var db = _northwindOptions.CreateLinqToDbConnection())
+			using (var db = _options.CreateLinqToDbConnection())
 			{
 			}
 		}
@@ -226,19 +189,19 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 						// Date = Model.TestFunctions.GetDate(),
 						// Len = Model.TestFunctions.Len(p.Name),
 						DiffYear1 = EF.Functions.DateDiffYear(p.ShippedDate, p.OrderDate),
-						DiffYear2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffYear(p.ShippedDate, p.OrderDate.Value),
+						DiffYear2 = p.OrderDate == null ? null : EF.Functions.DateDiffYear(p.ShippedDate, p.OrderDate.Value),
 						DiffMonth1 = EF.Functions.DateDiffMonth(p.ShippedDate, p.OrderDate),
-						DiffMonth2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffMonth(p.ShippedDate, p.OrderDate.Value),
+						DiffMonth2 = p.OrderDate == null ? null : EF.Functions.DateDiffMonth(p.ShippedDate, p.OrderDate.Value),
 						DiffDay1 = EF.Functions.DateDiffDay(p.ShippedDate, p.OrderDate),
-						DiffDay2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffDay(p.ShippedDate, p.OrderDate.Value),
+						DiffDay2 = p.OrderDate == null ? null : EF.Functions.DateDiffDay(p.ShippedDate, p.OrderDate.Value),
 						DiffHour1 = EF.Functions.DateDiffHour(p.ShippedDate, p.OrderDate),
-						DiffHour2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffHour(p.ShippedDate, p.OrderDate.Value),
+						DiffHour2 = p.OrderDate == null ? null : EF.Functions.DateDiffHour(p.ShippedDate, p.OrderDate.Value),
 						DiffMinute1 = EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate),
-						DiffMinute2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate.Value),
+						DiffMinute2 = p.OrderDate == null ? null : EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate.Value),
 						DiffSecond1 = EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate),
-						DiffSecond2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate.Value),
+						DiffSecond2 = p.OrderDate == null ? null : EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate.Value),
 						DiffMillisecond1 = EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate!.Value.AddMilliseconds(100)),
-						DiffMillisecond2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate.Value.AddMilliseconds(100)),
+						DiffMillisecond2 = p.OrderDate == null ? null : EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate.Value.AddMilliseconds(100)),
 					};
 
 //				var items1 = query.ToArray();
@@ -571,7 +534,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
 
 				ctx.ChangeTracker.DetectChanges();
-				var changedEntry = ctx.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).Single();
+				var changedEntry = ctx.ChangeTracker.Entries().Single(e => e.State == EntityState.Modified);
 				ctx.SaveChanges();
 			}
 		}
@@ -594,7 +557,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
 
 				ctx.ChangeTracker.DetectChanges();
-				var changedEntry = ctx.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).SingleOrDefault();
+				var changedEntry = ctx.ChangeTracker.Entries().SingleOrDefault(e => e.State == EntityState.Modified);
 				Assert.AreEqual(changedEntry, null);
 				ctx.SaveChanges();
 			}
@@ -620,7 +583,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
 
 					ctx.ChangeTracker.DetectChanges();
-					var changedEntry = ctx.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).SingleOrDefault();
+					var changedEntry = ctx.ChangeTracker.Entries().SingleOrDefault(e => e.State == EntityState.Modified);
 					Assert.AreEqual(changedEntry, null);
 					ctx.SaveChanges();
 				}
@@ -630,23 +593,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				LinqToDBForEFTools.EnableChangeTracker = true;
 			}
 		}
-
-		[Test]
-		public async Task TestChangeTrackerTemporaryTable([Values(true, false)] bool enableFilter)
-		{
-			using var ctx = CreateContext(enableFilter);
-
-			var query = ctx.Orders;
-
-			using var db = ctx.CreateLinqToDbConnection();
-
-			using var temp = await db.CreateTempTableAsync(query, tableName: "#Orders");
-
-			var result = temp.Take(2).ToList();
-
-			ctx.Orders.Local.Should().BeEmpty();
-		}
-
 
 		[Test]
 		public void NavigationProperties()
@@ -890,46 +836,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				str.Should().Contain("Tagged query");
 			}
 		}
-		
-		[Test]
-		public void TestInheritanceBulkCopy([Values] BulkCopyType copyType)
-		{
-			using (var ctx = CreateInheritanceContext())
-			{
-				var data = new BlogBase[] { new Blog() { Url = "BlogUrl" }, new RssBlog() { Url = "RssUrl" } };
-
-				ctx.BulkCopy(new BulkCopyOptions(){ BulkCopyType = BulkCopyType.RowByRow }, data);
-
-				var items = ctx.Blogs.ToArray();
-
-				items[0].Should().BeOfType<Blog>();
-				((Blog)items[0]).Url.Should().Be("BlogUrl");
-
-				items[1].Should().BeOfType<RssBlog>();
-				((RssBlog)items[1]).Url.Should().Be("RssUrl");
-			}
-		}
-
-		/*
-		[Test]
-		public void TestInheritanceShadowBulkCopy([Values] BulkCopyType copyType)
-		{
-			using (var ctx = CreateInheritanceContext())
-			{
-				var data = new ShadowBlogBase[] { new ShadowBlog() { Url = "BlogUrl" }, new ShadowRssBlog() { Url = "RssUrl" } };
-
-				ctx.BulkCopy(new BulkCopyOptions(){ BulkCopyType = BulkCopyType.RowByRow }, data);
-
-				var items = ctx.ShadowBlogs.ToArray();
-
-				items[0].Should().BeOfType<ShadowBlog>();
-				((ShadowBlog)items[0]).Url.Should().Be("BlogUrl");
-
-				items[1].Should().BeOfType<ShadowRssBlog>();
-				((ShadowRssBlog)items[1]).Url.Should().Be("RssUrl");
-			}
-		}
-		*/
 
 	}
 }

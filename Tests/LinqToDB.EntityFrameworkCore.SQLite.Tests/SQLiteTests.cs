@@ -34,6 +34,5 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			ctx.Database.EnsureCreated();
 			return ctx;
 		}
-	
 	}
 }

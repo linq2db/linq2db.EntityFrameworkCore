@@ -130,7 +130,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 		{
 			context.Set<Customer>().AddRange(CreateCustomers());
 
-			var titleProperty = context.Model.FindEntityType(typeof(Employee)).FindProperty("Title");
+			var titleProperty = context.Model.FindEntityType(typeof(Employee))!.FindProperty("Title")!;
 			foreach (var employee in CreateEmployees())
 			{
 				context.Set<Employee>().Add(employee);
@@ -147,7 +147,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 			context.Set<OrderDetail>().AddRange(CreateOrderDetails());
 		}
 
-		private class AsyncEnumerable<T> : IAsyncQueryProvider, IOrderedQueryable<T>
+		private sealed class AsyncEnumerable<T> : IAsyncQueryProvider, IOrderedQueryable<T>
 		{
 			private readonly EnumerableQuery<T> _enumerableQuery;
 
@@ -178,7 +178,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 			private static Expression RewriteShadowPropertyAccess(Expression expression)
 				=> new ShadowStateAccessRewriter().Visit(expression);
 
-			private class ShadowStateAccessRewriter : ExpressionVisitor
+			private sealed class ShadowStateAccessRewriter : ExpressionVisitor
 			{
 				[return: NotNullIfNotNull("expr")]
 				static Expression? RemoveConvert(Expression? expr)

@@ -6,7 +6,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 	/// <summary>
 	/// Scope provider that does nothing.
 	/// </summary>
-	internal class NullExternalScopeProvider : IExternalScopeProvider
+	internal sealed class NullExternalScopeProvider : IExternalScopeProvider
 	{
 		private NullExternalScopeProvider()
 		{
@@ -18,12 +18,12 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		public static IExternalScopeProvider Instance { get; } = new NullExternalScopeProvider();
 
 		/// <inheritdoc />
-		void IExternalScopeProvider.ForEachScope<TState>(Action<object, TState> callback, TState state)
+		void IExternalScopeProvider.ForEachScope<TState>(Action<object?, TState> callback, TState state)
 		{
 		}
 
 		/// <inheritdoc />
-		IDisposable IExternalScopeProvider.Push(object state)
+		IDisposable IExternalScopeProvider.Push(object? state)
 		{
 			return NullScope.Instance;
 		}

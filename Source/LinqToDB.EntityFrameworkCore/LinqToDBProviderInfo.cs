@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Stores LINQ To DB database provider information.
 	/// </summary>
-	public class LinqToDBProviderInfo
+	public sealed class LinqToDBProviderInfo
 	{
 		/// <summary>
 		/// Server version. Currently is not used.

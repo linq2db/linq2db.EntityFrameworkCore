@@ -6,16 +6,13 @@ using Microsoft.Extensions.Logging.Console;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 {
-	internal class TestLogger : ILogger
+	internal sealed class TestLogger : ILogger
 	{
 		private static readonly string _loglevelPadding = ": ";
 		private static readonly string _messagePadding;
 		private static readonly string _newLineWithMessagePadding;
 
-		// ConsoleColor does not have a value to specify the 'Default' color
-#pragma warning disable 649
-		private readonly ConsoleColor? DefaultConsoleColor;
-#pragma warning restore 649
+		private readonly ConsoleColor DefaultConsoleColor = ConsoleColor.Black;
 
 		private readonly string _name;
 
@@ -38,7 +35,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		internal ConsoleLoggerOptions? Options { get; set; }
 
-		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
 		{
 			if (!IsEnabled(logLevel))
 			{
@@ -58,18 +55,15 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			}
 		}
 
-		public virtual void WriteMessage(LogLevel logLevel, string logName, int eventId, string message, Exception exception)
+		public void WriteMessage(LogLevel logLevel, string logName, int eventId, string message, Exception? exception)
 		{
-			var format = Options!.FormatterName;
+			var format = Options?.FormatterName;
 			Debug.Assert(format is ConsoleFormatterNames.Simple or ConsoleFormatterNames.Systemd);
 
 			var logBuilder = _logBuilder;
 			_logBuilder = null;
 
-			if (logBuilder == null)
-			{
-				logBuilder = new StringBuilder();
-			}
+			logBuilder ??= new StringBuilder();
 
 			LogMessageEntry entry;
 			if (format == ConsoleFormatterNames.Simple)
@@ -99,7 +93,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			WriteMessage(entry);
 		}
 
-		internal virtual void WriteMessage(LogMessageEntry message)
+		internal void WriteMessage(LogMessageEntry message)
 		{
 			if (message.TimeStamp != null)
 			{
@@ -114,7 +108,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			Console.WriteLine(message.Message);
 		}
 
-		private LogMessageEntry CreateDefaultLogMessage(StringBuilder logBuilder, LogLevel logLevel, string logName, int eventId, string message, Exception exception)
+		private LogMessageEntry CreateDefaultLogMessage(StringBuilder logBuilder, LogLevel logLevel, string logName, int eventId, string message, Exception? exception)
 		{
 			// Example:
 			// INFO: ConsoleApp.Program[10]
@@ -152,7 +146,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			}
 
 #pragma warning disable CS0618 // Type or member is obsolete
-			var timestampFormat = Options!.TimestampFormat;
+			var timestampFormat = Options?.TimestampFormat;
 #pragma warning restore CS0618 // Type or member is obsolete
 
 			return new LogMessageEntry(
@@ -162,11 +156,11 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 				levelBackground: logLevelColors.Background,
 				levelForeground: logLevelColors.Foreground,
 				messageColor: DefaultConsoleColor,
-				logAsError: logLevel >= Options!.LogToStandardErrorThreshold
+				logAsError: logLevel >= Options?.LogToStandardErrorThreshold
 			);
 		}
 
-		private LogMessageEntry CreateSystemdLogMessage(StringBuilder logBuilder, LogLevel logLevel, string logName, int eventId, string message, Exception exception)
+		private LogMessageEntry CreateSystemdLogMessage(StringBuilder logBuilder, LogLevel logLevel, string logName, int eventId, string message, Exception? exception)
 		{
 			// systemd reads messages from standard out line-by-line in a '<pri>message' format.
 			// newline characters are treated as message delimiters, so we must replace them.
@@ -180,7 +174,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 			// timestamp
 #pragma warning disable CS0618 // Type or member is obsolete
-			var timestampFormat = Options!.TimestampFormat;
+			var timestampFormat = Options?.TimestampFormat;
 #pragma warning restore CS0618 // Type or member is obsolete
 			if (timestampFormat != null)
 			{
@@ -217,7 +211,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 			return new LogMessageEntry(
 				message: logBuilder.ToString(),
-				logAsError: logLevel >= Options.LogToStandardErrorThreshold
+				logAsError: logLevel >= Options?.LogToStandardErrorThreshold
 			);
 
 			static void AppendAndReplaceNewLine(StringBuilder sb, string message)
@@ -233,7 +227,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			return logLevel != LogLevel.None;
 		}
 
-		public IDisposable BeginScope<TState>(TState state) => ScopeProvider?.Push(state) ?? NullScope.Instance;
+		public IDisposable BeginScope<TState>(TState state)
+			where TState : notnull
+			=> ScopeProvider?.Push(state) ?? NullScope.Instance;
 
 		private static string GetLogLevelString(LogLevel logLevel)
 		{
@@ -280,7 +276,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		private ConsoleColors GetLogLevelConsoleColors(LogLevel logLevel)
 		{
 #pragma warning disable CS0618 // Type or member is obsolete
-			if (Options!.DisableColors)
+			if (Options?.DisableColors == true)
 #pragma warning restore CS0618 // Type or member is obsolete
 			{
 				return new ConsoleColors(null, null);
@@ -311,7 +307,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 		{
 			var scopeProvider = ScopeProvider;
 #pragma warning disable CS0618 // Type or member is obsolete
-			if (Options!.IncludeScopes && scopeProvider != null)
+			if (Options?.IncludeScopes == true && scopeProvider != null)
 #pragma warning restore CS0618 // Type or member is obsolete
 			{
 				var initialLength = stringBuilder.Length;
@@ -352,5 +348,4 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			public ConsoleColor? Background { get; }
 		}
 	}
-
 }

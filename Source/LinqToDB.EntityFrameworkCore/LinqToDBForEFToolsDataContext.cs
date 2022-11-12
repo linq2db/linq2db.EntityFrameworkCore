@@ -50,6 +50,5 @@ namespace LinqToDB.EntityFrameworkCore
 				return expression;
 			return _transformFunc(expression, this, _context, _model);
 		}
-
 	}
 }

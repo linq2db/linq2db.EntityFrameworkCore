@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -10,6 +11,58 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 {
 	public static class QueryableExtensions
 	{
+		public static IQueryable<T> AnyFromItems<T, TItem>(this IQueryable<T> source, IEnumerable<TItem> items,
+			string propName)
+		{
+			var entityParam = Expression.Parameter(typeof(T), "e");
+			var itemParam = Expression.Parameter(typeof(TItem), "i");
+
+			var anyPredicate =
+				Expression.Lambda(
+					Expression.Equal(itemParam, Expression.PropertyOrField(entityParam, propName)),
+					itemParam);
+
+			var filterLambda =
+				Expression.Lambda<Func<T, bool>>(
+					Expression.Call(typeof(Enumerable), nameof(Enumerable.Any), new[] { typeof(TItem) },
+						Expression.Constant(items), anyPredicate),
+					entityParam);
+
+			return source.Where(filterLambda);
+		}
+
+		public static IQueryable<T> AnyFromItems<T>(this IQueryable<T> source, string items, string propName)
+		{
+			var strItems = items.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+			var entityParam = Expression.Parameter(typeof(T), "e");
+			var propExpression = Expression.PropertyOrField(entityParam, propName);
+			var itemType = propExpression.Type;
+			var itemParam = Expression.Parameter(itemType, "i");
+
+			var anyPredicate =
+				Expression.Lambda(
+					Expression.Equal(itemParam, Expression.PropertyOrField(entityParam, propName)),
+					itemParam);
+
+			// apply conversion
+			var itemsExpression = Expression.Call(typeof(QueryableExtensions), nameof(QueryableExtensions.ParseItems),
+				new[] { itemType }, Expression.Constant(strItems));
+
+			var filterLambda =
+				Expression.Lambda<Func<T, bool>>(
+					Expression.Call(typeof(Enumerable), nameof(Enumerable.Any), new[] { itemType },
+						itemsExpression, anyPredicate),
+					entityParam);
+
+			return source.Where(filterLambda);
+		}
+
+		private static IEnumerable<TItem> ParseItems<TItem>(IEnumerable<string> items)
+		{
+			return items.Select(i => (TItem)Convert.ChangeType(i, typeof(TItem)));
+		}
+
 		public static async Task<IEnumerable<T>> FilterExistentAsync<T, TProp>(this ICollection<T> items,
 			IQueryable<T> dbQuery, Expression<Func<T, TProp>> prop, CancellationToken cancellationToken = default)
 		{
@@ -70,7 +123,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			return query.Where(MakePropertiesPredicate<T, TValue>(pattern, searchValue, isOr));
 		}
 
-		class ExpressionReplacer : ExpressionVisitor
+		sealed class ExpressionReplacer : ExpressionVisitor
 		{
 			readonly IDictionary<Expression, Expression> _replaceMap;
 
@@ -79,7 +132,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				_replaceMap = replaceMap ?? throw new ArgumentNullException(nameof(replaceMap));
 			}
 
-			public override Expression Visit(Expression node)
+			// TODO: uncomment after azure pipelines updated to 17.4
+			//[return: NotNullIfNotNull(nameof(node))]
+			[return: NotNullIfNotNull("node")]
+			public override Expression? Visit(Expression? node)
 			{
 				if (node != null && _replaceMap.TryGetValue(node, out var replacement))
 					return replacement;
