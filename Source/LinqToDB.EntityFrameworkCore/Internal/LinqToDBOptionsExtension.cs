@@ -100,13 +100,12 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 				}
 			}
 
-			public override long GetServiceProviderHashCode()
-			{
-				return 0;
-			}
+			public override int GetServiceProviderHashCode() => 0;
 
 			public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
 				=> debugInfo["Linq2Db"] = "1";
+
+			public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other) => true;
 		}
 	}
 }

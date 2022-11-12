@@ -10,7 +10,7 @@ namespace LinqToDB.EntityFrameworkCore
 	/// </summary>
 	public class LinqToDBContextOptionsBuilder 
 	{
-		private readonly LinqToDBOptionsExtension _extension;
+		private readonly LinqToDBOptionsExtension? _extension;
 
 		/// <summary>
 		/// Db context options
@@ -34,7 +34,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns></returns>
 		public LinqToDBContextOptionsBuilder AddInterceptor(IInterceptor interceptor)
 		{
-			_extension.Interceptors.Add(interceptor);
+			_extension?.Interceptors.Add(interceptor);
 			return this;
 		}
 	}

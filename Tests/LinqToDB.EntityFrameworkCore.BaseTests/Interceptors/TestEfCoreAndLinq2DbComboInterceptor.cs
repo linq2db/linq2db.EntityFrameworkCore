@@ -147,13 +147,13 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Interceptors
 			return ValueTask.FromResult(result);
 		}
 
-		public object ScalarExecuted(DbCommand command, CommandExecutedEventData eventData, object result)
+		public object? ScalarExecuted(DbCommand command, CommandExecutedEventData eventData, object? result)
 		{
 			HasInterceptorBeenInvoked = true;
 			return result;
 		}
 
-		public ValueTask<object> ScalarExecutedAsync(DbCommand command, CommandExecutedEventData eventData, object result, CancellationToken cancellationToken = default)
+		public ValueTask<object?> ScalarExecutedAsync(DbCommand command, CommandExecutedEventData eventData, object? result, CancellationToken cancellationToken = default)
 		{
 			HasInterceptorBeenInvoked = true;
 			return ValueTask.FromResult(result);
