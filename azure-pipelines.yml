@@ -37,7 +37,6 @@ stages:
       displayName: 'Install .NET 7'
       inputs:
         version: 7.x
-        useGlobalJson: true
         includePreviewVersions: true
 
     - task: PowerShell@2
