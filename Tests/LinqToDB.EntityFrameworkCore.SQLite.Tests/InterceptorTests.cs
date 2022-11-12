@@ -3,7 +3,6 @@ using System.Linq;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Interceptors;
-using LinqToDB.EntityFrameworkCore.BaseTests.Interceptors.Extensions;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
 using LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.Northwind;
 using Microsoft.Data.Sqlite;
@@ -17,7 +16,6 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 	{
 		private const string SQLITE_CONNECTION_STRING = "DataSource=NorthwindInMemory;Mode=Memory;Cache=Shared";
 		private readonly DbContextOptions _northwindOptions;
-		private readonly DbContextOptions _northwindOptionsWithEfCoreInterceptorsOnly;
 		private DbConnection? _dbConnection;
 		static TestCommandInterceptor testCommandInterceptor;
 		static TestDataContextInterceptor testDataContextInterceptor;
@@ -54,35 +52,14 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			return optionsBuilder.Options;
 		}
 
-		static DbContextOptions CreateNorthwindOptionsWithEfCoreInterceptorsOnly()
-		{
-			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
-			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
-			optionsBuilder.AddInterceptors(testEfCoreAndLinq2DbInterceptor);
-			optionsBuilder.UseLinqToDb(builder =>
-			{
-				builder.UseEfCoreRegisteredInterceptorsIfPossible();
-			});
-			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
-
-			return optionsBuilder.Options;
-		}
-
 		public InterceptorTests()
 		{
 			_northwindOptions = CreateNorthwindOptions();
-			_northwindOptionsWithEfCoreInterceptorsOnly = CreateNorthwindOptionsWithEfCoreInterceptorsOnly();
 		}
 
 		private NorthwindContext CreateContext()
 		{
 			var ctx = new NorthwindContext(_northwindOptions);
-			return ctx;
-		}
-
-		private NorthwindContext CreateContextWithountLinq2DbExtensions()
-		{
-			var ctx = new NorthwindContext(_northwindOptionsWithEfCoreInterceptorsOnly);
 			return ctx;
 		}
 
@@ -101,16 +78,6 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			if (ctxInterceptors != null)
 			{
 				foreach (var interceptor in ctxInterceptors)
-				{
-					((TestInterceptor)interceptor).ResetInvocations();
-				}
-			}
-
-			using var ctx2 = new NorthwindContext(_northwindOptionsWithEfCoreInterceptorsOnly);
-			var ctx2Interceptors = ctx2.GetLinq2DbInterceptors();
-			if (ctx2Interceptors != null)
-			{
-				foreach (var interceptor in ctx2Interceptors)
 				{
 					((TestInterceptor)interceptor).ResetInvocations();
 				}
@@ -162,36 +129,6 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			Assert.IsTrue(testDataContextInterceptor.HasInterceptorBeenInvoked);
 			Assert.IsTrue(testConnectionInterceptor.HasInterceptorBeenInvoked);
 			Assert.IsTrue(testEntityServiceInterceptor.HasInterceptorBeenInvoked);
-		}
-
-		[Test]
-		public void TestEfCoreSideOfComboInterceptor()
-		{
-			using (var ctx = CreateContextWithountLinq2DbExtensions())
-			{
-				var query =
-					from pd in ctx.Products
-					where pd.ProductId > 0
-					orderby pd.ProductId
-					select pd;
-				var items = query.Take(2).ToArray();
-			}
-			Assert.IsTrue(testEfCoreAndLinq2DbInterceptor.HasInterceptorBeenInvoked);
-		}
-
-		[Test]
-		public void TestLinq2DbSideOfComboInterceptor()
-		{
-			using (var ctx = CreateContextWithountLinq2DbExtensions())
-			{
-				var query =
-					from pd in ctx.Products
-					where pd.ProductId > 0
-					orderby pd.ProductId
-					select pd;
-				var items = query.Take(2).ToLinqToDB().ToArray();
-			}
-			Assert.IsTrue(testEfCoreAndLinq2DbInterceptor.HasInterceptorBeenInvoked);
 		}
 	}
 }

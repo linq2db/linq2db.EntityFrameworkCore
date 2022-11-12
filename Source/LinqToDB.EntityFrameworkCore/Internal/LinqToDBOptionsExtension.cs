@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,20 +12,37 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 	/// </summary>
 	public class LinqToDBOptionsExtension : IDbContextOptionsExtension
 	{
-		private DbContextOptionsExtensionInfo? _info;
-		private IList<IInterceptor>? _interceptors;
+		private string? _logFragment;
 
-		/// <summary>
-		/// Context options extension info object
-		/// </summary>
-		public DbContextOptionsExtensionInfo Info 
-			=> _info ??= new LinqToDBExtensionInfo(this);
+		private IList<IInterceptor>? _interceptors;
 
 		/// <summary>
 		/// List of registered LinqToDB interceptors
 		/// </summary>
-		public virtual IList<IInterceptor> Interceptors
-			=> _interceptors ??= new List<IInterceptor>();
+		public virtual IList<IInterceptor> Interceptors => _interceptors ??= new List<IInterceptor>();
+
+		/// <inheritdoc cref="IDbContextOptionsExtension.LogFragment"/>
+		public string LogFragment
+		{
+			get
+			{
+				if (_logFragment == null)
+				{
+					string logFragment = string.Empty;
+
+					if (_interceptors?.Count > 0)
+					{
+						_logFragment = $"Interceptors count: {_interceptors.Count}";
+					}
+					else
+					{
+						_logFragment = string.Empty;
+					}
+				}
+
+				return _logFragment;
+			}
+		}
 
 		/// <summary>
 		/// .ctor
@@ -44,15 +60,8 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			_interceptors = copyFrom._interceptors;
 		}
 
-		/// Adds the services required to make the selected options work. This is used when
-		/// there is no external System.IServiceProvider and EF is maintaining its own service
-		/// provider internally. This allows database providers (and other extensions) to
-		/// register their required services when EF is creating an service provider.
-		/// <param name="services">The collection to add services to</param>
-		public void ApplyServices(IServiceCollection services)
-		{
-			;
-		}
+		/// <inheritdoc cref="IDbContextOptionsExtension.ApplyServices(IServiceCollection)"/>
+		public bool ApplyServices(IServiceCollection services) => false;
 
 		/// <summary>
 		/// Gives the extension a chance to validate that all options in the extension are
@@ -62,51 +71,9 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// <param name="options"></param>
 		public void Validate(IDbContextOptions options)
 		{
-			;
 		}
 
-		private sealed class LinqToDBExtensionInfo : DbContextOptionsExtensionInfo
-		{
-			private string? _logFragment;
-
-			public LinqToDBExtensionInfo(IDbContextOptionsExtension extension)
-				: base(extension)
-			{
-			}
-
-			private new LinqToDBOptionsExtension Extension
-				=> (LinqToDBOptionsExtension)base.Extension;
-
-			public override bool IsDatabaseProvider
-				=> false;
-
-			public override string LogFragment
-			{
-				get
-				{
-					if (_logFragment == null)
-					{
-						string logFragment = string.Empty;
-
-						if (Extension.Interceptors.Any())
-						{
-							logFragment += $"Interceptors count: {Extension.Interceptors.Count}";
-						}
-
-						_logFragment = logFragment;
-					}
-
-					return _logFragment;
-				}
-			}
-
-			public override long GetServiceProviderHashCode()
-			{
-				return 0;
-			}
-
-			public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
-				=> debugInfo["Linq2Db"] = "1";
-		}
+		/// <inheritdoc cref="IDbContextOptionsExtension.GetServiceProviderHashCode()"/>
+		public long GetServiceProviderHashCode() => 0;
 	}
 }
