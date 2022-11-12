@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Console;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 {
-	internal class TestLogger : ILogger
+	internal sealed class TestLogger : ILogger
 	{
 		private static readonly string _loglevelPadding = ": ";
 		private static readonly string _messagePadding;
@@ -58,7 +58,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			}
 		}
 
-		public virtual void WriteMessage(LogLevel logLevel, string logName, int eventId, string message, Exception exception)
+		public void WriteMessage(LogLevel logLevel, string logName, int eventId, string message, Exception exception)
 		{
 			var format = Options!.FormatterName;
 			Debug.Assert(format is ConsoleFormatterNames.Simple or ConsoleFormatterNames.Systemd);
@@ -99,7 +99,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			WriteMessage(entry);
 		}
 
-		internal virtual void WriteMessage(LogMessageEntry message)
+		internal void WriteMessage(LogMessageEntry message)
 		{
 			if (message.TimeStamp != null)
 			{

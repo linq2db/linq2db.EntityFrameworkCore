@@ -93,9 +93,9 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			return QueryProvider.ExecuteAsyncEnumerable<TResult>(expression, cancellationToken);
 		}
 
-		class AsyncEnumerableWrapper<TResult>: interactive_async::System.Collections.Generic.IAsyncEnumerable<TResult>
+		sealed class AsyncEnumerableWrapper<TResult>: interactive_async::System.Collections.Generic.IAsyncEnumerable<TResult>
 		{
-			public class EnumeratorWrapper : interactive_async::System.Collections.Generic.IAsyncEnumerator<TResult>
+			public sealed class EnumeratorWrapper : interactive_async::System.Collections.Generic.IAsyncEnumerator<TResult>
 			{
 				private readonly bcl_async::System.Collections.Generic.IAsyncEnumerator<TResult> _enumerator;
 
@@ -106,7 +106,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 
 				public void Dispose()
 				{
-					Task.Run(() =>_enumerator.DisposeAsync()).Wait();
+					Task.Run(_enumerator.DisposeAsync).Wait();
 				}
 
 				public Task<bool> MoveNext(CancellationToken cancellationToken)
