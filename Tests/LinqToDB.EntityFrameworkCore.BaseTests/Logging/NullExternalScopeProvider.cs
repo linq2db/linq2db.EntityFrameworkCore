@@ -6,7 +6,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 	/// <summary>
 	/// Scope provider that does nothing.
 	/// </summary>
-	internal class NullExternalScopeProvider : IExternalScopeProvider
+	internal sealed class NullExternalScopeProvider : IExternalScopeProvider
 	{
 		private NullExternalScopeProvider()
 		{

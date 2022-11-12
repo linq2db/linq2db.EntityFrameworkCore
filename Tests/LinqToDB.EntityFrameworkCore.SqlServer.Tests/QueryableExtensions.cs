@@ -123,7 +123,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			return query.Where(MakePropertiesPredicate<T, TValue>(pattern, searchValue, isOr));
 		}
 
-		class ExpressionReplacer : ExpressionVisitor
+		sealed class ExpressionReplacer : ExpressionVisitor
 		{
 			readonly IDictionary<Expression, Expression> _replaceMap;
 
