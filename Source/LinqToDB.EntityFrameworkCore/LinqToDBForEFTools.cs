@@ -290,6 +290,8 @@ namespace LinqToDB.EntityFrameworkCore
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
+			AddInterceptorsToDataContext(context, dc);
+
 			return dc;
 		}
 
@@ -373,6 +375,8 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				EnableTracing(dc, logger);
 			}
+
+			AddInterceptorsToDataContext(context, dc);
 
 			return dc;
 		}
@@ -499,6 +503,8 @@ namespace LinqToDB.EntityFrameworkCore
 					dc.AddMappingSchema(mappingSchema);
 			}
 
+			AddInterceptorsToDataContext(options, dc);
+
 			return dc;
 		}
 
@@ -515,6 +521,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null)
 				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
+			AddInterceptorsToDataContext(context, dc);
 			return new LinqToDBForEFQueryProvider<T>(dc, query.Expression);
 		}
 
@@ -560,5 +567,28 @@ namespace LinqToDB.EntityFrameworkCore
 			set => Implementation.EnableChangeTracker = value;
 		}
 
+		private static void AddInterceptorsToDataContext(DbContext efContext, IDataContext dc)
+		{
+			var contextOptions = ((IInfrastructure<IServiceProvider>)efContext.Database)?
+				.Instance?.GetService(typeof(IDbContextOptions)) as IDbContextOptions;
+			
+			AddInterceptorsToDataContext(contextOptions, dc);
+		}
+
+		private static void AddInterceptorsToDataContext(IDbContextOptions? contextOptions,
+			IDataContext dc)
+		{
+			var registeredInterceptors = contextOptions?.GetLinq2DbInterceptors();
+
+			if (registeredInterceptors != null
+
+				&& dc != null )
+			{
+				foreach (var interceptor in registeredInterceptors)
+				{
+					dc.AddInterceptor(interceptor);
+				}
+			}
+		}
 	}
 }
