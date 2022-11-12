@@ -32,11 +32,9 @@ stages:
 
     steps:
     - task: UseDotNet@2
-      displayName: 'Use .NET 6'
+      displayName: 'Use .NET 7'
       inputs:
-        version: 6.x
-        useGlobalJson: true
-        includePreviewVersions: true
+        version: 7.x
 
     - task: PowerShell@2
       inputs:

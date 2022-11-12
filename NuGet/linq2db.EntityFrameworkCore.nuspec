@@ -5,7 +5,7 @@
 		<title>Linq to DB (linq2db) extensions for Entity Framework Core</title>
 		<authors>Igor Tkachev, Ilya Chudin, Svyatoslav Danyliv, Dmitry Lukashenko</authors>
 		<owners>Igor Tkachev, Ilya Chudin, Svyatoslav Danyliv, Dmitry Lukashenko</owners>
-		<copyright>Copyright © 2020-2021 Igor Tkachev, Ilya Chudin, Svyatoslav Danyliv, Dmitry Lukashenko</copyright>
+		<copyright>Copyright © 2020-2022 Igor Tkachev, Ilya Chudin, Svyatoslav Danyliv, Dmitry Lukashenko</copyright>
 		<description>Allows to execute Linq to DB (linq2db) queries in Entity Framework Core DbContext.</description>
 		<summary />
 		<tags>linq linq2db LinqToDB ORM database entity-framework-core EntityFrameworkCore EFCore DB SQL SqlServer SqlCe SqlServerCe MySql Firebird SQLite Oracle ODP PostgreSQL DB2</tags>

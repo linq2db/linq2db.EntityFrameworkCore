@@ -1,9 +1,9 @@
 ﻿<Project>
 	<ItemGroup>
-		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
-		<PackageVersion Include="NUnit3TestAdapter" Version="4.2.1" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
+		<PackageVersion Include="NUnit3TestAdapter" Version="4.3.0" />
 		<PackageVersion Include="NUnit" Version="3.13.3" />
-		<PackageVersion Include="FluentAssertions" Version="6.6.0" />
+		<PackageVersion Include="FluentAssertions" Version="6.8.0" />
 
 		<PackageVersion Include="linq2db" Version="4.3.0" />
 		<PackageVersion Include="linq2db.Tools" Version="4.3.0" />
@@ -16,12 +16,12 @@
 		<PackageVersion Include="Microsoft.Extensions.Logging" Version="6.0.0" />
 		<PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
 
-		<PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
-		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.5" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.5" />
+		<PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
+		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.7" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.11" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.11" />
 
 		<PackageVersion Include="EntityFrameworkCore.FSharp" Version="6.0.7" />
-		<PackageVersion Include="FSharp.Core" Version="6.0.5" />
+		<PackageVersion Include="FSharp.Core" Version="7.0.0" />
 	</ItemGroup>
 </Project>
