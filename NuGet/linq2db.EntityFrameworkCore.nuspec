@@ -15,8 +15,10 @@
 		<license type="file">MIT-LICENSE.txt</license>
 		<dependencies>
 			<group targetFramework=".NETStandard2.0">
-				<dependency id="Microsoft.EntityFrameworkCore.Relational" version="2.2.6" />
 				<dependency id="linq2db" version="4.3.0" />
+				<dependency id="Microsoft.EntityFrameworkCore.Relational" version="2.2.6" />
+				<dependency id="Microsoft.Bcl.AsyncInterfaces" version="6.0.0" />
+				<dependency id="System.Interactive.Async" version="3.2.0" />
 			</group>
 		</dependencies>
 	</metadata>

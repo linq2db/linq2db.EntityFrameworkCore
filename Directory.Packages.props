@@ -9,7 +9,7 @@
 		<PackageVersion Include="linq2db.Tools" Version="4.3.0" />
 
 		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
-		<PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
+		<PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
 		<PackageVersion Include="System.Interactive.Async" Version="3.2.0"/>
 
 		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="2.2.6" />
