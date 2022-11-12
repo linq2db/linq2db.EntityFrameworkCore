@@ -70,7 +70,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					entity.Property(e => e.NameLocalized)
 						.HasColumnName("NameLocalized_JSON")
 						.HasConversion(v => JsonConvert.SerializeObject(v),
-							v => JsonConvert.DeserializeObject<LocalizedString>(v));
+							v => JsonConvert.DeserializeObject<LocalizedString>(v) ?? new());
 					entity.Property(e => e.CrashEnum).HasColumnType("tinyint");
 					entity.Property(e => e.GuidColumn).HasColumnType("uniqueidentifier");
 				});
