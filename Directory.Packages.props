@@ -9,10 +9,10 @@
 		<PackageVersion Include="linq2db.Tools" Version="4.3.0" />
 
 		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
-		<PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
+		<PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
 
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.31" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.31" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.25" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.25" />
 
 		<PackageVersion Include="Microsoft.Extensions.Logging" Version="5.0.0" />
 		<PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
