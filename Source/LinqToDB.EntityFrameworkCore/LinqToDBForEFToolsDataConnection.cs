@@ -131,7 +131,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return _transformFunc(expression, this, Context, _model);
 		}
 
-		private class TypeKey
+		private sealed class TypeKey
 		{
 			public TypeKey(IEntityType entityType, IModel? model)
 			{
@@ -142,7 +142,7 @@ namespace LinqToDB.EntityFrameworkCore
 			public IEntityType EntityType { get; }
 			public IModel? Model { get; }
 
-			protected bool Equals(TypeKey other)
+			private bool Equals(TypeKey other)
 			{
 				return EntityType.Equals(other.EntityType) && Equals(Model, other.Model);
 			}
