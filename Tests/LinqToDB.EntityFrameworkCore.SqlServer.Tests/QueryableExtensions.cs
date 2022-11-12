@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -70,7 +71,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			return query.Where(MakePropertiesPredicate<T, TValue>(pattern, searchValue, isOr));
 		}
 
-		class ExpressionReplacer : ExpressionVisitor
+		sealed class ExpressionReplacer : ExpressionVisitor
 		{
 			readonly IDictionary<Expression, Expression> _replaceMap;
 
@@ -79,7 +80,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				_replaceMap = replaceMap ?? throw new ArgumentNullException(nameof(replaceMap));
 			}
 
-			public override Expression Visit(Expression node)
+			[return: NotNullIfNotNull("node")]
+			public override Expression? Visit(Expression? node)
 			{
 				if (node != null && _replaceMap.TryGetValue(node, out var replacement))
 					return replacement;
