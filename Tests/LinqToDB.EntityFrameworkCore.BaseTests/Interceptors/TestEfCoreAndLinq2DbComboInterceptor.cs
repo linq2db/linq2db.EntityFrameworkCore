@@ -94,21 +94,23 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Interceptors
 			HasInterceptorBeenInvoked = true;
 			return Task.CompletedTask;
 		}
+
 		public InterceptionResult DataReaderDisposing(DbCommand command, DataReaderDisposingEventData eventData, InterceptionResult result)
 		{
 			HasInterceptorBeenInvoked = true;
 			return result;
 		}
+
 		public int NonQueryExecuted(DbCommand command, CommandExecutedEventData eventData, int result)
 		{
 			HasInterceptorBeenInvoked = true;
 			return result;
 		}
 
-		public ValueTask<int> NonQueryExecutedAsync(DbCommand command, CommandExecutedEventData eventData, int result, CancellationToken cancellationToken = default)
+		public Task<int> NonQueryExecutedAsync(DbCommand command, CommandExecutedEventData eventData, int result, CancellationToken cancellationToken = default)
 		{
 			HasInterceptorBeenInvoked = true;
-			return ValueTask.FromResult(result);
+			return Task.FromResult(result);
 		}
 
 		public InterceptionResult<int> NonQueryExecuting(DbCommand command, Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData, InterceptionResult<int> result)
@@ -117,10 +119,10 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Interceptors
 			return result;
 		}
 
-		public ValueTask<InterceptionResult<int>> NonQueryExecutingAsync(DbCommand command, Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+		public Task<InterceptionResult<int>> NonQueryExecutingAsync(DbCommand command, Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
 		{
 			HasInterceptorBeenInvoked = true;
-			return ValueTask.FromResult(result);
+			return Task.FromResult(result);
 		}
 
 		public DbDataReader ReaderExecuted(DbCommand command, CommandExecutedEventData eventData, DbDataReader result)
@@ -129,10 +131,10 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Interceptors
 			return result;
 		}
 
-		public ValueTask<DbDataReader> ReaderExecutedAsync(DbCommand command, CommandExecutedEventData eventData, DbDataReader result, CancellationToken cancellationToken = default)
+		public Task<DbDataReader> ReaderExecutedAsync(DbCommand command, CommandExecutedEventData eventData, DbDataReader result, CancellationToken cancellationToken = default)
 		{
 			HasInterceptorBeenInvoked = true;
-			return ValueTask.FromResult(result);
+			return Task.FromResult(result);
 		}
 
 		public InterceptionResult<DbDataReader> ReaderExecuting(DbCommand command, Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData, InterceptionResult<DbDataReader> result)
@@ -141,10 +143,10 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Interceptors
 			return result;
 		}
 
-		public ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+		public Task<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
 		{
 			HasInterceptorBeenInvoked = true;
-			return ValueTask.FromResult(result);
+			return Task.FromResult(result);
 		}
 
 		public object ScalarExecuted(DbCommand command, CommandExecutedEventData eventData, object result)
@@ -153,10 +155,10 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Interceptors
 			return result;
 		}
 
-		public ValueTask<object> ScalarExecutedAsync(DbCommand command, CommandExecutedEventData eventData, object result, CancellationToken cancellationToken = default)
+		public Task<object> ScalarExecutedAsync(DbCommand command, CommandExecutedEventData eventData, object result, CancellationToken cancellationToken = default)
 		{
 			HasInterceptorBeenInvoked = true;
-			return ValueTask.FromResult(result);
+			return Task.FromResult(result);
 		}
 
 		public InterceptionResult<object> ScalarExecuting(DbCommand command, Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData, InterceptionResult<object> result)
@@ -165,10 +167,10 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Interceptors
 			return result;
 		}
 
-		public ValueTask<InterceptionResult<object>> ScalarExecutingAsync(DbCommand command, Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData, InterceptionResult<object> result, CancellationToken cancellationToken = default)
+		public Task<InterceptionResult<object>> ScalarExecutingAsync(DbCommand command, Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData, InterceptionResult<object> result, CancellationToken cancellationToken = default)
 		{
 			HasInterceptorBeenInvoked = true;
-			return ValueTask.FromResult(result);
+			return Task.FromResult(result);
 		}
 
 		#endregion
