@@ -132,7 +132,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				_replaceMap = replaceMap ?? throw new ArgumentNullException(nameof(replaceMap));
 			}
 
-			[return: NotNullIfNotNull(nameof(node))]
+			// TODO: uncomment after azure pipelines updated to 17.4
+			//[return: NotNullIfNotNull(nameof(node))]
+			[return: NotNullIfNotNull("node")]
 			public override Expression? Visit(Expression? node)
 			{
 				if (node != null && _replaceMap.TryGetValue(node, out var replacement))
