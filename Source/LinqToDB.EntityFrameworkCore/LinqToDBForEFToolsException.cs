@@ -5,7 +5,7 @@ namespace LinqToDB.EntityFrameworkCore
 	/// <summary>
 	/// Exception class for EF.Core to LINQ To DB integration issues.
 	/// </summary>
-	public class LinqToDBForEFToolsException : Exception
+	public sealed class LinqToDBForEFToolsException : Exception
 	{
 		/// <summary>
 		/// Creates new instance of exception.

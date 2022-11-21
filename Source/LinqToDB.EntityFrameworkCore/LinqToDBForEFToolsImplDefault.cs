@@ -46,7 +46,7 @@ namespace LinqToDB.EntityFrameworkCore
 	[PublicAPI]
 	public class LinqToDBForEFToolsImplDefault : ILinqToDBForEFTools
 	{
-		class ProviderKey
+		sealed class ProviderKey
 		{
 			public ProviderKey(string? providerName, string? connectionString)
 			{
@@ -59,7 +59,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			#region Equality members
 
-			protected bool Equals(ProviderKey other)
+			private bool Equals(ProviderKey other)
 			{
 				return string.Equals(ProviderName, other.ProviderName) && string.Equals(ConnectionString, other.ConnectionString);
 			}
@@ -163,31 +163,44 @@ namespace LinqToDB.EntityFrameworkCore
 
 			switch (provInfo.ProviderName)
 			{
-					case ProviderName.SqlServer:
-						return CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString);
-					case ProviderName.MySql:
-					case ProviderName.MySqlConnector:
-						return MySqlTools.GetDataProvider(provInfo.ProviderName);
-					case ProviderName.PostgreSQL:
-						return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
-					case ProviderName.SQLite:
-						return SQLiteTools.GetDataProvider(provInfo.ProviderName);
-					case ProviderName.Firebird:
-						return FirebirdTools.GetDataProvider();
-					case ProviderName.DB2:
-					case ProviderName.DB2LUW:
-						return DB2Tools.GetDataProvider(DB2Version.LUW);
-					case ProviderName.DB2zOS:
+				case ProviderName.SqlServer:
+					return CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString);
+				case ProviderName.MySql:
+				case ProviderName.MySqlConnector:
+					return MySqlTools.GetDataProvider(provInfo.ProviderName);
+				case ProviderName.PostgreSQL:
+					return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
+				case ProviderName.SQLite:
+					return SQLiteTools.GetDataProvider(provInfo.ProviderName);
+				case ProviderName.Firebird:
+					return FirebirdTools.GetDataProvider();
+				case ProviderName.DB2:
+				case ProviderName.DB2LUW:
+					return DB2Tools.GetDataProvider(DB2Version.LUW);
+				case ProviderName.DB2zOS:
 					return DB2Tools.GetDataProvider(DB2Version.zOS);
-					case ProviderName.Oracle:
-						return OracleTools.GetDataProvider(provInfo.ProviderName, version: OracleVersion.v11);
-					case ProviderName.SqlCe:
-						return SqlCeTools.GetDataProvider();
-					//case ProviderName.Access:
-					//	return new AccessDataProvider();
 
-			default:
-				throw new LinqToDBForEFToolsException($"Can not instantiate data provider '{provInfo.ProviderName}'.");
+				case ProviderName.Oracle11Native:
+					return OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Native);
+				case ProviderName.OracleNative:
+					return OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Native);
+				case ProviderName.Oracle11Managed:
+					return OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Managed);
+				case ProviderName.Oracle:
+				case ProviderName.OracleManaged:
+					return OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Managed);
+				case ProviderName.Oracle11Devart:
+					return OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Devart);
+				case ProviderName.OracleDevart:
+					return OracleTools.GetDataProvider( OracleVersion.v12, OracleProvider.Devart);
+
+				case ProviderName.SqlCe:
+					return SqlCeTools.GetDataProvider();
+				//case ProviderName.Access:
+				//	return new AccessDataProvider();
+
+				default:
+					throw new LinqToDBForEFToolsException($"Can not instantiate data provider '{provInfo.ProviderName}'.");
 			}
 		}
 
@@ -323,9 +336,6 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>linq2db SQL Server provider instance.</returns>
 		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string? connectionString)
 		{
-			if (!string.IsNullOrEmpty(connectionString))
-				return DataConnection.GetDataProvider("Microsoft.Data.SqlClient", connectionString)!;
-
 			return DataProvider.SqlServer.SqlServerTools.GetDataProvider(version, SqlServerProvider.MicrosoftDataSqlClient);
 		}
 
@@ -337,9 +347,6 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>linq2db PostgreSQL provider instance.</returns>
 		protected virtual IDataProvider CreatePostgreSqlProvider(PostgreSQLVersion version, string? connectionString)
 		{
-			if (!string.IsNullOrEmpty(connectionString))
-				return DataConnection.GetDataProvider(ProviderName.PostgreSQL, connectionString)!;
-
 			return PostgreSQLTools.GetDataProvider(version);
 		}
 
@@ -493,7 +500,7 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					e.SlidingExpiration = TimeSpan.FromHours(1);
 					return CreateMappingSchema(model, metadataReader, convertorSelector);
-				});
+				})!;
 
 			return result;
 		}
@@ -515,35 +522,26 @@ namespace LinqToDB.EntityFrameworkCore
 		static readonly MethodInfo IncludeMethodInfoString = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.Include(string.Empty));
 
 		static readonly MethodInfo ThenIncludeMethodInfo =
-			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, object>>(q => q.ThenInclude<object, object, object>(null));
+			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, object>>(q => q.ThenInclude<object, object, object>(null!));
 
 		static readonly MethodInfo TagWithMethodInfo =
 			MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.TagWith(string.Empty));
 
 		static readonly MethodInfo ThenIncludeEnumerableMethodInfo =
-			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null));
+			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null!));
 
 		static readonly MethodInfo AsNoTrackingMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsNoTracking());
 
 		static readonly MethodInfo EFProperty = MemberHelper.MethodOfGeneric(() => EF.Property<object>(1, ""));
 
-		static readonly MethodInfo
-			L2DBProperty = typeof(Sql).GetMethod(nameof(Sql.Property)).GetGenericMethodDefinition();
-
 		static readonly MethodInfo L2DBFromSqlMethodInfo = 
 			MemberHelper.MethodOfGeneric<IDataContext>(dc => dc.FromSql<object>(new Common.RawSqlString()));
-
-		static readonly MethodInfo L2DBRemoveOrderByMethodInfo = 
-			MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.RemoveOrderBy());
 
 		static readonly ConstructorInfo RawSqlStringConstructor = MemberHelper.ConstructorOf(() => new Common.RawSqlString(""));
 
 		static readonly ConstructorInfo DataParameterConstructor = MemberHelper.ConstructorOf(() => new DataParameter("", "", DataType.Undefined, ""));
 
 		static readonly MethodInfo ToSql = MemberHelper.MethodOfGeneric(() => Sql.ToSql(1));
-
-		static readonly MethodInfo TagQueryMethodInfo =
-			MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.TagQuery(string.Empty));
 
 		/// <summary>
 		/// Removes conversions from expression.
@@ -842,7 +840,7 @@ namespace LinqToDB.EntityFrameworkCore
 									return new TransformInfo(Expression.Call(method, methodCall.Arguments.Select(a => a.Transform(l => LocalTransform(l)))
 										.ToArray()), false, true);
 								}
-								else if (generic == L2DBRemoveOrderByMethodInfo)
+								else if (generic == Methods.LinqToDB.RemoveOrderBy)
 								{
 									// This is workaround. EagerLoading runs query again with RemoveOrderBy method.
 									// it is only one possible way now how to detect nested query. 
@@ -850,8 +848,7 @@ namespace LinqToDB.EntityFrameworkCore
 								}
 								else if (generic == TagWithMethodInfo)
 								{
-									var method =
-										TagQueryMethodInfo.MakeGenericMethod(methodCall.Method.GetGenericArguments());
+									var method = Methods.LinqToDB.TagQuery.MakeGenericMethod(methodCall.Method.GetGenericArguments());
 
 									return new TransformInfo(Expression.Call(method, methodCall.Arguments.Select(a => a.Transform(l => LocalTransform(l)))
 										.ToArray()), false, true);
@@ -893,7 +890,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 						if (generic == EFProperty)
 						{
-							var prop = Expression.Call(null, L2DBProperty.MakeGenericMethod(methodCall.Method.GetGenericArguments()[0]),
+							var prop = Expression.Call(null, Methods.LinqToDB.SqlExt.Property.MakeGenericMethod(methodCall.Method.GetGenericArguments()[0]),
 								methodCall.Arguments[0], methodCall.Arguments[1]);
 							return new TransformInfo(prop, false, true);
 						}
@@ -919,16 +916,13 @@ namespace LinqToDB.EntityFrameworkCore
 									.FirstOrDefault();
 								if (notParametrized != null)
 								{
-									if (newArguments == null)
-									{
-										newArguments = new List<Expression>(methodCall.Arguments.Take(i));
-									}
+									newArguments ??= new List<Expression>(methodCall.Arguments.Take(i));
 
 									newArguments.Add(Expression.Call(ToSql.MakeGenericMethod(arg.Type), arg));
 									continue;
 								}
-							}							 
-								
+							}
+
 							newArguments?.Add(methodCall.Arguments[i]);
 						}
 
@@ -949,12 +943,11 @@ namespace LinqToDB.EntityFrameworkCore
 								Expression.New(RawSqlStringConstructor, Expression.Constant(fromSqlQueryRoot.Sql)),
 								fromSqlQueryRoot.Argument));
 						}
-						else if (dc != null && e is QueryRootExpression queryRoot)
+						else if (dc != null && e is EntityQueryRootExpression queryRoot)
 						{
 							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(queryRoot.EntityType.ClrType), Expression.Constant(dc));
 							return new TransformInfo(newExpr);
 						}
-
 
 						break;
 					}
@@ -964,7 +957,7 @@ namespace LinqToDB.EntityFrameworkCore
 				return new TransformInfo(e);
 			}
 
-			var newExpression = expression.Transform(e => LocalTransform(e));
+			var newExpression = expression.Transform(LocalTransform);
 
 			if (!ignoreTracking && dc is LinqToDBForEFToolsDataConnection dataConnection)
 			{
@@ -997,7 +990,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (!IsEnumerableType(type, mappingSchema))
 				return type;
 			if (type.IsArray)
-				return type.GetElementType();
+				return type.GetElementType()!;
 			if (typeof(IGrouping<,>).IsSameOrParentOf(type))
 				return type.GetGenericArguments()[1];
 			return type.GetGenericArguments()[0];
@@ -1020,8 +1013,8 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Current <see cref="DbContext"/> instance.</returns>
 		public virtual DbContext? GetCurrentContext(IQueryable query)
 		{
-			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance);
-			var compiler = (QueryCompiler) compilerField.GetValue(query.Provider);
+			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance)!;
+			var compiler = (QueryCompiler)compilerField.GetValue(query.Provider)!;
 
 			var queryContextFactoryField = compiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -1031,12 +1024,12 @@ namespace LinqToDB.EntityFrameworkCore
 			if (queryContextFactoryField.GetValue(compiler) is not RelationalQueryContextFactory queryContextFactory)
 				throw new LinqToDBForEFToolsException("LinqToDB Tools for EFCore support only Relational Databases.");
 
-			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetField("_dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
+			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
 
 			if (dependenciesProperty == null)
-				throw new LinqToDBForEFToolsException($"Can not find private property '{nameof(RelationalQueryContextFactory)}._dependencies' in current EFCore Version.");
+				throw new LinqToDBForEFToolsException($"Can not find protected property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version.");
 
-			var dependencies = (QueryContextDependencies) dependenciesProperty.GetValue(queryContextFactory);
+			var dependencies = (QueryContextDependencies)dependenciesProperty.GetValue(queryContextFactory)!;
 
 			return dependencies.CurrentContext?.Context;
 		}
@@ -1074,7 +1067,6 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="logger">Logger instance.</param>
 		public virtual void LogConnectionTrace(TraceInfo info, ILogger logger)
 		{
-#pragma warning disable CA1848 // Use the LoggerMessage delegates
 			var logLevel = info.TraceLevel switch
 			{
 				TraceLevel.Off => LogLevel.None,
@@ -1085,6 +1077,7 @@ namespace LinqToDB.EntityFrameworkCore
 				_ => LogLevel.Trace,
 			};
 
+#pragma warning disable CA1848 // Use the LoggerMessage delegates
 			using var _ = logger.BeginScope("TraceInfoStep: {TraceInfoStep}, IsAsync: {IsAsync}", info.TraceInfoStep, info.IsAsync);
 
 			switch (info.TraceInfoStep)
@@ -1155,6 +1148,5 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Entities will be attached only if AsNoTracking() is not used in query and DbContext is configured to track entities. 
 		/// </summary>
 		public virtual bool EnableChangeTracker { get; set; } = true;
-
 	}
 }

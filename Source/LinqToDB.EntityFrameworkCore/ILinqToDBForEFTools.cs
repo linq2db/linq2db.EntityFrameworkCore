@@ -119,6 +119,5 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Entities will be attached only if AsNoTracking() is not used in query and DbContext is configured to track entities. 
 		/// </summary>
 		bool EnableChangeTracker { get; set; }
-		
 	}
 }

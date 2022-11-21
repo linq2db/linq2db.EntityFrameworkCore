@@ -1,8 +1,8 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 5.13.0
-  nugetVersion: 5.13.0
+  assemblyVersion: 7.0.0
+  nugetVersion: 7.0.0
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
@@ -31,6 +31,12 @@ stages:
     displayName: 'Build'
 
     steps:
+
+
+    - task: UseDotNet@2
+      displayName: 'Install .NET 7'
+      inputs:
+        version: 7.x
 
     - task: PowerShell@2
       inputs:

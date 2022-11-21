@@ -8,10 +8,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel
 
 		public int? ParentId { get; set; }
 
-		public Issue73Entity? Parent { get; set; } = null!;
+		public Issue73Entity? Parent { get; set; }
 		public List<Issue73Entity> Childs { get; set; } = null!;
 
 		public string Name { get; set; } = null!;
 	}
-
 }

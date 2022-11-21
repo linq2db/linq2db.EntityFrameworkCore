@@ -10,7 +10,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel
 
 		public IssueContext(DbContextOptions options) : base(options)
 		{
-			
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -20,9 +19,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel
 				b.HasKey(x => new { x.Id });
 
 				b.HasOne(x => x.Parent)
-					.WithMany(x => x!.Childs)
+					.WithMany(x => x.Childs)
 					.HasForeignKey(x => new { x.ParentId })
-					.HasPrincipalKey(x => new { x!.Id });
+					.HasPrincipalKey(x => new { x.Id });
 
 				b.HasData(new[]
 				{
@@ -43,7 +42,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel
 			modelBuilder
 				.Entity<Patent>()
 				.HasOne(p => p.Assessment)
-				.WithOne(pa => pa!.Patent)
+				.WithOne(pa => pa.Patent)
 				.HasForeignKey<PatentAssessment>(pa => pa.PatentId)
 				.OnDelete(DeleteBehavior.Restrict);
 

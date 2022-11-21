@@ -8,7 +8,6 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.Northwind.Mapping
 	{
 		public void Configure(EntityTypeBuilder<Category> builder)
 		{
-
 			builder.HasKey(e => e.CategoryId);
 
 			builder.HasIndex(e => e.CategoryName)

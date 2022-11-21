@@ -25,6 +25,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Expressions;
 
 	using Internal;
+	using System.Diagnostics.CodeAnalysis;
 
 	/// <summary>
 	/// EF Core <see cref="DbContext"/> extensions to call LINQ To DB functionality.
@@ -65,7 +66,7 @@ namespace LinqToDB.EntityFrameworkCore
 				var newExpression = queryable.Expression;
 
 				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
-					.Invoke(null, new object[] { dc, newExpression });
+					.Invoke(null, new object[] { dc, newExpression })!;
 
 				if (prev != null)
 					result = prev(result);
@@ -78,7 +79,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return true;
 		}
 
-		static ILinqToDBForEFTools _implementation = null!;
+		static ILinqToDBForEFTools _implementation;
 
 		/// <summary>
 		/// Gets or sets EF Core to LINQ To DB integration bridge implementation.
@@ -86,6 +87,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public static ILinqToDBForEFTools Implementation
 		{
 			get => _implementation;
+			[MemberNotNull(nameof(_implementation), nameof(_defaultMetadataReader))]
 			set
 			{
 				_implementation = value ?? throw new ArgumentNullException(nameof(value));
@@ -96,7 +98,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static readonly ConcurrentDictionary<IModel, IMetadataReader?> _metadataReaders = new();
 
-		static Lazy<IMetadataReader?> _defaultMetadataReader = null!;
+		static Lazy<IMetadataReader?> _defaultMetadataReader;
 
 		/// <summary>
 		/// Clears internal caches
@@ -288,6 +290,8 @@ namespace LinqToDB.EntityFrameworkCore
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
+			AddInterceptorsToDataContext(context, dc);
+
 			return dc;
 		}
 
@@ -371,6 +375,8 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				EnableTracing(dc, logger);
 			}
+
+			AddInterceptorsToDataContext(context, dc);
 
 			return dc;
 		}
@@ -497,6 +503,8 @@ namespace LinqToDB.EntityFrameworkCore
 					dc.AddMappingSchema(mappingSchema);
 			}
 
+			AddInterceptorsToDataContext(options, dc);
+
 			return dc;
 		}
 
@@ -513,6 +521,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null)
 				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
+			AddInterceptorsToDataContext(context, dc);
 			return new LinqToDBForEFQueryProvider<T>(dc, query.Expression);
 		}
 
@@ -558,5 +567,28 @@ namespace LinqToDB.EntityFrameworkCore
 			set => Implementation.EnableChangeTracker = value;
 		}
 
+		private static void AddInterceptorsToDataContext(DbContext efContext, IDataContext dc)
+		{
+			var contextOptions = ((IInfrastructure<IServiceProvider>)efContext.Database)?
+				.Instance?.GetService(typeof(IDbContextOptions)) as IDbContextOptions;
+			
+			AddInterceptorsToDataContext(contextOptions, dc);
+		}
+
+		private static void AddInterceptorsToDataContext(IDbContextOptions? contextOptions,
+			IDataContext dc)
+		{
+			var registeredInterceptors = contextOptions?.GetLinq2DbInterceptors();
+
+			if (registeredInterceptors != null
+
+				&& dc != null )
+			{
+				foreach (var interceptor in registeredInterceptors)
+				{
+					dc.AddInterceptor(interceptor);
+				}
+			}
+		}
 	}
 }
