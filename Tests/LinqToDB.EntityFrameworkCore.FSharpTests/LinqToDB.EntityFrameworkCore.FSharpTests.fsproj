@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.csproj" />
+        <ProjectReference Include="..\LinqToDB.EntityFrameworkCore.BaseTests\LinqToDB.EntityFrameworkCore.BaseTests.csproj" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
         <PackageReference Include="EntityFrameworkCore.FSharp" />
         <PackageReference Include="FSharp.Core" />
