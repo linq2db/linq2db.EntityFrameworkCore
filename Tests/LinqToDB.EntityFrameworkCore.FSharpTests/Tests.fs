@@ -44,9 +44,6 @@ type AppDbContext(options: DbContextOptions<AppDbContext>) =
 
 type TestDbContextFactory() =
     member this.CreateDbContext() =
-        //MappingSchema.Default.SetConvertExpression<int option, DataParameter>((fun (x : int option) -> new DataParameter(null, if x.IsSome then x.Value :> Object else null)), false)
-        MappingSchema.Default.SetConverter<int option, DataParameter>((fun (x : int option) -> new DataParameter(null, if x.IsSome then x.Value :> Object else null)))
-        MappingSchema.Default.SetConverter<int, DataParameter>((fun (x : int) -> new DataParameter(null, x)))
         let options = new DbContextOptionsBuilder<AppDbContext>()
         options.UseLoggerFactory(TestUtils.LoggerFactory) |> ignore
         options.UseSqlite("DataSource=:memory:").UseFSharpTypes() |> ignore
