@@ -22,8 +22,8 @@ type WithIdentity = {
 
 let insert(context : IDataContext) a : int =
     context.InsertWithInt32Identity(a)
-let update(dbset : LinqToDB.Linq.IUpdatable<_>) =
-    dbset.Update() |> ignore
+let update(dbset : LinqToDB.Linq.IUpdatable<_>) : int =
+    dbset.Update()
 
 type AppDbContext(options: DbContextOptions<AppDbContext>) =
     inherit DbContext(options)
@@ -43,7 +43,7 @@ type AppDbContext(options: DbContextOptions<AppDbContext>) =
 
         insert(this.CreateLinqToDbContext())(record)
 
-    member this.updateRecord(id : int) (name : string) =
+    member this.updateRecord(id : int) (name : string) : int =
         this
             .CompaniesInformation
             .Where(fun d -> d.Id = id).ToLinqToDB()
@@ -103,11 +103,19 @@ type Tests() =
 
         Assert.AreEqual("initial name", inserted.Name)
 
-        context.updateRecord(id)("new name")
+        let cnt = context.updateRecord(id)("new name")
 
-        let inserted = query {
+        Assert.AreEqual(1, cnt)
+
+        let readByLinqToDB = context.CompaniesInformation.Where(fun d -> d.Id = id).ToLinqToDB().ToArray()
+
+        Assert.AreEqual(1, readByLinqToDB.Length)
+        Assert.AreEqual("new name", readByLinqToDB[0].Name)
+
+        let updated = query {
             for p in context.CompaniesInformation do
-            where (p.Id = 1)
+            where (p.Id = id)
             exactlyOne }
 
-        Assert.AreEqual("new name", inserted.Name)
+        Assert.AreEqual("new name", updated.Name)
+
