@@ -1,10 +1,7 @@
 ﻿module LinqToDB.EntityFrameworkCore.FSharpTests
 
-open System
 open System.Linq
 open LinqToDB
-open LinqToDB.Mapping
-open LinqToDB.Data
 open LinqToDB.EntityFrameworkCore.BaseTests
 open System.ComponentModel.DataAnnotations
 open System.ComponentModel.DataAnnotations.Schema
@@ -20,11 +17,6 @@ type WithIdentity = {
     Name : string
 }
 
-let insert(context : IDataContext) a : int =
-    context.InsertWithInt32Identity(a)
-let update(dbset : LinqToDB.Linq.IUpdatable<_>) : int =
-    dbset.Update()
-
 type AppDbContext(options: DbContextOptions<AppDbContext>) =
     inherit DbContext(options)
 
@@ -34,21 +26,6 @@ type AppDbContext(options: DbContextOptions<AppDbContext>) =
         and set v = this.WithIdentity <- v
 
     override _.OnModelCreating builder = builder.RegisterOptionTypes()
-
-    member this.createRecord(name : string) : int =
-        let record : WithIdentity = {
-            Id = -1
-            Name = name
-        }
-
-        insert(this.CreateLinqToDbContext())(record)
-
-    member this.updateRecord(id : int) (name : string) : int =
-        this
-            .CompaniesInformation
-            .Where(fun d -> d.Id = id).ToLinqToDB()
-            .Set((fun d -> d.Name), name)
-        |> update
 
 type TestDbContextFactory() =
     member this.CreateDbContext() =
@@ -91,10 +68,15 @@ type Tests() =
         q.ToLinqToDB().ToString() |> ignore
 
     [<Test>]
-    member this.TestUpdate() =
+    member this.Issue256Test() =
         let context = TestDbContextFactory().CreateDbContext()
 
-        let id = context.createRecord("initial name")
+        let record : WithIdentity = {
+            Id = -1
+            Name = "initial name"
+        }
+
+        let id = context.CreateLinqToDbContext().InsertWithInt32Identity(record)
 
         let inserted = query {
             for p in context.CompaniesInformation do
@@ -103,7 +85,7 @@ type Tests() =
 
         Assert.AreEqual("initial name", inserted.Name)
 
-        let cnt = context.updateRecord(id)("new name")
+        let cnt = context.CompaniesInformation.Where(fun d -> d.Id = id).ToLinqToDB().Set((fun d -> d.Name), "new name").Update()
 
         Assert.AreEqual(1, cnt)
 
