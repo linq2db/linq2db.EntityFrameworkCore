@@ -180,7 +180,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 
 			private sealed class ShadowStateAccessRewriter : ExpressionVisitor
 			{
-				[return: NotNullIfNotNull("expr")]
+				[return: NotNullIfNotNull(nameof(expr))]
 				static Expression? RemoveConvert(Expression? expr)
 				{
 					while (expr?.NodeType.In(ExpressionType.Convert, ExpressionType.ConvertChecked) == true)
