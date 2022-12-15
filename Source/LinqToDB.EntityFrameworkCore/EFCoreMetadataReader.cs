@@ -31,7 +31,7 @@ namespace LinqToDB.EntityFrameworkCore
 	/// <summary>
 	/// LINQ To DB metadata reader for EF.Core model.
 	/// </summary>
-	internal class EFCoreMetadataReader : IMetadataReader
+	internal sealed class EFCoreMetadataReader : IMetadataReader
 	{
 		readonly IModel? _model;
 		private readonly RelationalSqlTranslatingExpressionVisitorDependencies? _dependencies;
@@ -242,7 +242,7 @@ namespace LinqToDB.EntityFrameworkCore
 								{
 									if (a.Value is string str)
 									{
-										return str.ToLower().Contains("nextval");
+										return str.ToLowerInvariant().Contains("nextval");
 									}
 								}
 
@@ -259,7 +259,8 @@ namespace LinqToDB.EntityFrameworkCore
 							}
 							else
 							{
-								dataType = SqlDataType.GetDataType(typeMapping.ClrType).Type.DataType;
+								var ms = _model != null ? LinqToDBForEFTools.GetMappingSchema(_model, null) : MappingSchema.Default;
+								dataType = ms.GetDataType(typeMapping.ClrType).Type.DataType;
 							}
 						}
 
@@ -408,7 +409,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return Array.Empty<T>();
 		}
 
-		class ValueConverter : IValueConverter
+		sealed class ValueConverter : IValueConverter
 		{
 			public ValueConverter(
 				LambdaExpression convertToProviderExpression,
@@ -425,7 +426,7 @@ namespace LinqToDB.EntityFrameworkCore
 		
 		}
 
-		class SqlTransparentExpression : SqlExpression
+		sealed class SqlTransparentExpression : SqlExpression
 		{
 			public Expression Expression { get; }
 
@@ -439,7 +440,7 @@ namespace LinqToDB.EntityFrameworkCore
 				expressionPrinter.Print(Expression);
 			}
 
-			protected bool Equals(SqlTransparentExpression other)
+			private bool Equals(SqlTransparentExpression other)
 			{
 				return ReferenceEquals(this, other);
 			}
