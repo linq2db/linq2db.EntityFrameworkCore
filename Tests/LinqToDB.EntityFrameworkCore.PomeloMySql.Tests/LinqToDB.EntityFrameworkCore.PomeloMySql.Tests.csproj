@@ -10,10 +10,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" />
-		<!--TODO: remove after v7 release-->
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational">
-			<NoWarn>NU1107;NU1608</NoWarn>
-		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>

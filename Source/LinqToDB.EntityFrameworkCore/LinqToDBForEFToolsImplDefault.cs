@@ -548,7 +548,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="ex">Expression.</param>
 		/// <returns>Unwrapped expression.</returns>
-		[return: NotNullIfNotNull("ex")]
+		[return: NotNullIfNotNull(nameof(ex))]
 		public static Expression? Unwrap(Expression? ex)
 		{
 			if (ex == null)
