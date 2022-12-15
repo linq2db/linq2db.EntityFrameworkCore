@@ -339,7 +339,7 @@ namespace LinqToDB.EntityFrameworkCore
 		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string? connectionString)
 		{
 			if (!string.IsNullOrEmpty(connectionString))
-				return DataConnection.GetDataProvider("Microsoft.Data.SqlClient", connectionString!)!;
+				return DataConnection.GetDataProvider("System.Data.SqlClient", connectionString!)!;
 
 			return DataProvider.SqlServer.SqlServerTools.GetDataProvider(version, SqlServerProvider.MicrosoftDataSqlClient);
 		}
