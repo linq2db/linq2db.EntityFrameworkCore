@@ -1,8 +1,8 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 6.10.0
-  nugetVersion: 6.10.0
+  assemblyVersion: 6.11.0
+  nugetVersion: 6.11.0
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
@@ -32,11 +32,9 @@ stages:
 
     steps:
     - task: UseDotNet@2
-      displayName: 'Use .NET 6'
+      displayName: 'Use .NET 7'
       inputs:
-        version: 6.x
-        useGlobalJson: true
-        includePreviewVersions: true
+        version: 7.x
 
     - task: PowerShell@2
       inputs:
