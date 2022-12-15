@@ -48,7 +48,7 @@ namespace LinqToDB.EntityFrameworkCore
 	[PublicAPI]
 	public class LinqToDBForEFToolsImplDefault : ILinqToDBForEFTools
 	{
-		class ProviderKey
+		sealed class ProviderKey
 		{
 			public ProviderKey(string? providerName, string? connectionString)
 			{
@@ -61,7 +61,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			#region Equality members
 
-			protected bool Equals(ProviderKey other)
+			private bool Equals(ProviderKey other)
 			{
 				return string.Equals(ProviderName, other.ProviderName) && string.Equals(ConnectionString, other.ConnectionString);
 			}
@@ -165,31 +165,44 @@ namespace LinqToDB.EntityFrameworkCore
 
 			switch (provInfo.ProviderName)
 			{
-					case ProviderName.SqlServer:
-						return CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString);
-					case ProviderName.MySql:
-					case ProviderName.MySqlConnector:
-						return MySqlTools.GetDataProvider(provInfo.ProviderName);
-					case ProviderName.PostgreSQL:
-						return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
-					case ProviderName.SQLite:
-						return SQLiteTools.GetDataProvider(provInfo.ProviderName);
-					case ProviderName.Firebird:
-						return FirebirdTools.GetDataProvider();
-					case ProviderName.DB2:
-					case ProviderName.DB2LUW:
-						return DB2Tools.GetDataProvider(DB2Version.LUW);
-					case ProviderName.DB2zOS:
-						return DB2Tools.GetDataProvider(DB2Version.zOS);
-					case ProviderName.Oracle:
-						return OracleTools.GetDataProvider(provInfo.ProviderName, version: OracleVersion.v11);
-					case ProviderName.SqlCe:
-						return SqlCeTools.GetDataProvider();
-					//case ProviderName.Access:
-					//	return new AccessDataProvider();
+				case ProviderName.SqlServer:
+					return CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString);
+				case ProviderName.MySql:
+				case ProviderName.MySqlConnector:
+					return MySqlTools.GetDataProvider(provInfo.ProviderName);
+				case ProviderName.PostgreSQL:
+					return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
+				case ProviderName.SQLite:
+					return SQLiteTools.GetDataProvider(provInfo.ProviderName);
+				case ProviderName.Firebird:
+					return FirebirdTools.GetDataProvider();
+				case ProviderName.DB2:
+				case ProviderName.DB2LUW:
+					return DB2Tools.GetDataProvider(DB2Version.LUW);
+				case ProviderName.DB2zOS:
+					return DB2Tools.GetDataProvider(DB2Version.zOS);
 
-			default:
-				throw new LinqToDBForEFToolsException($"Can not instantiate data provider '{provInfo.ProviderName}'.");
+				case ProviderName.Oracle11Native:
+					return OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Native);
+				case ProviderName.OracleNative:
+					return OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Native);
+				case ProviderName.Oracle11Managed:
+					return OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Managed);
+				case ProviderName.Oracle:
+				case ProviderName.OracleManaged:
+					return OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Managed);
+				case ProviderName.Oracle11Devart:
+					return OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Devart);
+				case ProviderName.OracleDevart:
+					return OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Devart);
+
+				case ProviderName.SqlCe:
+					return SqlCeTools.GetDataProvider();
+				//case ProviderName.Access:
+				//	return new AccessDataProvider();
+
+				default:
+					throw new LinqToDBForEFToolsException($"Can not instantiate data provider '{provInfo.ProviderName}'.");
 			}
 		}
 
@@ -326,7 +339,7 @@ namespace LinqToDB.EntityFrameworkCore
 		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string? connectionString)
 		{
 			if (!string.IsNullOrEmpty(connectionString))
-				return DataConnection.GetDataProvider("Microsoft.Data.SqlClient", connectionString!)!;
+				return DataConnection.GetDataProvider("System.Data.SqlClient", connectionString!)!;
 
 			return DataProvider.SqlServer.SqlServerTools.GetDataProvider(version, SqlServerProvider.MicrosoftDataSqlClient);
 		}
@@ -1167,6 +1180,5 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Entities will be attached only if AsNoTracking() is not used in query and DbContext is configured to track entities. 
 		/// </summary>
 		public virtual bool EnableChangeTracker { get; set; } = true;
-
 	}
 }

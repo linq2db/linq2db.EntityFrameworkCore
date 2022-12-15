@@ -1,8 +1,8 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 2.8.0
-  nugetVersion: 2.8.0
+  assemblyVersion: 2.9.0
+  nugetVersion: 2.9.0
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
@@ -32,6 +32,11 @@ stages:
     displayName: 'Build'
 
     steps:
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET 7'
+      inputs:
+        version: 7.x
 
     - task: PowerShell@2
       inputs:
@@ -96,7 +101,6 @@ stages:
       displayName: Publish to Azure Artifacts feed
       condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'version2'))
 
-# apikey exires around 31/07/2020
     - task: NuGetCommand@2
       inputs:
         command: 'push'
