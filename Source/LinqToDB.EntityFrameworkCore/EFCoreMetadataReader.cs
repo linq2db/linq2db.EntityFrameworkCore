@@ -262,15 +262,16 @@ namespace LinqToDB.EntityFrameworkCore
 							}
 						}
 
-						var behaviour = prop.GetBeforeSaveBehavior();
+						var beforeSaveBehaviour = prop.GetBeforeSaveBehavior();
 						var skipOnInsert = prop.ValueGenerated.HasFlag(ValueGenerated.OnAdd);
 
 						if (skipOnInsert)
 						{
-							skipOnInsert = isIdentity || behaviour != PropertySaveBehavior.Save;
+							skipOnInsert = isIdentity || beforeSaveBehaviour != PropertySaveBehavior.Save;
 						}
 
-						var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
+						var afterSaveBehaviour = prop.GetAfterSaveBehavior();
+						var skipOnUpdate = afterSaveBehaviour != PropertySaveBehavior.Save ||
 						                   prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
 
 						return new T[]
