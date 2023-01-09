@@ -168,6 +168,8 @@ Below is a list of providers, that should work right now:
 # Know limitations
 - No Lazy loading
 - No way to work with in-memory database
+- No TPT (table per type) support
+- No many-to-many support
 
 # Help! It doesn't work!
 
