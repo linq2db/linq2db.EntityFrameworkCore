@@ -211,9 +211,9 @@ namespace LinqToDB.EntityFrameworkCore
 			//
 			InternalEntityEntry? entry = null;
 
-			var kacheKey = new TypeKey (_lastEntityType, _model);
+			var сacheKey = new TypeKey (_lastEntityType, _model);
 
-			var retrievalFunc = _entityKeyGetterCache.GetOrCreate(kacheKey, ce =>
+			var retrievalFunc = _entityKeyGetterCache.GetOrCreate(сacheKey, ce =>
 			{
 				ce.SlidingExpiration = TimeSpan.FromHours(1);
 				return CreateEntityRetrievalFunc(((TypeKey)ce.Key).EntityType);

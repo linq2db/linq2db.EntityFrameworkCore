@@ -2,6 +2,7 @@
 
 open System.Linq
 open LinqToDB
+open LinqToDB.EntityFrameworkCore.BaseTests
 open System.ComponentModel.DataAnnotations
 open System.ComponentModel.DataAnnotations.Schema
 open Microsoft.EntityFrameworkCore
@@ -24,11 +25,17 @@ type AppDbContext(options: DbContextOptions<AppDbContext>) =
         with get() = this.WithIdentity
         and set v = this.WithIdentity <- v
 
+    override _.OnModelCreating builder = builder.RegisterOptionTypes()
+
 type TestDbContextFactory() =
     member this.CreateDbContext() =
         let options = new DbContextOptionsBuilder<AppDbContext>()
+        options.UseLoggerFactory(TestUtils.LoggerFactory) |> ignore
         options.UseSqlite("DataSource=:memory:").UseFSharpTypes() |> ignore
-        new AppDbContext(options.Options)
+        let context = new AppDbContext(options.Options)
+        context.Database.OpenConnection()
+        context.Database.EnsureCreated() |> ignore
+        context
 
 [<TestFixture>]
 type Tests() =
@@ -59,3 +66,38 @@ type Tests() =
                     |}) )
         //q.ToArray() |> ignore
         q.ToLinqToDB().ToString() |> ignore
+
+    [<Test>]
+    member this.Issue256Test() =
+        let context = TestDbContextFactory().CreateDbContext()
+
+        let record : WithIdentity = {
+            Id = -1
+            Name = "initial name"
+        }
+
+        let id = context.CreateLinqToDbContext().InsertWithInt32Identity(record)
+
+        let inserted = query {
+            for p in context.CompaniesInformation do
+            where (p.Id = id)
+            exactlyOne }
+
+        Assert.AreEqual("initial name", inserted.Name)
+
+        let cnt = context.CompaniesInformation.Where(fun d -> d.Id = id).ToLinqToDB().Set((fun d -> d.Name), "new name").Update()
+
+        Assert.AreEqual(1, cnt)
+
+        let readByLinqToDB = context.CompaniesInformation.Where(fun d -> d.Id = id).ToLinqToDB().ToArray()
+
+        Assert.AreEqual(1, readByLinqToDB.Length)
+        Assert.AreEqual("new name", readByLinqToDB[0].Name)
+
+        let updated = query {
+            for p in context.CompaniesInformation do
+            where (p.Id = id)
+            exactlyOne }
+
+        Assert.AreEqual("new name", updated.Name)
+
