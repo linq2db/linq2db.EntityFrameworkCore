@@ -16,12 +16,14 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns></returns>
 		public static DbContextOptionsBuilder UseLinqToDb(
 			this DbContextOptionsBuilder optionsBuilder,
-			Action<LinqToDBContextOptionsBuilder>? linq2DbOptionsAction = null)
+			Func<DbContextOptionsBuilder, DataOptions, DataOptions>? linq2DbOptionsAction = null)
 		{
-			((IDbContextOptionsBuilderInfrastructure)optionsBuilder)
-				.AddOrUpdateExtension(GetOrCreateExtension(optionsBuilder));
+			LinqToDBOptionsExtension linq2dbOptions;
 
-			linq2DbOptionsAction?.Invoke(new LinqToDBContextOptionsBuilder(optionsBuilder));
+			((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(linq2dbOptions = GetOrCreateExtension(optionsBuilder));
+
+			if (linq2DbOptionsAction != null)
+				linq2dbOptions.Options = linq2DbOptionsAction(optionsBuilder, linq2dbOptions.Options);
 
 			return optionsBuilder;
 		}

@@ -6,15 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LinqToDB.EntityFrameworkCore.Internal
 {
-	using Interceptors;
-
 	/// <summary>
 	/// Model containing LinqToDB related context options
 	/// </summary>
 	public class LinqToDBOptionsExtension : IDbContextOptionsExtension
 	{
 		private DbContextOptionsExtensionInfo? _info;
-		private IList<IInterceptor>? _interceptors;
 
 		/// <summary>
 		/// Context options extension info object
@@ -25,14 +22,14 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// <summary>
 		/// List of registered LinqToDB interceptors
 		/// </summary>
-		public virtual IList<IInterceptor> Interceptors
-			=> _interceptors ??= new List<IInterceptor>();
+		public virtual DataOptions Options { get; set; }
 
 		/// <summary>
 		/// .ctor
 		/// </summary>
 		public LinqToDBOptionsExtension()
 		{
+			Options = new();
 		}
 
 		/// <summary>
@@ -41,7 +38,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// <param name="copyFrom"></param>
 		protected LinqToDBOptionsExtension(LinqToDBOptionsExtension copyFrom)
 		{
-			_interceptors = copyFrom._interceptors;
+			Options = copyFrom.Options;
 		}
 
 		/// Adds the services required to make the selected options work. This is used when
@@ -88,9 +85,9 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 					{
 						string logFragment = string.Empty;
 
-						if (Extension.Interceptors.Any())
+						if (Extension.Options.DataContextOptions.Interceptors?.Any() == true)
 						{
-							logFragment += $"Interceptors count: {Extension.Interceptors.Count}";
+							logFragment += $"Interceptors count: {Extension.Options.DataContextOptions.Interceptors.Count}";
 						}
 
 						_logFragment = logFragment;

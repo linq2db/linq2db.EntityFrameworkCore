@@ -105,12 +105,20 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Returns LINQ To DB provider, based on provider data from EF Core.
 		/// Could be overriden if you have issues with default detection mechanisms.
 		/// </summary>
+		/// <param name="options">Linq To DB context options.</param>
 		/// <param name="providerInfo">Provider information, extracted from EF Core.</param>
 		/// <param name="connectionInfo"></param>
 		/// <returns>LINQ TO DB provider instance.</returns>
-		public virtual IDataProvider GetDataProvider(EFProviderInfo providerInfo, EFConnectionInfo connectionInfo)
+		public virtual IDataProvider GetDataProvider(DataOptions options, EFProviderInfo providerInfo, EFConnectionInfo connectionInfo)
 		{
-			var info = GetLinqToDbProviderInfo(providerInfo);
+			if (options.ConnectionOptions.DataProvider != null)
+				return options.ConnectionOptions.DataProvider;
+
+			LinqToDBProviderInfo info;
+			if (options.ConnectionOptions.ProviderName != null)
+				info = new LinqToDBProviderInfo() { ProviderName = options.ConnectionOptions.ProviderName };
+			else
+				info = GetLinqToDbProviderInfo(providerInfo);
 
 			return _knownProviders.GetOrAdd(new ProviderKey(info.ProviderName, connectionInfo.ConnectionString), k =>
 			{

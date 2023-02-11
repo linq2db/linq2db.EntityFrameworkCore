@@ -40,14 +40,15 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
-			optionsBuilder.UseLinqToDb(builder => 
+			optionsBuilder.UseLinqToDb((builder, options) =>
 			{
-				builder.AddInterceptor(testCommandInterceptor);
-				builder.AddInterceptor(testDataContextInterceptor);
-				builder.AddInterceptor(testConnectionInterceptor);
-				builder.AddInterceptor(testEntityServiceInterceptor);
-				builder.AddInterceptor(testEfCoreAndLinq2DbInterceptor);
-				builder.AddInterceptor(testCommandInterceptor);	//for checking the aggregated interceptors
+				return options
+					.UseInterceptor(testCommandInterceptor)
+					.UseInterceptor(testDataContextInterceptor)
+					.UseInterceptor(testConnectionInterceptor)
+					.UseInterceptor(testEntityServiceInterceptor)
+					.UseInterceptor(testEfCoreAndLinq2DbInterceptor)
+					.UseInterceptor(testCommandInterceptor); //for checking the aggregated interceptors
 			});
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
@@ -59,9 +60,9 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
 			optionsBuilder.AddInterceptors(testEfCoreAndLinq2DbInterceptor);
-			optionsBuilder.UseLinqToDb(builder =>
+			optionsBuilder.UseLinqToDb((builder, options) =>
 			{
-				builder.UseEfCoreRegisteredInterceptorsIfPossible();
+				return builder.UseEfCoreRegisteredInterceptorsIfPossible(options);
 			});
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
@@ -97,20 +98,20 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			{
 				NorthwindData.Seed(ctx);
 			}
-			var ctxInterceptors = ctx.GetLinq2DbInterceptors();
-			if (ctxInterceptors != null)
+			var options = ctx.GetLinqToDBOptions();
+			if (options?.DataContextOptions.Interceptors != null)
 			{
-				foreach (var interceptor in ctxInterceptors)
+				foreach (var interceptor in options.DataContextOptions.Interceptors)
 				{
 					((TestInterceptor)interceptor).ResetInvocations();
 				}
 			}
 
 			using var ctx2 = new NorthwindContext(_northwindOptionsWithEfCoreInterceptorsOnly);
-			var ctx2Interceptors = ctx2.GetLinq2DbInterceptors();
-			if (ctx2Interceptors != null)
+			var options2 = ctx2.GetLinqToDBOptions();
+			if (options2?.DataContextOptions.Interceptors != null)
 			{
-				foreach (var interceptor in ctx2Interceptors)
+				foreach (var interceptor in options2.DataContextOptions.Interceptors)
 				{
 					((TestInterceptor)interceptor).ResetInvocations();
 				}

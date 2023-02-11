@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Data;
-using System.Data.Common;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -16,7 +14,6 @@ using Microsoft.Extensions.Caching.Memory;
 namespace LinqToDB.EntityFrameworkCore
 {
 	using Data;
-	using DataProvider;
 	using Expressions;
 	using Interceptors;
 	using Linq;
@@ -52,63 +49,14 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Creates new instance of data connection.
 		/// </summary>
 		/// <param name="context">EF.Core database context.</param>
-		/// <param name="dataProvider">linq2db database provider.</param>
-		/// <param name="connectionString">Connection string.</param>
+		/// <param name="options">Linq To DB context options.</param>
 		/// <param name="model">EF.Core data model.</param>
 		/// <param name="transformFunc">Expression converter.</param>
 		public LinqToDBForEFToolsDataConnection(
-			DbContext?     context,
-			[NotNull]   IDataProvider dataProvider,
-			[NotNull]   string        connectionString,
-			            IModel?       model,
-			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc) : base(dataProvider, connectionString)
-		{
-			Context          = context;
-			_model           = model;
-			_transformFunc   = transformFunc;
-			CopyDatabaseProperties();
-			if (LinqToDBForEFTools.EnableChangeTracker)
-				AddInterceptor(this);
-		}
-
-		/// <summary>
-		/// Creates new instance of data connection.
-		/// </summary>
-		/// <param name="context">EF.Core database context.</param>
-		/// <param name="dataProvider">linq2db database provider.</param>
-		/// <param name="transaction">Database transaction.</param>
-		/// <param name="model">EF.Core data model.</param>
-		/// <param name="transformFunc">Expression converter.</param>
-		public LinqToDBForEFToolsDataConnection(
-			DbContext?      context,
-			[NotNull]   IDataProvider dataProvider,
-			[NotNull]   DbTransaction transaction,
-			            IModel?       model,
-			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc)
-				: base(dataProvider, transaction)
-		{
-			Context          = context;
-			_model           = model;
-			_transformFunc   = transformFunc;
-			CopyDatabaseProperties();
-			if (LinqToDBForEFTools.EnableChangeTracker)
-				AddInterceptor(this);
-		}
-
-		/// <summary>
-		/// Creates new instance of data connection.
-		/// </summary>
-		/// <param name="context">EF.Core database context.</param>
-		/// <param name="dataProvider">linq2db database provider.</param>
-		/// <param name="connection">Database connection instance.</param>
-		/// <param name="model">EF.Core data model.</param>
-		/// <param name="transformFunc">Expression converter.</param>
-		public LinqToDBForEFToolsDataConnection(
-			DbContext?     context,
-			[NotNull]   IDataProvider dataProvider,
-			[NotNull]   DbConnection  connection,
-			            IModel?       model,
-			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc) : base(dataProvider, connection)
+			DbContext?  context,
+			DataOptions options,
+			IModel?     model,
+			Func<Expression, IDataContext, DbContext?, IModel?, Expression>? transformFunc) : base(options)
 		{
 			Context          = context;
 			_model           = model;
