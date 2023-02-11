@@ -1,26 +1,25 @@
 ﻿using System;
 using System.Data;
+using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 
 namespace LinqToDB.EntityFrameworkCore
 {
-	using System.Diagnostics.CodeAnalysis;
 	using Data;
 	using DataProvider;
-	using Linq;
 	using Expressions;
-	using LinqToDB.Interceptors;
-	using System.Data.Common;
+	using Interceptors;
+	using Linq;
 
 	/// <summary>
 	/// linq2db EF.Core data connection.
@@ -34,7 +33,7 @@ namespace LinqToDB.EntityFrameworkCore
 		private Type?          _lastType;
 		private IStateManager? _stateManager;
 
-		private static IMemoryCache _entityKeyGetterCache = new MemoryCache(Options.Create(new MemoryCacheOptions()));
+		private static IMemoryCache _entityKeyGetterCache = new MemoryCache(Microsoft.Extensions.Options.Options.Create(new MemoryCacheOptions()));
 
 		private static MethodInfo TryGetEntryMethodInfo =
 			MemberHelper.MethodOf<IStateManager>(sm => sm.TryGetEntry(null!, Array.Empty<object>()));

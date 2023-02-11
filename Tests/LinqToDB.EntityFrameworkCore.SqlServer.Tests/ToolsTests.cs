@@ -307,7 +307,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(false))
 			{
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx);
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx, null);
 				
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
@@ -315,7 +315,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				Assert.NotNull(customerPk);
 				Assert.AreEqual(true, customerPk!.IsPrimaryKey);
 				Assert.AreEqual(0, customerPk.PrimaryKeyOrder);
-
 			}
 		}
 
@@ -324,7 +323,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(false))
 			{
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx);
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx, null);
 				
 				var associationOrder = ms.GetAttribute<AssociationAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.Orders));
@@ -334,7 +333,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				Assert.That(associationOrder.OtherKey, Is.EqualTo("CustomerId"));
 			}
 		}
-
 
 		[Repeat(2)]
 		[Test]

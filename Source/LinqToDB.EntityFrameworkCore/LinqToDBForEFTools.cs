@@ -215,14 +215,16 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF Core data model.</param>
 		/// <param name="accessor">EF Core service provider.</param>
+		/// <param name="dataOptions">linq2db context options.</param>
 		/// <returns>Mapping schema for provided EF Core model.</returns>
 		public static MappingSchema GetMappingSchema(
 			IModel model,
-			IInfrastructure<IServiceProvider>? accessor)
+			IInfrastructure<IServiceProvider>? accessor,
+			DataOptions? dataOptions)
 		{
 			var converterSelector = accessor?.GetService<IValueConverterSelector>();
 
-			return Implementation.GetMappingSchema(model, GetMetadataReader(model, accessor), converterSelector);
+			return Implementation.GetMappingSchema(model, GetMetadataReader(model, accessor), converterSelector, dataOptions);
 		}
 
 		/// <summary>
@@ -286,7 +288,7 @@ namespace LinqToDB.EntityFrameworkCore
 				EnableTracing(dc, logger);
 			}
 
-			var mappingSchema = GetMappingSchema(context.Model, context);
+			var mappingSchema = GetMappingSchema(context.Model, context, dc.Options);
 			if (mappingSchema != null)
 				dc.AddMappingSchema(mappingSchema);
 
@@ -331,10 +333,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 			transaction = transaction ?? context.Database.CurrentTransaction;
 
-			var connectionInfo     = GetConnectionInfo(info);
-			var provider           = GetDataProvider(info, connectionInfo);
-			var mappingSchema      = GetMappingSchema(context.Model, context);
-			var logger             = CreateLogger(info.Options);
+			var connectionInfo = GetConnectionInfo(info);
+			var provider       = GetDataProvider(info, connectionInfo);
+			var logger         = CreateLogger(info.Options);
 
 			if (transaction != null)
 			{
@@ -368,8 +369,7 @@ namespace LinqToDB.EntityFrameworkCore
 				}
 			}
 
-			if (mappingSchema != null)
-				dc.AddMappingSchema(mappingSchema);
+			dc.AddMappingSchema(GetMappingSchema(context.Model, context, dc.Options));
 
 			if (logger != null)
 			{
@@ -403,9 +403,7 @@ namespace LinqToDB.EntityFrameworkCore
 				EnableTracing(dc, logger);
 			}
 
-			var mappingSchema = GetMappingSchema(context.Model, context);
-			if (mappingSchema != null)
-				dc.AddMappingSchema(mappingSchema);
+			dc.AddMappingSchema(GetMappingSchema(context.Model, context, dc.Options));
 
 			return dc;
 		}
@@ -498,9 +496,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			if (model != null)
 			{
-				var mappingSchema = GetMappingSchema(model, null);
-				if (mappingSchema != null)
-					dc.AddMappingSchema(mappingSchema);
+				dc.AddMappingSchema(GetMappingSchema(model, null, dc.Options));
 			}
 
 			AddInterceptorsToDataContext(options, dc);
