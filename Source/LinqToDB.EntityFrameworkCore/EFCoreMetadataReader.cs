@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -43,7 +42,6 @@ namespace LinqToDB.EntityFrameworkCore
 
 		public EFCoreMetadataReader(IModel? model, IInfrastructure<IServiceProvider>? accessor)
 		{
-			_objectId = GetHashCode().ToString(CultureInfo.InvariantCulture);
 			_model    = model;
 
 			if (accessor != null)
@@ -53,6 +51,8 @@ namespace LinqToDB.EntityFrameworkCore
 				_annotationProvider = accessor.GetService<IRelationalAnnotationProvider>();
 				_logger             = accessor.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
 			}
+
+			_objectId = $".{_model?.GetHashCode() ?? 0}.{_dependencies?.GetHashCode() ?? 0}.{_mappingSource?.GetHashCode() ?? 0}.{_annotationProvider?.GetHashCode() ?? 0}.{_logger?.GetHashCode() ?? 0}.";
 		}
 
 		public T[] GetAttributes<T>(Type type) where T : MappingAttribute

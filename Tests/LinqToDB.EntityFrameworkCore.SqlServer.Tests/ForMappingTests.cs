@@ -13,11 +13,17 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	{
 		private bool _isDbCreated;
 
-		public override ForMappingContextBase CreateContext()
+		public override ForMappingContextBase CreateContext(DataOptions? dataOptions = null)
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
 			optionsBuilder.UseSqlServer("Server=.;Database=ForMapping;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
+
+			//if (dataOptions! != null)
+			//{
+			//	optionsBuilder.UseLinqToDB((_, _) => dataOptions);
+			//}
+			optionsBuilder.UseLinqToDB((_, options) => dataOptions ?? options);
 
 			var options = optionsBuilder.Options;
 			var ctx = new ForMappingContext(options);

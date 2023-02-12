@@ -40,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
-			optionsBuilder.UseLinqToDb((builder, options) =>
+			optionsBuilder.UseLinqToDB((builder, options) =>
 			{
 				return options
 					.UseInterceptor(testCommandInterceptor)
@@ -60,7 +60,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
 			optionsBuilder.AddInterceptors(testEfCoreAndLinq2DbInterceptor);
-			optionsBuilder.UseLinqToDb((builder, options) =>
+			optionsBuilder.UseLinqToDB((builder, options) =>
 			{
 				return builder.UseEfCoreRegisteredInterceptorsIfPossible(options);
 			});

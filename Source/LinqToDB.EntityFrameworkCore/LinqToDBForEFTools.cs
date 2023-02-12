@@ -256,7 +256,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var info    = GetEFProviderInfo(context);
 			var options = context.GetLinqToDBOptions() ?? new DataOptions();
-			options     = options.UseMappingSchema(GetMappingSchema(context.Model, context, options));
+			options     = AddMappingSchema(options, GetMappingSchema(context.Model, context, options));
 
 			DataConnection? dc = null;
 
@@ -326,7 +326,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			var info    = GetEFProviderInfo(context);
 			var options = context.GetLinqToDBOptions() ?? new DataOptions();
-			options     = options.UseMappingSchema(GetMappingSchema(context.Model, context, options));
+			options     = AddMappingSchema(options, GetMappingSchema(context.Model, context, options));
 
 			DataConnection? dc = null;
 
@@ -391,8 +391,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var options        = context.GetLinqToDBOptions() ?? new DataOptions();
 			var dataProvider   = GetDataProvider(options, info, connectionInfo);
 
-			options = options
-				.UseMappingSchema(GetMappingSchema(context.Model, context, options))
+			options = AddMappingSchema(options, GetMappingSchema(context.Model, context, options))
 				.UseDataProvider(dataProvider)
 				.UseConnectionString(connectionInfo.ConnectionString!);
 
@@ -479,7 +478,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var model          = GetModel(options);
 
 			if (model != null)
-				dataOptions = dataOptions.UseMappingSchema(GetMappingSchema(model, null, dataOptions));
+				dataOptions = AddMappingSchema(dataOptions, GetMappingSchema(model, null, dataOptions));
 
 			dataOptions = dataOptions.UseDataProvider(dataProvider);
 
@@ -575,6 +574,14 @@ namespace LinqToDB.EntityFrameworkCore
 		{ 
 			get => Implementation.EnableChangeTracker;
 			set => Implementation.EnableChangeTracker = value;
+		}
+
+		private static DataOptions AddMappingSchema(DataOptions dataOptions, MappingSchema mappingSchema)
+		{
+			if (dataOptions.ConnectionOptions.MappingSchema != null)
+				return dataOptions.UseMappingSchema(MappingSchema.CombineSchemas(dataOptions.ConnectionOptions.MappingSchema, mappingSchema));
+
+			return dataOptions.UseMappingSchema(mappingSchema);
 		}
 	}
 }

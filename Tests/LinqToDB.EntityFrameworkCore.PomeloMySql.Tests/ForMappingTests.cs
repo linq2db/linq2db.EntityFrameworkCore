@@ -9,13 +9,19 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 	{
 		private bool _isDbCreated;
 
-		public override ForMappingContextBase CreateContext()
+		public override ForMappingContextBase CreateContext(DataOptions? dataOptions = null)
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
-			var connectionString = "Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;";
-			//var connectionString = "Server=localhost;Port=3316;Database=TestData;Uid=root;Pwd=root;charset=utf8;";
+			//var connectionString = "Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;";
+			var connectionString = "Server=localhost;Port=3316;Database=TestData;Uid=root;Pwd=root;charset=utf8;";
 			optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
+
+			//if (dataOptions! != null)
+			//{
+			//	optionsBuilder.UseLinqToDB((_, _) => dataOptions);
+			//}
+			optionsBuilder.UseLinqToDB((_, options) => dataOptions ?? options);
 
 			var options = optionsBuilder.Options;
 			var ctx = new ForMappingContext(options);

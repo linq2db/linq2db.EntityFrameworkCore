@@ -44,7 +44,7 @@ You can also register additional options (like interceptors) for LinqToDB during
 ```cs
 var optionsBuilder = new DbContextOptionsBuilder<MyDbContext>();
 optionsBuilder.UseSqlite();
-optionsBuilder.UseLinqToDb((optionsBuilder, options) =>
+optionsBuilder.UseLinqToDB((optionsBuilder, options) =>
 {
     return options.UseInterceptor(new MyCommandInterceptor());
 });

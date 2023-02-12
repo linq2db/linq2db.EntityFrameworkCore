@@ -14,7 +14,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="optionsBuilder"></param>
 		/// <param name="linq2DbOptionsAction">Custom options action</param>
 		/// <returns></returns>
-		public static DbContextOptionsBuilder UseLinqToDb(
+		public static DbContextOptionsBuilder UseLinqToDB(
 			this DbContextOptionsBuilder optionsBuilder,
 			Func<DbContextOptionsBuilder, DataOptions, DataOptions>? linq2DbOptionsAction = null)
 		{

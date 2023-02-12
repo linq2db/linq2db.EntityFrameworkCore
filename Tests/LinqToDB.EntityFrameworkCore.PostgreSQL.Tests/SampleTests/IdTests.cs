@@ -20,8 +20,8 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 					.ReplaceService<IValueConverterSelector, IdValueConverterSelector>()
 					.UseLoggerFactory(TestUtils.LoggerFactory)
 					.EnableSensitiveDataLogging()
-					.UseNpgsql("Server=DBHost;Port=5432;Database=IdTests;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
-					//.UseNpgsql("Server=localhost;Port=5415;Database=IdTests;User Id=postgres;Password=Password12!;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
+					//.UseNpgsql("Server=DBHost;Port=5432;Database=IdTests;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
+					.UseNpgsql("Server=localhost;Port=5415;Database=IdTests;User Id=postgres;Password=Password12!;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
 					.Options);
 			_efContext.Database.EnsureDeleted();
 			_efContext.Database.EnsureCreated();
