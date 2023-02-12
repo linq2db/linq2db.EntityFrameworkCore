@@ -84,7 +84,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<JsonConvertContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseSqlServer("Server=.;Database=JsonConvertContext;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true");
+			optionsBuilder.UseSqlServer(Settings.JsonConvertConnectionString);
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;

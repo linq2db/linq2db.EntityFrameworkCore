@@ -24,7 +24,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<IssueContext>();
 
-			optionsBuilder.UseSqlServer("Server=.;Database=IssuesEFCore;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true");
+			optionsBuilder.UseSqlServer(Settings.IssuesConnectionString);
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;

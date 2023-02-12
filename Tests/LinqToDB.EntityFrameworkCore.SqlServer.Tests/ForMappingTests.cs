@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 using FluentAssertions;
+using LinqToDB.Data;
+using LinqToDB.DataProvider.SqlServer;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.ForMapping;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.ForMapping;
@@ -16,7 +18,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		public override ForMappingContextBase CreateContext(DataOptions? dataOptions = null)
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
-			optionsBuilder.UseSqlServer("Server=.;Database=ForMapping;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true");
+			optionsBuilder.UseSqlServer(Settings.ForMappingConnectionString);
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			//if (dataOptions! != null)
@@ -53,7 +55,15 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				ed.Columns.First(c => c.MemberName == nameof(StringTypes.UnicodeString)).DataType.Should()
 					.Be(DataType.NVarChar);
 			}
+		}
 
+		[Test]
+		public void TestDialectUse()
+		{
+			//using var db = CreateContext(new DataOptions().UseSqlServer(SqlServerVersion.v2005));
+			using var db = CreateContext(new DataOptions().UseSqlServer(Settings.ForMappingConnectionString, SqlServerVersion.v2005));
+			using var dc = db.CreateLinq2DbConnectionDetached();
+			Assert.True(dc.MappingSchema.DisplayID.Contains("2005"));
 		}
 	}
 }
