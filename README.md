@@ -44,9 +44,14 @@ You can also register additional options (like interceptors) for LinqToDB during
 ```cs
 var optionsBuilder = new DbContextOptionsBuilder<MyDbContext>();
 optionsBuilder.UseSqlite();
-optionsBuilder.UseLinqToDB((optionsBuilder, options) =>
+optionsBuilder.UseLinqToDB(builder =>
 {
-    return options.UseInterceptor(new MyCommandInterceptor());
+    // add custom command interceptor
+    builder.AddInterceptor(new MyCommandInterceptor());
+    // add additional mappings
+    builder.AddMappingSchema(myCustomMappings);
+    // configure SQL Server dialect explicitly
+    builder.AddCustomOptions(o => o.UseSqlServer(SqlServerVersion.v2022));
 });
 ```
 
