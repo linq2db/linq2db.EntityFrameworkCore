@@ -30,7 +30,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseSqlServer("Server=.;Database=NorthwindEFCore;Integrated Security=SSPI");
+			optionsBuilder.UseSqlServer(Settings.NorthwindConnectionString);
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
@@ -88,7 +88,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		public void TestToList([Values(true, false)] bool enableFilter)
 		{
 			using (var ctx = CreateContext(enableFilter))
-			using (var db = ctx.CreateLinqToDbConnection())
+			using (var db = ctx.CreateLinqToDBConnection())
 			{
 				var items = db.GetTable<Order>()
 					.LoadWith(d => d.OrderDetails)
@@ -170,7 +170,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public void TestCreateFromOptions()
 		{
-			using (var db = _options.CreateLinqToDbConnection())
+			using (var db = _options.CreateLinqToDBConnection())
 			{
 			}
 		}
@@ -189,19 +189,19 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 						// Date = Model.TestFunctions.GetDate(),
 						// Len = Model.TestFunctions.Len(p.Name),
 						DiffYear1 = EF.Functions.DateDiffYear(p.ShippedDate, p.OrderDate),
-						DiffYear2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffYear(p.ShippedDate, p.OrderDate.Value),
+						DiffYear2 = p.OrderDate == null ? null : EF.Functions.DateDiffYear(p.ShippedDate, p.OrderDate.Value),
 						DiffMonth1 = EF.Functions.DateDiffMonth(p.ShippedDate, p.OrderDate),
-						DiffMonth2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffMonth(p.ShippedDate, p.OrderDate.Value),
+						DiffMonth2 = p.OrderDate == null ? null : EF.Functions.DateDiffMonth(p.ShippedDate, p.OrderDate.Value),
 						DiffDay1 = EF.Functions.DateDiffDay(p.ShippedDate, p.OrderDate),
-						DiffDay2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffDay(p.ShippedDate, p.OrderDate.Value),
+						DiffDay2 = p.OrderDate == null ? null : EF.Functions.DateDiffDay(p.ShippedDate, p.OrderDate.Value),
 						DiffHour1 = EF.Functions.DateDiffHour(p.ShippedDate, p.OrderDate),
-						DiffHour2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffHour(p.ShippedDate, p.OrderDate.Value),
+						DiffHour2 = p.OrderDate == null ? null : EF.Functions.DateDiffHour(p.ShippedDate, p.OrderDate.Value),
 						DiffMinute1 = EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate),
-						DiffMinute2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate.Value),
+						DiffMinute2 = p.OrderDate == null ? null : EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate.Value),
 						DiffSecond1 = EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate),
-						DiffSecond2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate.Value),
+						DiffSecond2 = p.OrderDate == null ? null : EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate.Value),
 						DiffMillisecond1 = EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate!.Value.AddMilliseconds(100)),
-						DiffMillisecond2 = p.OrderDate == null ? (int?)null : EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate.Value.AddMilliseconds(100)),
+						DiffMillisecond2 = p.OrderDate == null ? null : EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate.Value.AddMilliseconds(100)),
 					};
 
 //				var items1 = query.ToArray();
@@ -215,7 +215,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext(enableFilter))
 			{
 				using (var transaction = ctx.Database.BeginTransaction())
-				using (var db = ctx.CreateLinqToDbConnection())
+				using (var db = ctx.CreateLinqToDBConnection())
 				{
 
 					var test1 = await ctx.Products.Where(p => p.ProductName.StartsWith("U")).MaxAsync(p => p.QuantityPerUnit);
@@ -236,7 +236,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		public void TestView([Values(true, false)] bool enableFilter)
 		{
 			using (var ctx = CreateContext(enableFilter))
-			using (var db = ctx.CreateLinqToDbConnection())
+			using (var db = ctx.CreateLinqToDBConnection())
 			{
 				var query = ProductQuery(ctx)
 					.ToLinqToDB(db)
@@ -307,7 +307,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(false))
 			{
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx);
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx, null);
 				
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
@@ -315,7 +315,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				Assert.NotNull(customerPk);
 				Assert.AreEqual(true, customerPk!.IsPrimaryKey);
 				Assert.AreEqual(0, customerPk.PrimaryKeyOrder);
-
 			}
 		}
 
@@ -324,7 +323,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(false))
 			{
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx);
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx, null);
 				
 				var associationOrder = ms.GetAttribute<AssociationAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.Orders));
@@ -334,7 +333,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				Assert.That(associationOrder.OtherKey, Is.EqualTo("CustomerId"));
 			}
 		}
-
 
 		[Repeat(2)]
 		[Test]
@@ -534,7 +532,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
 
 				ctx.ChangeTracker.DetectChanges();
-				var changedEntry = ctx.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).Single();
+				var changedEntry = ctx.ChangeTracker.Entries().Single(e => e.State == EntityState.Modified);
 				ctx.SaveChanges();
 			}
 		}
@@ -557,7 +555,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
 
 				ctx.ChangeTracker.DetectChanges();
-				var changedEntry = ctx.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).SingleOrDefault();
+				var changedEntry = ctx.ChangeTracker.Entries().SingleOrDefault(e => e.State == EntityState.Modified);
 				Assert.AreEqual(changedEntry, null);
 				ctx.SaveChanges();
 			}
@@ -583,7 +581,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
 
 					ctx.ChangeTracker.DetectChanges();
-					var changedEntry = ctx.ChangeTracker.Entries().Where(e => e.State == EntityState.Modified).SingleOrDefault();
+					var changedEntry = ctx.ChangeTracker.Entries().SingleOrDefault(e => e.State == EntityState.Modified);
 					Assert.AreEqual(changedEntry, null);
 					ctx.SaveChanges();
 				}
@@ -753,7 +751,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
-				using var db = ctx.CreateLinqToDbContext();
+				using var db = ctx.CreateLinqToDBContext();
 				using var temp = db.CreateTempTable(ctx.Employees, "#TestEmployees");
 
 				Assert.AreEqual(ctx.Employees.Count(), temp.Count());

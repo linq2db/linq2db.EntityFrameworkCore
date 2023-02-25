@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Interceptors
 {
-	public class TestEfCoreAndLinq2DbComboInterceptor : TestInterceptor, ICommandInterceptor, IDbCommandInterceptor
+	public class TestEfCoreAndLinqToDBComboInterceptor : TestInterceptor, ICommandInterceptor, IDbCommandInterceptor
 	{
-		#region LinqToDbInterceptor
+		#region LinqToDBInterceptor
 		public void AfterExecuteReader(LinqToDB.Interceptors.CommandEventData eventData, DbCommand command, CommandBehavior commandBehavior, DbDataReader dataReader)
 		{
 			HasInterceptorBeenInvoked = true;
