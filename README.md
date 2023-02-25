@@ -173,7 +173,7 @@ Below is a list of providers, that should work right now:
 - Oracle
 - SQL Server CE
 
-# Know limitations
+# Known limitations
 - No Lazy loading
 - No way to work with in-memory database
 - No TPT (table per type) support
