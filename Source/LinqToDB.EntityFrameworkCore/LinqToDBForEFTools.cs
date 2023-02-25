@@ -58,9 +58,8 @@ namespace LinqToDB.EntityFrameworkCore
 				if (queryable.Provider is IQueryProviderAsync)
 					return queryable;
 
-				var context = Implementation.GetCurrentContext(queryable);
-				if (context == null)
-					throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
+				var context = Implementation.GetCurrentContext(queryable)
+					?? throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
 				var dc = CreateLinqToDBContext(context);
 				var newExpression = queryable.Expression;
@@ -203,10 +202,8 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>LINQ TO DB provider instance.</returns>
 		public static IDataProvider GetDataProvider(DataOptions options, EFProviderInfo info, EFConnectionInfo connectionInfo)
 		{
-			var provider = Implementation.GetDataProvider(options, info, connectionInfo);
-
-			if (provider == null)
-				throw new LinqToDBForEFToolsException("Can not detect provider from Entity Framework or provider not supported");
+			var provider = Implementation.GetDataProvider(options, info, connectionInfo)
+				?? throw new LinqToDBForEFToolsException("Can not detect provider from Entity Framework or provider not supported");
 
 			return provider;
 		}
@@ -240,6 +237,19 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			return Implementation.TransformExpression(expression, dc, ctx, model);
 		}
+
+		/// <summary>
+		/// Creates LINQ To DB <see cref="DataConnection"/> instance, attached to provided
+		/// EF Core <see cref="DbContext"/> instance connection and transaction.
+		/// </summary>
+		/// <param name="context">EF Core <see cref="DbContext"/> instance.</param>
+		/// <param name="transaction">Optional transaction instance, to which created connection should be attached.
+		/// If not specified, will use current <see cref="DbContext"/> transaction if it available.</param>
+		/// <returns>LINQ To DB <see cref="DataConnection"/> instance.</returns>
+		[Obsolete($"Use {nameof(CreateLinqToDBConnection)} overload.")]
+		public static DataConnection CreateLinqToDbConnection(this DbContext context,
+			IDbContextTransaction? transaction = null)
+			=> CreateLinqToDBConnection(context, transaction);
 
 		/// <summary>
 		/// Creates LINQ To DB <see cref="DataConnection"/> instance, attached to provided
@@ -319,6 +329,17 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="context">EF Core database context.</param>
 		/// <param name="transaction">Transaction instance.</param>
 		/// <returns>Linq To DB data context.</returns>
+		[Obsolete($"Use {nameof(CreateLinqToDBContext)} overload.")]
+		public static IDataContext CreateLinqToDbContext(this DbContext context,
+			IDbContextTransaction? transaction = null)
+			=> CreateLinqToDBContext(context, transaction);
+
+		/// <summary>
+		/// Creates Linq To DB data context for EF Core database context.
+		/// </summary>
+		/// <param name="context">EF Core database context.</param>
+		/// <param name="transaction">Transaction instance.</param>
+		/// <returns>Linq To DB data context.</returns>
 		public static IDataContext CreateLinqToDBContext(this DbContext context,
 			IDbContextTransaction? transaction = null)
 		{
@@ -375,6 +396,16 @@ namespace LinqToDB.EntityFrameworkCore
 
 			return dc;
 		}
+
+		/// <summary>
+		/// Creates LINQ To DB <see cref="DataConnection"/> instance that creates new database connection using connection
+		/// information from EF Core <see cref="DbContext"/> instance.
+		/// </summary>
+		/// <param name="context">EF Core <see cref="DbContext"/> instance.</param>
+		/// <returns>LINQ To DB <see cref="DataConnection"/> instance.</returns>
+		[Obsolete($"Use {nameof(CreateLinqToDBConnectionDetached)} overload.")]
+		public static DataConnection CreateLinq2DbConnectionDetached(this DbContext context)
+			=> CreateLinqToDBConnectionDetached(context);
 
 		/// <summary>
 		/// Creates LINQ To DB <see cref="DataConnection"/> instance that creates new database connection using connection
@@ -466,6 +497,16 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options">EF Core <see cref="DbContextOptions"/> instance.</param>
 		/// <returns>New LINQ To DB <see cref="DataConnection"/> instance.</returns>
+		[Obsolete($"Use {nameof(CreateLinqToDBConnection)} overload.")]
+		public static DataConnection CreateLinqToDbConnection(this DbContextOptions options)
+			=> CreateLinqToDBConnection(options);
+
+		/// <summary>
+		/// Creates new LINQ To DB <see cref="DataConnection"/> instance using connectivity information from
+		/// EF Core <see cref="DbContextOptions"/> instance.
+		/// </summary>
+		/// <param name="options">EF Core <see cref="DbContextOptions"/> instance.</param>
+		/// <returns>New LINQ To DB <see cref="DataConnection"/> instance.</returns>
 		public static DataConnection CreateLinqToDBConnection(this DbContextOptions options)
 		{
 			var info = GetEFProviderInfo(options);
@@ -515,9 +556,8 @@ namespace LinqToDB.EntityFrameworkCore
 			if (query == null) throw new ArgumentNullException(nameof(query));
 			if (dc    == null) throw new ArgumentNullException(nameof(dc));
 
-			var context = Implementation.GetCurrentContext(query);
-			if (context == null)
-				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
+			var context = Implementation.GetCurrentContext(query)
+				?? throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
 			AddInterceptorsToDataContext(context, dc);
 			return new LinqToDBForEFQueryProvider<T>(dc, query.Expression);
@@ -547,9 +587,8 @@ namespace LinqToDB.EntityFrameworkCore
 				return query;
 			}
 
-			var context = Implementation.GetCurrentContext(query);
-			if (context == null)
-				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
+			var context = Implementation.GetCurrentContext(query)
+				?? throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
 			var dc = CreateLinqToDBContext(context);
 

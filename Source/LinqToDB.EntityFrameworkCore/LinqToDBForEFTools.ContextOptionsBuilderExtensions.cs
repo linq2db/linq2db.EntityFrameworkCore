@@ -14,6 +14,18 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="optionsBuilder"></param>
 		/// <param name="linq2dbOptionsAction">Custom options action.</param>
 		/// <returns></returns>
+		[Obsolete($"Use {nameof(UseLinqToDB)} overload.")]
+		public static DbContextOptionsBuilder UseLinqToDb(
+			this DbContextOptionsBuilder optionsBuilder,
+			Action<LinqToDBContextOptionsBuilder>? linq2dbOptionsAction = null)
+			=> UseLinqToDB(optionsBuilder, linq2dbOptionsAction);
+
+		/// <summary>
+		/// Registers custom options related to LinqToDB provider.
+		/// </summary>
+		/// <param name="optionsBuilder"></param>
+		/// <param name="linq2dbOptionsAction">Custom options action.</param>
+		/// <returns></returns>
 		public static DbContextOptionsBuilder UseLinqToDB(
 			this DbContextOptionsBuilder optionsBuilder,
 			Action<LinqToDBContextOptionsBuilder>? linq2dbOptionsAction = null)
