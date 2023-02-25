@@ -40,15 +40,15 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
-			optionsBuilder.UseLinqToDB((builder, options) =>
+			optionsBuilder.UseLinqToDB(builder =>
 			{
-				return options
-					.UseInterceptor(testCommandInterceptor)
-					.UseInterceptor(testDataContextInterceptor)
-					.UseInterceptor(testConnectionInterceptor)
-					.UseInterceptor(testEntityServiceInterceptor)
-					.UseInterceptor(testEfCoreAndLinq2DbInterceptor)
-					.UseInterceptor(testCommandInterceptor); //for checking the aggregated interceptors
+				builder
+					.AddInterceptor(testCommandInterceptor)
+					.AddInterceptor(testDataContextInterceptor)
+					.AddInterceptor(testConnectionInterceptor)
+					.AddInterceptor(testEntityServiceInterceptor)
+					.AddInterceptor(testEfCoreAndLinq2DbInterceptor)
+					.AddInterceptor(testCommandInterceptor); //for checking the aggregated interceptors
 			});
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
@@ -60,10 +60,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
 			optionsBuilder.AddInterceptors(testEfCoreAndLinq2DbInterceptor);
-			optionsBuilder.UseLinqToDB((builder, options) =>
-			{
-				return builder.UseEfCoreRegisteredInterceptorsIfPossible(options);
-			});
+			optionsBuilder.UseLinqToDB(builder => builder.UseEfCoreRegisteredInterceptorsIfPossible());
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			return optionsBuilder.Options;

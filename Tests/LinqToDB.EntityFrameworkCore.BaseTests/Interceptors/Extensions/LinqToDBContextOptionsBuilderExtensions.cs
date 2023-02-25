@@ -1,22 +1,21 @@
 ﻿using System.Linq;
 using LinqToDB.Interceptors;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Interceptors.Extensions
 {
 	public static class LinqToDBContextOptionsBuilderExtensions
 	{
-		public static DataOptions UseEfCoreRegisteredInterceptorsIfPossible(this DbContextOptionsBuilder builder, DataOptions options)
+		public static void UseEfCoreRegisteredInterceptorsIfPossible(this LinqToDBContextOptionsBuilder builder)
 		{
-			var coreEfExtension = builder.Options.FindExtension<CoreOptionsExtension>();
+			var coreEfExtension = builder.DbContextOptions.FindExtension<CoreOptionsExtension>();
 			if (coreEfExtension?.Interceptors != null)
 			{
 				foreach (var comboInterceptor in coreEfExtension.Interceptors.OfType<IInterceptor>())
-					options = options.UseInterceptor(comboInterceptor);
+				{
+					builder.AddInterceptor(comboInterceptor);
+				}
 			}
-
-			return options;
 		}
 	}
 }
