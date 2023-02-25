@@ -118,50 +118,50 @@ namespace LinqToDB.EntityFrameworkCore
 			if (options.ConnectionOptions.ProviderName != null)
 				info = new LinqToDBProviderInfo() { ProviderName = options.ConnectionOptions.ProviderName };
 			else
-				info = GetLinqToDbProviderInfo(providerInfo);
+				info = GetLinqToDBProviderInfo(providerInfo);
 
 			return _knownProviders.GetOrAdd(new ProviderKey(info.ProviderName, connectionInfo.ConnectionString), k =>
 			{
-				return CreateLinqToDbDataProvider(providerInfo, info, connectionInfo);
+				return CreateLinqToDBDataProvider(providerInfo, info, connectionInfo);
 			});
 		}
 
 		/// <summary>
-		/// Converts EF Core provider settings to linq2db provider settings.
+		/// Converts EF Core provider settings to Linq To DB provider settings.
 		/// </summary>
 		/// <param name="providerInfo">EF Core provider settings.</param>
-		/// <returns>linq2db provider settings.</returns>
-		protected virtual LinqToDBProviderInfo GetLinqToDbProviderInfo(EFProviderInfo providerInfo)
+		/// <returns>Linq To DB provider settings.</returns>
+		protected virtual LinqToDBProviderInfo GetLinqToDBProviderInfo(EFProviderInfo providerInfo)
 		{
 			var provInfo = new LinqToDBProviderInfo();
 
 			var relational = providerInfo.Options?.Extensions.OfType<RelationalOptionsExtension>().FirstOrDefault();
 			if (relational != null)
 			{
-				provInfo.Merge(GetLinqToDbProviderInfo(relational));
+				provInfo.Merge(GetLinqToDBProviderInfo(relational));
 			}
 
 			if (providerInfo.Connection != null)
 			{
-				provInfo.Merge(GetLinqToDbProviderInfo(providerInfo.Connection));
+				provInfo.Merge(GetLinqToDBProviderInfo(providerInfo.Connection));
 			}
 
 			if (providerInfo.Context != null)
 			{
-				provInfo.Merge(GetLinqToDbProviderInfo(providerInfo.Context.Database));
+				provInfo.Merge(GetLinqToDBProviderInfo(providerInfo.Context.Database));
 			}
 
 			return provInfo;
 		}
 
 		/// <summary>
-		/// Creates instance of linq2db database provider.
+		/// Creates instance of Linq To DB database provider.
 		/// </summary>
 		/// <param name="providerInfo">EF Core provider settings.</param>
-		/// <param name="provInfo">linq2db provider settings.</param>
+		/// <param name="provInfo">Linq To DB provider settings.</param>
 		/// <param name="connectionInfo">EF Core connection settings.</param>
-		/// <returns>linq2db database provider.</returns>
-		protected virtual IDataProvider CreateLinqToDbDataProvider(EFProviderInfo providerInfo, LinqToDBProviderInfo provInfo,
+		/// <returns>Linq To DB database provider.</returns>
+		protected virtual IDataProvider CreateLinqToDBDataProvider(EFProviderInfo providerInfo, LinqToDBProviderInfo provInfo,
 			EFConnectionInfo connectionInfo)
 		{
 			if (provInfo.ProviderName == null)
@@ -213,11 +213,11 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Creates linq2db provider settings object from <see cref="DatabaseFacade"/> instance.
+		/// Creates Linq To DB provider settings object from <see cref="DatabaseFacade"/> instance.
 		/// </summary>
 		/// <param name="database">EF Core database information object.</param>
-		/// <returns>linq2db provider settings.</returns>
-		protected virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(DatabaseFacade database)
+		/// <returns>Linq To DB provider settings.</returns>
+		protected virtual LinqToDBProviderInfo? GetLinqToDBProviderInfo(DatabaseFacade database)
 		{
 			switch (database.ProviderName)
 			{
@@ -269,11 +269,11 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Creates linq2db provider settings object from <see cref="DbConnection"/> instance.
+		/// Creates Linq To DB provider settings object from <see cref="DbConnection"/> instance.
 		/// </summary>
 		/// <param name="connection">Database connection.</param>
-		/// <returns>linq2db provider settings.</returns>
-		protected virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(DbConnection connection)
+		/// <returns>Linq To DB provider settings.</returns>
+		protected virtual LinqToDBProviderInfo? GetLinqToDBProviderInfo(DbConnection connection)
 		{
 			switch (connection.GetType().Name)
 			{
@@ -301,11 +301,11 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Creates linq2db provider settings object from <see cref="RelationalOptionsExtension"/> instance.
+		/// Creates Linq To DB provider settings object from <see cref="RelationalOptionsExtension"/> instance.
 		/// </summary>
 		/// <param name="extensions">EF Core provider options.</param>
-		/// <returns>linq2db provider settings.</returns>
-		protected virtual LinqToDBProviderInfo? GetLinqToDbProviderInfo(RelationalOptionsExtension extensions)
+		/// <returns>Linq To DB provider settings.</returns>
+		protected virtual LinqToDBProviderInfo? GetLinqToDBProviderInfo(RelationalOptionsExtension extensions)
 		{
 			switch (extensions.GetType().Name)
 			{
@@ -337,22 +337,22 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Creates linq2db SQL Server database provider instance.
+		/// Creates Linq To DB SQL Server database provider instance.
 		/// </summary>
 		/// <param name="version">SQL Server dialect.</param>
 		/// <param name="connectionString">Connection string.</param>
-		/// <returns>linq2db SQL Server provider instance.</returns>
+		/// <returns>Linq To DB SQL Server provider instance.</returns>
 		protected virtual IDataProvider CreateSqlServerProvider(SqlServerVersion version, string? connectionString)
 		{
 			return DataProvider.SqlServer.SqlServerTools.GetDataProvider(version, SqlServerProvider.MicrosoftDataSqlClient);
 		}
 
 		/// <summary>
-		/// Creates linq2db PostgreSQL database provider instance.
+		/// Creates Linq To DB PostgreSQL database provider instance.
 		/// </summary>
 		/// <param name="version">PostgreSQL dialect.</param>
 		/// <param name="connectionString">Connection string.</param>
-		/// <returns>linq2db PostgreSQL provider instance.</returns>
+		/// <returns>Linq To DB PostgreSQL provider instance.</returns>
 		protected virtual IDataProvider CreatePostgreSqlProvider(PostgreSQLVersion version, string? connectionString)
 		{
 			return PostgreSQLTools.GetDataProvider(version);
@@ -376,7 +376,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <param name="convertorSelector"></param>
-		/// <param name="dataOptions">linq2db context options.</param>
+		/// <param name="dataOptions">Linq To DB context options.</param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		public virtual MappingSchema CreateMappingSchema(
 			IModel model,
@@ -394,12 +394,12 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Import type conversions from EF Core model into linq2db mapping schema.
+		/// Import type conversions from EF Core model into Linq To DB mapping schema.
 		/// </summary>
-		/// <param name="mappingSchema">linq2db mapping schema.</param>
+		/// <param name="mappingSchema">Linq To DB mapping schema.</param>
 		/// <param name="model">EF Core data mode.</param>
 		/// <param name="convertorSelector">Type filter.</param>
-		/// <param name="dataOptions">linq2db context options.</param>
+		/// <param name="dataOptions">Linq To DB context options.</param>
 		public virtual void DefineConvertors(
 			MappingSchema mappingSchema,
 			IModel model,
@@ -495,7 +495,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <param name="convertorSelector"></param>
-		/// <param name="dataOptions">linq2db context options.</param>
+		/// <param name="dataOptions">Linq To DB context options.</param>
 		/// <returns>Mapping schema for provided EF.Core model.</returns>
 		public virtual MappingSchema GetMappingSchema(
 			IModel model,

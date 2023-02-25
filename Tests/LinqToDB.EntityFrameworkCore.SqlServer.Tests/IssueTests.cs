@@ -74,7 +74,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 			var resultEF = query.ToArray();
 
-			using var db = ctx.CreateLinqToDbConnection();
+			using var db = ctx.CreateLinqToDBConnection();
 
 			_ = query.ToLinqToDB(db).ToArray();
 

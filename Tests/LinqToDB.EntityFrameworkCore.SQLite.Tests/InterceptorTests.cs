@@ -19,19 +19,19 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		private readonly DbContextOptions _northwindOptions;
 		private readonly DbContextOptions _northwindOptionsWithEfCoreInterceptorsOnly;
 		private DbConnection? _dbConnection;
-		static TestCommandInterceptor testCommandInterceptor;
-		static TestDataContextInterceptor testDataContextInterceptor;
-		static TestConnectionInterceptor testConnectionInterceptor;
-		static TestEntityServiceInterceptor testEntityServiceInterceptor;
-		static TestEfCoreAndLinq2DbComboInterceptor testEfCoreAndLinq2DbInterceptor;
+		static TestCommandInterceptor _testCommandInterceptor;
+		static TestDataContextInterceptor _testDataContextInterceptor;
+		static TestConnectionInterceptor _testConnectionInterceptor;
+		static TestEntityServiceInterceptor _testEntityServiceInterceptor;
+		static TestEfCoreAndLinqToDBComboInterceptor _testEfCoreAndLinqToDBInterceptor;
 
 		static InterceptorTests()
 		{
-			testCommandInterceptor = new TestCommandInterceptor();
-			testDataContextInterceptor = new TestDataContextInterceptor();
-			testConnectionInterceptor = new TestConnectionInterceptor();
-			testEntityServiceInterceptor = new TestEntityServiceInterceptor();
-			testEfCoreAndLinq2DbInterceptor = new TestEfCoreAndLinq2DbComboInterceptor();
+			_testCommandInterceptor = new TestCommandInterceptor();
+			_testDataContextInterceptor = new TestDataContextInterceptor();
+			_testConnectionInterceptor = new TestConnectionInterceptor();
+			_testEntityServiceInterceptor = new TestEntityServiceInterceptor();
+			_testEfCoreAndLinqToDBInterceptor = new TestEfCoreAndLinqToDBComboInterceptor();
 			LinqToDBForEFTools.Initialize();
 			DataConnection.TurnTraceSwitchOn();
 		}
@@ -43,12 +43,12 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			optionsBuilder.UseLinqToDB(builder =>
 			{
 				builder
-					.AddInterceptor(testCommandInterceptor)
-					.AddInterceptor(testDataContextInterceptor)
-					.AddInterceptor(testConnectionInterceptor)
-					.AddInterceptor(testEntityServiceInterceptor)
-					.AddInterceptor(testEfCoreAndLinq2DbInterceptor)
-					.AddInterceptor(testCommandInterceptor); //for checking the aggregated interceptors
+					.AddInterceptor(_testCommandInterceptor)
+					.AddInterceptor(_testDataContextInterceptor)
+					.AddInterceptor(_testConnectionInterceptor)
+					.AddInterceptor(_testEntityServiceInterceptor)
+					.AddInterceptor(_testEfCoreAndLinqToDBInterceptor)
+					.AddInterceptor(_testCommandInterceptor); //for checking the aggregated interceptors
 			});
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
@@ -59,7 +59,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
-			optionsBuilder.AddInterceptors(testEfCoreAndLinq2DbInterceptor);
+			optionsBuilder.AddInterceptors(_testEfCoreAndLinqToDBInterceptor);
 			optionsBuilder.UseLinqToDB(builder => builder.UseEfCoreRegisteredInterceptorsIfPossible());
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
@@ -78,7 +78,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			return ctx;
 		}
 
-		private NorthwindContext CreateContextWithountLinq2DbExtensions()
+		private NorthwindContext CreateContextWithountLinqToDBExtensions()
 		{
 			var ctx = new NorthwindContext(_northwindOptionsWithEfCoreInterceptorsOnly);
 			return ctx;
@@ -133,13 +133,13 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 					select pd;
 				var items = query.Take(2).ToLinqToDB().ToArray();
 			}
-			Assert.IsTrue(testCommandInterceptor.HasInterceptorBeenInvoked);
-			Assert.IsTrue(testConnectionInterceptor.HasInterceptorBeenInvoked);
-			Assert.IsTrue(testEntityServiceInterceptor.HasInterceptorBeenInvoked);
+			Assert.IsTrue(_testCommandInterceptor.HasInterceptorBeenInvoked);
+			Assert.IsTrue(_testConnectionInterceptor.HasInterceptorBeenInvoked);
+			Assert.IsTrue(_testEntityServiceInterceptor.HasInterceptorBeenInvoked);
 
 			//the following check is false because linq2db context is never closed together
 			//with the EF core context
-			Assert.IsFalse(testDataContextInterceptor.HasInterceptorBeenInvoked);
+			Assert.IsFalse(_testDataContextInterceptor.HasInterceptorBeenInvoked);
 		}
 
 		[Test]
@@ -147,25 +147,25 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		{
 			using (var ctx = CreateContext())
 			{
-				using var linq2DbContext = ctx.CreateLinqToDbContext();
+				using var linqToDBContext = ctx.CreateLinqToDBContext();
 				var query =
 					from pd in ctx.Products
 					where pd.ProductId > 0
 					orderby pd.ProductId
 					select pd;
-				var items = query.Take(2).ToLinqToDB(linq2DbContext).ToArray();
-				var items2 = query.Take(2).ToLinqToDB(linq2DbContext).ToArray();
+				var items = query.Take(2).ToLinqToDB(linqToDBContext).ToArray();
+				var items2 = query.Take(2).ToLinqToDB(linqToDBContext).ToArray();
 			}
-			Assert.IsTrue(testCommandInterceptor.HasInterceptorBeenInvoked);
-			Assert.IsTrue(testDataContextInterceptor.HasInterceptorBeenInvoked);
-			Assert.IsTrue(testConnectionInterceptor.HasInterceptorBeenInvoked);
-			Assert.IsTrue(testEntityServiceInterceptor.HasInterceptorBeenInvoked);
+			Assert.IsTrue(_testCommandInterceptor.HasInterceptorBeenInvoked);
+			Assert.IsTrue(_testDataContextInterceptor.HasInterceptorBeenInvoked);
+			Assert.IsTrue(_testConnectionInterceptor.HasInterceptorBeenInvoked);
+			Assert.IsTrue(_testEntityServiceInterceptor.HasInterceptorBeenInvoked);
 		}
 
 		[Test]
 		public void TestEfCoreSideOfComboInterceptor()
 		{
-			using (var ctx = CreateContextWithountLinq2DbExtensions())
+			using (var ctx = CreateContextWithountLinqToDBExtensions())
 			{
 				var query =
 					from pd in ctx.Products
@@ -174,13 +174,13 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 					select pd;
 				var items = query.Take(2).ToArray();
 			}
-			Assert.IsTrue(testEfCoreAndLinq2DbInterceptor.HasInterceptorBeenInvoked);
+			Assert.IsTrue(_testEfCoreAndLinqToDBInterceptor.HasInterceptorBeenInvoked);
 		}
 
 		[Test]
-		public void TestLinq2DbSideOfComboInterceptor()
+		public void TestLinqToDBSideOfComboInterceptor()
 		{
-			using (var ctx = CreateContextWithountLinq2DbExtensions())
+			using (var ctx = CreateContextWithountLinqToDBExtensions())
 			{
 				var query =
 					from pd in ctx.Products
@@ -189,7 +189,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 					select pd;
 				var items = query.Take(2).ToLinqToDB().ToArray();
 			}
-			Assert.IsTrue(testEfCoreAndLinq2DbInterceptor.HasInterceptorBeenInvoked);
+			Assert.IsTrue(_testEfCoreAndLinqToDBInterceptor.HasInterceptorBeenInvoked);
 		}
 	}
 }

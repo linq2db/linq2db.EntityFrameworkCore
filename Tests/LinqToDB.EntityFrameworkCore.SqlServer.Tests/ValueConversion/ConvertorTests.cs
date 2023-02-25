@@ -40,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 		public void TestToList()
 		{
 			using (var ctx = new ConvertorContext(_options))
-			using (var db = ctx.CreateLinqToDbConnection())
+			using (var db = ctx.CreateLinqToDBConnection())
 			{
 				ctx.Database.EnsureDeleted();
 				ctx.Database.EnsureCreated();

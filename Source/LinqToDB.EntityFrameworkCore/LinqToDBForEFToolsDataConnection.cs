@@ -19,7 +19,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Linq;
 
 	/// <summary>
-	/// linq2db EF.Core data connection.
+	/// Linq To DB EF.Core data connection.
 	/// </summary>
 	public class LinqToDBForEFToolsDataConnection : DataConnection, IExpressionPreprocessor, IEntityServiceInterceptor
 	{

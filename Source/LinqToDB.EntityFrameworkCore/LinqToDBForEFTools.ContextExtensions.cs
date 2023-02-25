@@ -28,7 +28,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return dc.BulkCopy(options, source);
 			}
@@ -46,7 +46,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return dc.BulkCopy(
 					new BulkCopyOptions { MaxBatchSize = maxBatchSize },
@@ -65,7 +65,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return dc.BulkCopy(
 					new BulkCopyOptions(),
@@ -94,7 +94,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(options, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -123,7 +123,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(maxBatchSize, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -144,7 +144,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -167,7 +167,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(options, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -193,7 +193,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(maxBatchSize, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -214,7 +214,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -239,7 +239,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (target == null)  throw new ArgumentNullException(nameof(target));
 
-			return context.CreateLinqToDbConnection().Into(target);
+			return context.CreateLinqToDBConnection().Into(target);
 		}
 
 		#endregion
@@ -256,7 +256,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			return context.CreateLinqToDbContext().GetTable<T>();
+			return context.CreateLinqToDBContext().GetTable<T>();
 		}
 
 		#endregion

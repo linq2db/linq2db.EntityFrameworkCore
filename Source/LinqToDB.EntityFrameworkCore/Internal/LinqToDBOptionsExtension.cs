@@ -7,14 +7,14 @@ using Microsoft.Extensions.DependencyInjection;
 namespace LinqToDB.EntityFrameworkCore.Internal
 {
 	/// <summary>
-	/// Model containing LinqToDB related context options
+	/// Model containing LinqToDB related context options.
 	/// </summary>
 	public class LinqToDBOptionsExtension : IDbContextOptionsExtension
 	{
 		private DbContextOptionsExtensionInfo? _info;
 
 		/// <summary>
-		/// Context options extension info object
+		/// Context options extension info object.
 		/// </summary>
 		public DbContextOptionsExtensionInfo Info 
 			=> _info ??= new LinqToDBExtensionInfo(this);
@@ -100,7 +100,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			public override int GetServiceProviderHashCode() => 0;
 
 			public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
-				=> debugInfo["Linq2Db"] = "1";
+				=> debugInfo["LinqToDB"] = "1";
 
 			public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other) => true;
 		}

@@ -88,7 +88,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		public void TestToList([Values(true, false)] bool enableFilter)
 		{
 			using (var ctx = CreateContext(enableFilter))
-			using (var db = ctx.CreateLinqToDbConnection())
+			using (var db = ctx.CreateLinqToDBConnection())
 			{
 				var items = db.GetTable<Order>()
 					.LoadWith(d => d.OrderDetails)
@@ -170,7 +170,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public void TestCreateFromOptions()
 		{
-			using (var db = _options.CreateLinqToDbConnection())
+			using (var db = _options.CreateLinqToDBConnection())
 			{
 			}
 		}
@@ -215,7 +215,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext(enableFilter))
 			{
 				using (var transaction = ctx.Database.BeginTransaction())
-				using (var db = ctx.CreateLinqToDbConnection())
+				using (var db = ctx.CreateLinqToDBConnection())
 				{
 
 					var test1 = await ctx.Products.Where(p => p.ProductName.StartsWith("U")).MaxAsync(p => p.QuantityPerUnit);
@@ -236,7 +236,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		public void TestView([Values(true, false)] bool enableFilter)
 		{
 			using (var ctx = CreateContext(enableFilter))
-			using (var db = ctx.CreateLinqToDbConnection())
+			using (var db = ctx.CreateLinqToDBConnection())
 			{
 				var query = ProductQuery(ctx)
 					.ToLinqToDB(db)
@@ -751,7 +751,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
-				using var db = ctx.CreateLinqToDbContext();
+				using var db = ctx.CreateLinqToDBContext();
 				using var temp = db.CreateTempTable(ctx.Employees, "#TestEmployees");
 
 				Assert.AreEqual(ctx.Employees.Count(), temp.Count());

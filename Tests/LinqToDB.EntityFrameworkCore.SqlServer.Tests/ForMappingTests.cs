@@ -57,8 +57,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public void TestDialectUse()
 		{
-			using var db = CreateContext(o => o.UseSqlServer(SqlServerVersion.v2005));
-			using var dc = db.CreateLinq2DbConnectionDetached();
+			using var db = CreateContext(o => o.UseSqlServer("TODO:remove after fix from linq2db (not used)", SqlServerVersion.v2005));
+			using var dc = db.CreateLinqToDBConnectionDetached();
 			Assert.True(dc.MappingSchema.DisplayID.Contains("2005"));
 		}
 	}

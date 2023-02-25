@@ -51,7 +51,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <param name="convertorSelector">EF Core registry for type conversion.</param>
-		/// <param name="dataOptions">linq2db context options.</param>
+		/// <param name="dataOptions">Linq To DB context options.</param>
 		/// <returns>Mapping schema for provided EF Core model.</returns>
 		MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader, IValueConverterSelector convertorSelector, DataOptions dataOptions);
 
@@ -61,7 +61,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <param name="convertorSelector">EF Core registry for type conversion.</param>
-		/// <param name="dataOptions">linq2db context options.</param>
+		/// <param name="dataOptions">Linq To DB context options.</param>
 		/// <returns>Mapping schema for provided EF Core model.</returns>
 		MappingSchema GetMappingSchema(IModel model, IMetadataReader? metadataReader, IValueConverterSelector? convertorSelector, DataOptions? dataOptions);
 

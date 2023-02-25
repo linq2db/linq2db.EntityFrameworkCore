@@ -51,7 +51,10 @@ optionsBuilder.UseLinqToDB(builder =>
     // add additional mappings
     builder.AddMappingSchema(myCustomMappings);
     // configure SQL Server dialect explicitly
-    builder.AddCustomOptions(o => o.UseSqlServer(SqlServerVersion.v2022));
+    //builder.AddCustomOptions(o => o.UseSqlServer(SqlServerVersion.v2022));
+    // due to bug in linq2db 5.0.0, use overload with connection string
+    // will be fixed in next linq2db release
+    builder.AddCustomOptions(o => o.UseSqlServer("unused", SqlServerVersion.v2022));
 });
 ```
 
@@ -95,13 +98,13 @@ It is not required to work directly with `LINQ To DB` `DataConnection` class but
 
 ```cs
 // uing DbContext
-using (var dc = ctx.CreateLinqToDbConnection())
+using (var dc = ctx.CreateLinqToDBConnection())
 {
    // linq queries using linq2db extensions
 }
 
 // using DbContextOptions
-using (var dc = options.CreateLinqToDbConnection())
+using (var dc = options.CreateLinqToDBConnection())
 {
    // linq queries using linq2db extensions
 }

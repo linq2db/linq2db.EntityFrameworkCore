@@ -62,7 +62,7 @@ namespace LinqToDB.EntityFrameworkCore
 				if (context == null)
 					throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
-				var dc = CreateLinqToDbContext(context);
+				var dc = CreateLinqToDBContext(context);
 				var newExpression = queryable.Expression;
 
 				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
@@ -216,7 +216,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="model">EF Core data model.</param>
 		/// <param name="accessor">EF Core service provider.</param>
-		/// <param name="dataOptions">linq2db context options.</param>
+		/// <param name="dataOptions">Linq To DB context options.</param>
 		/// <returns>Mapping schema for provided EF Core model.</returns>
 		public static MappingSchema GetMappingSchema(
 			IModel model,
@@ -249,7 +249,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="transaction">Optional transaction instance, to which created connection should be attached.
 		/// If not specified, will use current <see cref="DbContext"/> transaction if it available.</param>
 		/// <returns>LINQ To DB <see cref="DataConnection"/> instance.</returns>
-		public static DataConnection CreateLinqToDbConnection(this DbContext context,
+		public static DataConnection CreateLinqToDBConnection(this DbContext context,
 			IDbContextTransaction? transaction = null)
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
@@ -314,12 +314,12 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Creates linq2db data context for EF Core database context.
+		/// Creates Linq To DB data context for EF Core database context.
 		/// </summary>
 		/// <param name="context">EF Core database context.</param>
 		/// <param name="transaction">Transaction instance.</param>
-		/// <returns>linq2db data context.</returns>
-		public static IDataContext CreateLinqToDbContext(this DbContext context,
+		/// <returns>Linq To DB data context.</returns>
+		public static IDataContext CreateLinqToDBContext(this DbContext context,
 			IDbContextTransaction? transaction = null)
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
@@ -382,7 +382,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="context">EF Core <see cref="DbContext"/> instance.</param>
 		/// <returns>LINQ To DB <see cref="DataConnection"/> instance.</returns>
-		public static DataConnection CreateLinq2DbConnectionDetached(this DbContext context)
+		public static DataConnection CreateLinqToDBConnectionDetached(this DbContext context)
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
@@ -466,7 +466,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// </summary>
 		/// <param name="options">EF Core <see cref="DbContextOptions"/> instance.</param>
 		/// <returns>New LINQ To DB <see cref="DataConnection"/> instance.</returns>
-		public static DataConnection CreateLinqToDbConnection(this DbContextOptions options)
+		public static DataConnection CreateLinqToDBConnection(this DbContextOptions options)
 		{
 			var info = GetEFProviderInfo(options);
 
@@ -551,7 +551,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null)
 				throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
-			var dc = CreateLinqToDbContext(context);
+			var dc = CreateLinqToDBContext(context);
 
 			return new LinqToDBForEFQueryProvider<T>(dc, query.Expression);
 		}
