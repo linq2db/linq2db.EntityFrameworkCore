@@ -1,6 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using FluentAssertions;
-using LinqToDB.Data;
 using LinqToDB.DataProvider.SqlServer;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.ForMapping;
@@ -15,17 +15,14 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	{
 		private bool _isDbCreated;
 
-		public override ForMappingContextBase CreateContext(DataOptions? dataOptions = null)
+		public override ForMappingContextBase CreateContext(Func<DataOptions, DataOptions>? optionsSetter = null)
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
 			optionsBuilder.UseSqlServer(Settings.ForMappingConnectionString);
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
-			//if (dataOptions! != null)
-			//{
-			//	optionsBuilder.UseLinqToDB((_, _) => dataOptions);
-			//}
-			optionsBuilder.UseLinqToDB((_, options) => dataOptions ?? options);
+			if (optionsSetter! != null)
+				optionsBuilder.UseLinqToDB(builder => builder.AddCustomOptions(optionsSetter));
 
 			var options = optionsBuilder.Options;
 			var ctx = new ForMappingContext(options);

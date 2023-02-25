@@ -1,4 +1,5 @@
-﻿using LinqToDB.EntityFrameworkCore.BaseTests;
+﻿using System;
+using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.ForMapping;
 using LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.ForMapping;
 using Microsoft.EntityFrameworkCore;
@@ -11,18 +12,15 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 	{
 		private bool _isDbCreated;
 
-		public override ForMappingContextBase CreateContext(DataOptions? dataOptions = null)
+		public override ForMappingContextBase CreateContext(Func<DataOptions, DataOptions>? optionsSetter = null)
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
 			//optionsBuilder.UseNpgsql("Server=DBHost;Port=5432;Database=ForMapping;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
 			optionsBuilder.UseNpgsql("Server=localhost;Port=5415;Database=ForMapping;User Id=postgres;Password=Password12!;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
-			//if (dataOptions! != null)
-			//{
-			//	optionsBuilder.UseLinqToDB((_, _) => dataOptions);
-			//}
-			optionsBuilder.UseLinqToDB((_, options) => dataOptions ?? options);
+			if (optionsSetter! != null)
+				optionsBuilder.UseLinqToDB(builder => builder.AddCustomOptions(optionsSetter));
 
 			var options = optionsBuilder.Options;
 			var ctx = new ForMappingContext(options);

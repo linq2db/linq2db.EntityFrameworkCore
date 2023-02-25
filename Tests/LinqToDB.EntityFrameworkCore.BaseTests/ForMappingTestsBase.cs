@@ -12,7 +12,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 {
 	public abstract class ForMappingTestsBase : TestsBase
 	{
-		public abstract ForMappingContextBase CreateContext(DataOptions? dataOptions = null);
+		public abstract ForMappingContextBase CreateContext(Func<DataOptions, DataOptions>? optionsSetter = null);
 
 		[Test]
 		public virtual void TestIdentityMapping()
@@ -143,8 +143,8 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 				.HasPrimaryKey(e => e.Field)
 				.Build();
 
-			using var context1 = CreateContext(new DataOptions().UseMappingSchema(ms));
-			using var context2 = CreateContext(new DataOptions().UseMappingSchema(ms));
+			using var context1 = CreateContext(o => o.UseMappingSchema(ms));
+			using var context2 = CreateContext(o => o.UseMappingSchema(ms));
 			using var connection1 = context1.CreateLinqToDbConnection();
 			using var connection2 = context2.CreateLinqToDbConnection();
 

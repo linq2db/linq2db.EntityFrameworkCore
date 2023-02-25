@@ -1,4 +1,5 @@
-﻿using LinqToDB.EntityFrameworkCore.BaseTests;
+﻿using System;
+using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.ForMapping;
 using LinqToDB.EntityFrameworkCore.PomeloMySql.Tests.Models.ForMapping;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 	{
 		private bool _isDbCreated;
 
-		public override ForMappingContextBase CreateContext(DataOptions? dataOptions = null)
+		public override ForMappingContextBase CreateContext(Func<DataOptions, DataOptions>? optionsSetter = null)
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
 			//var connectionString = "Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;";
@@ -17,11 +18,8 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 			optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
-			//if (dataOptions! != null)
-			//{
-			//	optionsBuilder.UseLinqToDB((_, _) => dataOptions);
-			//}
-			optionsBuilder.UseLinqToDB((_, options) => dataOptions ?? options);
+			if (optionsSetter! != null)
+				optionsBuilder.UseLinqToDB(builder => builder.AddCustomOptions(optionsSetter));
 
 			var options = optionsBuilder.Options;
 			var ctx = new ForMappingContext(options);
@@ -36,6 +34,5 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 
 			return ctx;
 		}
-
 	}
 }
