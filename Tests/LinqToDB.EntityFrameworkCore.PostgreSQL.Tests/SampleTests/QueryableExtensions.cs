@@ -5,7 +5,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 {
     public static class QueryableExtensions
     {
-        public static IQueryable<T> AsLinqToDb<T>(this IQueryable<T> queryable, bool l2db)
+        public static IQueryable<T> AsLinqToDB<T>(this IQueryable<T> queryable, bool l2db)
             => l2db ? queryable.ToLinqToDB() : queryable;
 
         public static IQueryable<T> AsTracking<T>(this IQueryable<T> queryable, bool tracking) 
