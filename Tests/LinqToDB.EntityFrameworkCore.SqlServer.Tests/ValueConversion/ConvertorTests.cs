@@ -29,7 +29,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 
 			optionsBuilder
 				.ReplaceService<IValueConverterSelector, IdValueConverterSelector>()
-				.UseSqlServer("Server=.;Database=ConverterTests;Integrated Security=SSPI")
+				.UseSqlServer(Settings.ConverterConnectionString)
 				.UseLoggerFactory(TestUtils.LoggerFactory);;
 
 			_options = optionsBuilder.Options;
@@ -40,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 		public void TestToList()
 		{
 			using (var ctx = new ConvertorContext(_options))
-			using (var db = ctx.CreateLinqToDbConnection())
+			using (var db = ctx.CreateLinqToDBConnection())
 			{
 				ctx.Database.EnsureDeleted();
 				ctx.Database.EnsureCreated();
@@ -58,7 +58,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 				var ef   = ctx.Subdivisions.Where(s => s.Id == 1L).ToArray();
 				var ltdb = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == 1L).ToArray();
 				
-				var id = new Nullable<Id<SubDivision, long>>(0L.AsId<SubDivision>());
+				var id = new Id<SubDivision, long>?(0L.AsId<SubDivision>());
 				var ltdb2 = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == id).ToArray();
 				
 				var ids = new[] {1L.AsId<SubDivision>(), 2L.AsId<SubDivision>(),};
