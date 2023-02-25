@@ -1,12 +1,11 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 3.22.0
-  nugetVersion: 3.22.0
+  assemblyVersion: 3.23.0
+  nugetVersion: 3.23.0
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
-# v3: 'version3'+ 'release.3'
 trigger:
   - version3
   - release.3
@@ -33,8 +32,9 @@ stages:
 
     steps:
 
+
     - task: UseDotNet@2
-      displayName: 'Use .NET 7'
+      displayName: 'Install .NET 7'
       inputs:
         version: 7.x
 
