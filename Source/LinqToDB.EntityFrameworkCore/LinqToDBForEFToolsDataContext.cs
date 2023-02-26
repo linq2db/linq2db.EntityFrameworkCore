@@ -11,7 +11,7 @@ namespace LinqToDB.EntityFrameworkCore
 	using Linq;
 
 	/// <summary>
-	/// linq2db EF.Core data context.
+	/// Linq To DB EF.Core data context.
 	/// </summary>
 	public class LinqToDBForEFToolsDataContext : DataContext, IExpressionPreprocessor
 	{

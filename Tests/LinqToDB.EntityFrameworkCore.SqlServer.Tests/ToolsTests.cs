@@ -30,7 +30,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseSqlServer("Server=.;Database=NorthwindEFCore;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true");
+			optionsBuilder.UseSqlServer(Settings.NorthwindConnectionString);
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
@@ -88,7 +88,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		public void TestToList([Values(true, false)] bool enableFilter)
 		{
 			using (var ctx = CreateContext(enableFilter))
-			using (var db = ctx.CreateLinqToDbConnection())
+			using (var db = ctx.CreateLinqToDBConnection())
 			{
 				var items = db.GetTable<Order>()
 					.LoadWith(d => d.OrderDetails)
@@ -170,7 +170,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		[Test]
 		public void TestCreateFromOptions()
 		{
-			using (var db = _options.CreateLinqToDbConnection())
+			using (var db = _options.CreateLinqToDBConnection())
 			{
 			}
 		}
@@ -215,7 +215,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext(enableFilter))
 			{
 				using (var transaction = ctx.Database.BeginTransaction())
-				using (var db = ctx.CreateLinqToDbConnection())
+				using (var db = ctx.CreateLinqToDBConnection())
 				{
 
 					var test1 = await ctx.Products.Where(p => p.ProductName.StartsWith("U")).MaxAsync(p => p.QuantityPerUnit);
@@ -236,7 +236,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		public void TestView([Values(true, false)] bool enableFilter)
 		{
 			using (var ctx = CreateContext(enableFilter))
-			using (var db = ctx.CreateLinqToDbConnection())
+			using (var db = ctx.CreateLinqToDBConnection())
 			{
 				var query = ProductQuery(ctx)
 					.ToLinqToDB(db)
@@ -307,7 +307,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(false))
 			{
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx);
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx, null);
 				
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
@@ -315,7 +315,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				Assert.NotNull(customerPk);
 				Assert.AreEqual(true, customerPk!.IsPrimaryKey);
 				Assert.AreEqual(0, customerPk.PrimaryKeyOrder);
-
 			}
 		}
 
@@ -324,7 +323,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(false))
 			{
-				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx);
+				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx, null);
 				
 				var associationOrder = ms.GetAttribute<AssociationAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.Orders));
@@ -334,7 +333,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				Assert.That(associationOrder.OtherKey, Is.EqualTo("CustomerId"));
 			}
 		}
-
 
 		[Repeat(2)]
 		[Test]
@@ -753,7 +751,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
-				using var db = ctx.CreateLinqToDbContext();
+				using var db = ctx.CreateLinqToDBContext();
 				using var temp = db.CreateTempTable(ctx.Employees, "#TestEmployees");
 
 				Assert.AreEqual(ctx.Employees.Count(), temp.Count());

@@ -20,16 +20,16 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 					.ReplaceService<IValueConverterSelector, IdValueConverterSelector>()
 					.UseLoggerFactory(TestUtils.LoggerFactory)
 					.EnableSensitiveDataLogging()
-					.UseNpgsql("Server=DBHost;Port=5432;Database=IdTests;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
-					//.UseNpgsql("Server=localhost;Port=5415;Database=IdTests;User Id=postgres;Password=Password12!;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
+					//.UseNpgsql("Server=DBHost;Port=5432;Database=IdTests;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
+					.UseNpgsql("Server=localhost;Port=5415;Database=IdTests;User Id=postgres;Password=Password12!;Pooling=true;MinPoolSize=10;MaxPoolSize=100;")
 					.Options);
 			_efContext.Database.EnsureDeleted();
 			_efContext.Database.EnsureCreated();
 		}
 
-		IDataContext CreateLinqToDbContext(TestContext testContext)
+		IDataContext CreateLinqToDBContext(TestContext testContext)
 		{
-			var result = testContext.CreateLinqToDbContext();
+			var result = testContext.CreateLinqToDBContext();
 			result.GetTraceSwitch().Level = TraceLevel.Verbose;
 			return result;
 		}
@@ -40,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 		[Ignore("Incomplete.")]
 		public void TestInsertWithoutTracker([Values("test insert")] string name) 
 			=> _efContext
-				.Arrange(CreateLinqToDbContext)
+				.Arrange(CreateLinqToDBContext)
 				.Act(c => c.Insert(new Entity { Name = name }))
 				.Assert(id => _efContext.Entitites.Single(e => e.Id == id).Name.Should().Be(name));
 
@@ -64,14 +64,14 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 		[Ignore("Incomplete.")]
 		public void TestIncludeDetails([Values] bool l2db, [Values] bool tracking)
 			=> _efContext
-				.Arrange(c => InsertDefaults(CreateLinqToDbContext(c)))
+				.Arrange(c => InsertDefaults(CreateLinqToDBContext(c)))
 				.Act(c => c
 					.Entitites
 					.Where(e => e.Name == "Alpha")
 					.Include(e => e.Details)
 					.ThenInclude(d => d.Details)
 					.Include(e => e.Children)
-					.AsLinqToDb(l2db)
+					.AsLinqToDB(l2db)
 					.AsTracking(tracking)
 					.ToArray())
 				.Assert(e => e?.First().Details.First().Details.Count().Should().Be(2));
@@ -79,14 +79,14 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 		[Test]
 		public void TestManyToManyIncludeTrackerPoison([Values] bool l2db)
 			=> _efContext
-				.Arrange(c => InsertDefaults(CreateLinqToDbContext(c)))
+				.Arrange(c => InsertDefaults(CreateLinqToDBContext(c)))
 				.Act(c =>
 				{
 					var q = c.Entitites
 						.Include(e => e.Items)
 						.ThenInclude(x => x.Item);
-					var f = q.AsLinqToDb(l2db).AsTracking().ToArray();
-					var s = q.AsLinqToDb(!l2db).AsTracking().ToArray();
+					var f = q.AsLinqToDB(l2db).AsTracking().ToArray();
+					var s = q.AsLinqToDB(!l2db).AsTracking().ToArray();
 					return (First: f, Second: s);
 				})
 				.Assert(r => r.First[0].Items.Count().Should().Be(r.Second[0].Items.Count()));
@@ -96,11 +96,11 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 		[Ignore("Incomplete.")]
 		public void TestManyToManyInclude([Values] bool l2db, [Values] bool tracking)
 			=> _efContext
-				.Arrange(c => InsertDefaults(CreateLinqToDbContext(c)))
+				.Arrange(c => InsertDefaults(CreateLinqToDBContext(c)))
 				.Act(c => c.Entitites
 					.Include(e => e.Items)
 					.ThenInclude(x => x.Item)
-					.AsLinqToDb(l2db)
+					.AsLinqToDB(l2db)
 					.AsTracking(tracking)
 					.ToArray())
 				.Assert(m => m?[0].Items.First().Item.Should().BeSameAs(m[1].Items.First().Item));
@@ -109,11 +109,11 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 		[Ignore("Incomplete.")]
 		public void TestMasterInclude([Values] bool l2db, [Values] bool tracking)
 			=> _efContext
-				.Arrange(c => InsertDefaults(CreateLinqToDbContext(c)))
+				.Arrange(c => InsertDefaults(CreateLinqToDBContext(c)))
 				.Act(c => c
 					.Details
 					.Include(d => d.Master)
-					.AsLinqToDb(l2db)
+					.AsLinqToDB(l2db)
 					.AsTracking(tracking)
 					.ToArray())
 				.Assert(m => m?[0].Master.Should().BeSameAs(m[1].Master));
@@ -122,12 +122,12 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 		[Ignore("Incomplete.")]
 		public void TestMasterInclude2([Values] bool l2db, [Values] bool tracking)
 			=> _efContext
-				.Arrange(c => InsertDefaults(CreateLinqToDbContext(c)))
+				.Arrange(c => InsertDefaults(CreateLinqToDBContext(c)))
 				.Act(c => c
 					.Details
 					.Include(d => d.Master)
 					.AsTracking(tracking)
-					.AsLinqToDb(l2db)
+					.AsLinqToDB(l2db)
 					.ToArray())
 				.Assert(m => m?[0].Master.Should().BeSameAs(m[1].Master));
 
