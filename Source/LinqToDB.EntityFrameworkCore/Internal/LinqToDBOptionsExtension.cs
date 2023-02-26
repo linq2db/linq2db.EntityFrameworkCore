@@ -1,25 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
 
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LinqToDB.EntityFrameworkCore.Internal
 {
-	using Interceptors;
-
 	/// <summary>
-	/// Model containing LinqToDB related context options
+	/// Model containing LinqToDB related context options.
 	/// </summary>
 	public class LinqToDBOptionsExtension : IDbContextOptionsExtension
 	{
 		private string? _logFragment;
 
-		private IList<IInterceptor>? _interceptors;
-
 		/// <summary>
 		/// List of registered LinqToDB interceptors
 		/// </summary>
-		public virtual IList<IInterceptor> Interceptors => _interceptors ??= new List<IInterceptor>();
+		public virtual DataOptions Options { get; set; }
 
 		/// <inheritdoc cref="IDbContextOptionsExtension.LogFragment"/>
 		public string LogFragment
@@ -30,9 +26,9 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 				{
 					string logFragment = string.Empty;
 
-					if (_interceptors?.Count > 0)
+					if (Options.DataContextOptions.Interceptors?.Count > 0)
 					{
-						_logFragment = $"Interceptors count: {_interceptors.Count}";
+						_logFragment = $"Interceptors count: {Options.DataContextOptions.Interceptors.Count}";
 					}
 					else
 					{
@@ -49,6 +45,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// </summary>
 		public LinqToDBOptionsExtension()
 		{
+			Options = new();
 		}
 
 		/// <summary>
@@ -57,7 +54,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// <param name="copyFrom"></param>
 		protected LinqToDBOptionsExtension(LinqToDBOptionsExtension copyFrom)
 		{
-			_interceptors = copyFrom._interceptors;
+			Options = copyFrom.Options;
 		}
 
 		/// <inheritdoc cref="IDbContextOptionsExtension.ApplyServices(IServiceCollection)"/>
@@ -71,7 +68,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// <param name="options"></param>
 		public void Validate(IDbContextOptions options)
 		{
-		}
+						}
 
 		/// <inheritdoc cref="IDbContextOptionsExtension.GetServiceProviderHashCode()"/>
 		public long GetServiceProviderHashCode() => 0;
