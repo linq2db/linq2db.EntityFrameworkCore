@@ -28,10 +28,11 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <summary>
 		/// Returns LINQ To DB provider, based on provider data from EF Core.
 		/// </summary>
+		/// <param name="options">Linq To DB context options.</param>
 		/// <param name="providerInfo">Provider information, extracted from EF Core.</param>
 		/// <param name="connectionInfo">Database connection information.</param>
 		/// <returns>LINQ TO DB provider instance.</returns>
-		IDataProvider? GetDataProvider(EFProviderInfo providerInfo, EFConnectionInfo connectionInfo);
+		IDataProvider? GetDataProvider(DataOptions options, EFProviderInfo providerInfo, EFConnectionInfo connectionInfo);
 
 		/// <summary>
 		/// Creates metadata provider for specified EF Core data model. Default implementation uses
@@ -50,8 +51,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <param name="convertorSelector">EF Core registry for type conversion.</param>
+		/// <param name="dataOptions">Linq To DB context options.</param>
 		/// <returns>Mapping schema for provided EF Core model.</returns>
-		MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader, IValueConverterSelector convertorSelector);
+		MappingSchema CreateMappingSchema(IModel model, IMetadataReader metadataReader, IValueConverterSelector convertorSelector, DataOptions dataOptions);
 
 		/// <summary>
 		/// Returns mapping schema using provided EF Core data model and metadata provider.
@@ -59,8 +61,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <param name="model">EF Core data model.</param>
 		/// <param name="metadataReader">Additional optional LINQ To DB database metadata provider.</param>
 		/// <param name="convertorSelector">EF Core registry for type conversion.</param>
+		/// <param name="dataOptions">Linq To DB context options.</param>
 		/// <returns>Mapping schema for provided EF Core model.</returns>
-		MappingSchema GetMappingSchema(IModel model, IMetadataReader? metadataReader, IValueConverterSelector? convertorSelector);
+		MappingSchema GetMappingSchema(IModel model, IMetadataReader? metadataReader, IValueConverterSelector? convertorSelector, DataOptions? dataOptions);
 
 		/// <summary>
 		/// Returns EF Core <see cref="IDbContextOptions"/> for specific <see cref="DbContext"/> instance.

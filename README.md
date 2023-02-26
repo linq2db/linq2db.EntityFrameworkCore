@@ -44,9 +44,17 @@ You can also register additional options (like interceptors) for LinqToDB during
 ```cs
 var optionsBuilder = new DbContextOptionsBuilder<MyDbContext>();
 optionsBuilder.UseSqlite();
-optionsBuilder.UseLinqToDb(builder => 
+optionsBuilder.UseLinqToDB(builder =>
 {
+    // add custom command interceptor
     builder.AddInterceptor(new MyCommandInterceptor());
+    // add additional mappings
+    builder.AddMappingSchema(myCustomMappings);
+    // configure SQL Server dialect explicitly
+    //builder.AddCustomOptions(o => o.UseSqlServer(SqlServerVersion.v2022));
+    // due to bug in linq2db 5.0.0, use overload with connection string
+    // will be fixed in next linq2db release
+    builder.AddCustomOptions(o => o.UseSqlServer("unused", SqlServerVersion.v2022));
 });
 ```
 
@@ -58,10 +66,10 @@ ctx.BulkCopy(new BulkCopyOptions {...}, items);
 
 // query for retrieving products that do not have duplicates by Name
 var query =
-	from p in ctx.Products
-	from op in ctx.Products.LeftJoin(op => op.ProductID != p.ProductID && op.Name == p.Name)
-	where Sql.ToNullable(op.ProductID) == null
-	select p;
+    from p in ctx.Products
+    from op in ctx.Products.LeftJoin(op => op.ProductID != p.ProductID && op.Name == p.Name)
+    where Sql.ToNullable(op.ProductID) == null
+    select p;
 
 // insert these records into the same or another table
 query.Insert(ctx.Products.ToLinqToDBTable(), s => new Product { Name = s.Name ... });
@@ -90,13 +98,13 @@ It is not required to work directly with `LINQ To DB` `DataConnection` class but
 
 ```cs
 // uing DbContext
-using (var dc = ctx.CreateLinqToDbConnection())
+using (var dc = ctx.CreateLinqToDBConnection())
 {
    // linq queries using linq2db extensions
 }
 
 // using DbContextOptions
-using (var dc = options.CreateLinqToDbConnection())
+using (var dc = options.CreateLinqToDBConnection())
 {
    // linq queries using linq2db extensions
 }
@@ -110,35 +118,35 @@ Async methods have the same name but with `LinqToDB` suffix. E.g. `ToListAsyncLi
 ```cs
 using (var ctx = CreateAdventureWorksContext())
 {
-	var productsWithModelCount =
-		from p in ctx.Products
-		select new
-		{
-			// Window Function
-			Count = Sql.Ext.Count().Over().PartitionBy(p.ProductModelID).ToValue(),
-			Product = p
-		};
+    var productsWithModelCount =
+        from p in ctx.Products
+        select new
+        {
+            // Window Function
+            Count = Sql.Ext.Count().Over().PartitionBy(p.ProductModelID).ToValue(),
+            Product = p
+        };
 
-	var neededRecords =
-		from p in productsWithModelCount
-		where p.Count.Between(2, 4) // LINQ To DB extension
-		select new
-		{
-			p.Product.Name,
-			p.Product.Color,
-			p.Product.Size,
-			// retrieving value from column dynamically
-			PhotoFileName = Sql.Property<string>(p.Product, "ThumbnailPhotoFileName")
-		};
+    var neededRecords =
+        from p in productsWithModelCount
+        where p.Count.Between(2, 4) // LINQ To DB extension
+        select new
+        {
+            p.Product.Name,
+            p.Product.Color,
+            p.Product.Size,
+            // retrieving value from column dynamically
+            PhotoFileName = Sql.Property<string>(p.Product, "ThumbnailPhotoFileName")
+        };
 
-	// ensure we have replaced EF context
-	var items1 = neededRecords.ToLinqToDB().ToArray();       
-	
-	// async version
-	var items2 = await neededRecords.ToLinqToDB().ToArrayAsync(); 
-	
-	// and simple bonus - how to generate SQL
-	var sql = neededRecords.ToLinqToDB().ToString();
+    // ensure we have replaced EF context
+    var items1 = neededRecords.ToLinqToDB().ToArray();       
+    
+    // async version
+    var items2 = await neededRecords.ToLinqToDB().ToArrayAsync(); 
+    
+    // and simple bonus - how to generate SQL
+    var sql = neededRecords.ToLinqToDB().ToString();
 }
 ```
 
@@ -165,7 +173,7 @@ Below is a list of providers, that should work right now:
 - Oracle
 - SQL Server CE
 
-# Know limitations
+# Known limitations
 - No Lazy loading
 - No way to work with in-memory database
 - No TPT (table per type) support

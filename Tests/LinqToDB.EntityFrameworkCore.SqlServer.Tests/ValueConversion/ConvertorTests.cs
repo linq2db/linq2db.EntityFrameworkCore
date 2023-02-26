@@ -29,7 +29,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 
 			optionsBuilder
 				.ReplaceService<IValueConverterSelector, IdValueConverterSelector>()
-				.UseSqlServer("Server=.;Database=ConverterTests;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true")
+				.UseSqlServer(Settings.ConverterConnectionString)
 				.UseLoggerFactory(TestUtils.LoggerFactory);;
 
 			_options = optionsBuilder.Options;
@@ -40,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 		public void TestToList()
 		{
 			using (var ctx = new ConvertorContext(_options))
-			using (var db = ctx.CreateLinqToDbConnection())
+			using (var db = ctx.CreateLinqToDBConnection())
 			{
 				ctx.Database.EnsureDeleted();
 				ctx.Database.EnsureCreated();

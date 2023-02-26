@@ -1,19 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 
 namespace LinqToDB.EntityFrameworkCore
 {
-	using Internal;
 	using Interceptors;
+	using Internal;
+	using Mapping;
 
 	/// <summary>
-	/// LinqToDB context options builder
+	/// Linq To DB context options builder
 	/// </summary>
-	public class LinqToDBContextOptionsBuilder 
+	public class LinqToDBContextOptionsBuilder
 	{
 		private readonly LinqToDBOptionsExtension? _extension;
 
 		/// <summary>
-		/// Db context options
+		/// Db context options.
 		/// </summary>
 		public DbContextOptions DbContextOptions { get; private set; }
 
@@ -28,13 +30,41 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Registers LinqToDb interceptor
+		/// Registers Linq To DB interceptor.
 		/// </summary>
-		/// <param name="interceptor">The interceptor instance to register</param>
+		/// <param name="interceptor">The interceptor instance to register.</param>
 		/// <returns></returns>
 		public LinqToDBContextOptionsBuilder AddInterceptor(IInterceptor interceptor)
 		{
-			_extension?.Interceptors.Add(interceptor);
+			if (_extension != null)
+				_extension.Options = _extension.Options.UseInterceptor(interceptor);
+
+			return this;
+		}
+
+		/// <summary>
+		/// Registers custom Linq To DB MappingSchema.
+		/// </summary>
+		/// <param name="mappingSchema">The interceptor instance to register.</param>
+		/// <returns></returns>
+		public LinqToDBContextOptionsBuilder AddMappingSchema(MappingSchema mappingSchema)
+		{
+			if (_extension != null)
+				_extension.Options = _extension.Options.UseMappingSchema(mappingSchema);
+
+			return this;
+		}
+
+		/// <summary>
+		/// Registers custom Linq To DB options.
+		/// </summary>
+		/// <param name="optionsSetter">Function to setup custom Linq To DB options.</param>
+		/// <returns></returns>
+		public LinqToDBContextOptionsBuilder AddCustomOptions(Func<DataOptions, DataOptions> optionsSetter)
+		{
+			if (_extension != null)
+				_extension.Options = optionsSetter(_extension.Options);
+
 			return this;
 		}
 	}

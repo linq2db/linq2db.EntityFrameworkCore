@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-
-using JetBrains.Annotations;
 
 namespace LinqToDB.EntityFrameworkCore
 {
 	using Data;
-	using Linq;
 	using Internal;
-	using Interceptors;
+	using Linq;
 
 	public static partial class LinqToDBForEFTools
 	{
@@ -30,7 +28,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return dc.BulkCopy(options, source);
 			}
@@ -48,7 +46,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return dc.BulkCopy(
 					new BulkCopyOptions { MaxBatchSize = maxBatchSize },
@@ -67,7 +65,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return dc.BulkCopy(
 					new BulkCopyOptions(),
@@ -96,7 +94,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(options, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -125,7 +123,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(maxBatchSize, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -146,7 +144,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -169,7 +167,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(options, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -195,7 +193,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(maxBatchSize, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -216,7 +214,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			using (var dc = context.CreateLinqToDbConnection())
+			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
 			}
@@ -241,7 +239,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (target == null)  throw new ArgumentNullException(nameof(target));
 
-			return context.CreateLinqToDbConnection().Into(target);
+			return context.CreateLinqToDBConnection().Into(target);
 		}
 
 		#endregion
@@ -258,18 +256,18 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
-			return context.CreateLinqToDbContext().GetTable<T>();
+			return context.CreateLinqToDBContext().GetTable<T>();
 		}
 
 		#endregion
 
-		#region Interceptors
+		#region Options
 
 		/// <summary>
-		/// Returns list of registered Linq2Db interceptors from EF Context
+		/// Returns Linq To DB context options from EF Context.
 		/// </summary>
-		/// <returns>Db context object</returns>
-		public static IList<IInterceptor>? GetLinq2DbInterceptors(this DbContext context)
+		/// <returns>Db context object.</returns>
+		public static DataOptions? GetLinqToDBOptions(this DbContext context)
 
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
@@ -277,25 +275,18 @@ namespace LinqToDB.EntityFrameworkCore
 			var contextOptions = ((IInfrastructure<IServiceProvider>)context.Database)?
 				.Instance?.GetService(typeof(IDbContextOptions)) as IDbContextOptions;
 
-			return contextOptions?.GetLinq2DbInterceptors();
+			return contextOptions?.GetLinqToDBOptions();
 		}
 
 		/// <summary>
-		/// Returns list of registered Linq2Db interceptors from EF Context options
+		/// Returns Linq To DB context options from EF Context options.
 		/// </summary>
-		/// <returns>Db context options</returns>
-		public static IList<IInterceptor> GetLinq2DbInterceptors(this IDbContextOptions contextOptions)
+		/// <returns>Db context options.</returns>
+		public static DataOptions? GetLinqToDBOptions(this IDbContextOptions contextOptions)
 		{
 			if (contextOptions == null) throw new ArgumentNullException(nameof(contextOptions));
 
-			var linq2DbExtension = contextOptions?.FindExtension<LinqToDBOptionsExtension>();
-			List<IInterceptor> interceptors = new List<IInterceptor>();
-			if (linq2DbExtension?.Interceptors != null)
-			{
-				interceptors.AddRange(linq2DbExtension.Interceptors);
-			}
-
-			return interceptors;
+			return contextOptions?.FindExtension<LinqToDBOptionsExtension>()?.Options;
 		}
 
 		#endregion
