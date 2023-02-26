@@ -4,8 +4,6 @@ using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
-using Pomelo.EntityFrameworkCore.MySql.Storage.Internal;
 
 namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 {
@@ -24,9 +22,9 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseMySql(
-				"Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;",
-				builder => builder.ServerVersion(new ServerVersion(null).Version, ServerType.MySql));
+			//var connectionString = "Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;";
+			var connectionString = "Server=localhost;Port=3316;Database=TestData;Uid=root;Pwd=root;charset=utf8;";
+			optionsBuilder.UseMySql(connectionString);
 
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
@@ -41,7 +39,6 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 			return ctx;
 		}
 
-
 		[Test]
 		public void SimpleProviderTest()
 		{
@@ -50,7 +47,5 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 				var items = db.Customers.Where(e => e.Address != null).ToLinqToDB().ToArray();
 			}
 		}
-
-	
 	}
 }

@@ -10,7 +10,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	[TestFixture]
 	public class IssueTests : TestsBase
 	{
-		private DbContextOptions<IssueContext>? _options;
+		private DbContextOptions<IssueContext> _options = default!;
 		private bool _created;
 
 		public IssueTests()
@@ -22,7 +22,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<IssueContext>();
 
-			optionsBuilder.UseSqlServer("Server=.;Database=IssuesEFCore;Integrated Security=SSPI");
+			optionsBuilder.UseSqlServer(Settings.IssuesConnectionString);
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
@@ -30,7 +30,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 		private IssueContext CreateContext()
 		{
-			var ctx = new IssueContext(_options!);
+			var ctx = new IssueContext(_options);
 
 			if (!_created)
 			{
@@ -72,7 +72,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 			var resultEF = query.ToArray();
 
-			using var db = ctx.CreateLinqToDbConnection();
+			using var db = ctx.CreateLinqToDBConnection();
 
 			_ = query.ToLinqToDB(db).ToArray();
 

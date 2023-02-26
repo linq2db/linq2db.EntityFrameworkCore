@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using LinqToDB.Expressions;
 using LinqToDB.Reflection;
-using LinqToDB.SqlQuery;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -20,11 +19,11 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LinqToDB.EntityFrameworkCore
 {
+	using Common;
+	using Extensions;
+	using Internal;
 	using Mapping;
 	using Metadata;
-	using Extensions;
-	using Common;
-	using Internal;
 	using SqlQuery;
 
 	/// <summary>
@@ -32,103 +31,105 @@ namespace LinqToDB.EntityFrameworkCore
 	/// </summary>
 	internal sealed class EFCoreMetadataReader : IMetadataReader
 	{
-		readonly IModel? _model;
-		private readonly SqlTranslatingExpressionVisitorDependencies? _dependencies;
-		private readonly IRelationalTypeMappingSource? _mappingSource;
-		private readonly IMigrationsAnnotationProvider? _annotationProvider;
+		private readonly string                                                       _objectId;
+		private readonly IModel?                                                      _model;
+		private readonly SqlTranslatingExpressionVisitorDependencies?       _dependencies;
+		private readonly IRelationalTypeMappingSource?                                _mappingSource;
+		private readonly IMigrationsAnnotationProvider?                               _annotationProvider;
 		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new();
 
-		public EFCoreMetadataReader(
-			IModel? model, IInfrastructure<IServiceProvider>? accessor)
+		public EFCoreMetadataReader(IModel? model, IInfrastructure<IServiceProvider>? accessor)
 		{
 			_model = model;
+
 			if (accessor != null)
 			{
-				_dependencies       = accessor.GetService<SqlTranslatingExpressionVisitorDependencies>();
-				_mappingSource      = accessor.GetService<IRelationalTypeMappingSource>();
+				_dependencies = accessor.GetService<SqlTranslatingExpressionVisitorDependencies>();
+				_mappingSource = accessor.GetService<IRelationalTypeMappingSource>();
 				_annotationProvider = accessor.GetService<IMigrationsAnnotationProvider>();
 			}
+
+			_objectId = $".{_model?.GetHashCode() ?? 0}.{_dependencies?.GetHashCode() ?? 0}.{_mappingSource?.GetHashCode() ?? 0}.{_annotationProvider?.GetHashCode() ?? 0}.";
 		}
 
-		public T[] GetAttributes<T>(Type type, bool inherit = true) where T : Attribute
+		public MappingAttribute[] GetAttributes(Type type)
 		{
+			List<MappingAttribute>? result = null;
+
 			var et = _model?.FindEntityType(type);
 			if (et != null)
 			{
-				if (typeof(T) == typeof(TableAttribute))
-				{
-					var relational = et.Relational();
-					return new[] { (T)(Attribute)new TableAttribute(relational.TableName) { Schema = relational.Schema } };
-				}
-				if (typeof(T) == typeof(QueryFilterAttribute))
-				{
-					var filter = et.QueryFilter;
+				result = new();
 
-					if (filter != null)
+				// TableAttribute
+				var relational = et.Relational();
+				result.Add(new TableAttribute(relational.TableName) { Schema = relational.Schema });
+
+				// QueryFilterAttribute
+				var filter = et.QueryFilter;
+				if (filter != null)
+				{
+					var queryParam   = Expression.Parameter(typeof(IQueryable<>).MakeGenericType(type), "q");
+					var dcParam      = Expression.Parameter(typeof(IDataContext), "dc");
+					var contextProp  = Expression.Property(Expression.Convert(dcParam, typeof(LinqToDBForEFToolsDataConnection)), "Context");
+					var filterBody   = filter.Body.Transform(contextProp, static (contextProp, e) =>
 					{
-						var queryParam   = Expression.Parameter(typeof(IQueryable<>).MakeGenericType(type), "q");
-						var dcParam      = Expression.Parameter(typeof(IDataContext), "dc");
-						var contextProp  = Expression.Property(Expression.Convert(dcParam, typeof(LinqToDBForEFToolsDataConnection)), "Context");
-						var filterBody   = filter.Body.Transform(e =>
+						if (typeof(DbContext).IsSameOrParentOf(e.Type))
 						{
-							if (typeof(DbContext).IsSameOrParentOf(e.Type))
-							{
-								Expression newExpr = contextProp;
-								if (newExpr.Type != e.Type)
-									newExpr = Expression.Convert(newExpr, e.Type);
-								return newExpr;
-							}
-
-							return e;
-						});
-
-						filterBody = LinqToDBForEFTools.TransformExpression(filterBody, null, null, _model);
-
-						// we have found dependency, check for compatibility
-
-						var filterLambda = Expression.Lambda(filterBody, filter.Parameters[0]);
-						Expression body  = Expression.Call(Methods.Queryable.Where.MakeGenericMethod(type), queryParam, filterLambda);
-
-						var checkType = filter.Body != filterBody;
-						if (checkType)
-						{
-							body = Expression.Condition(
-								Expression.TypeIs(dcParam, typeof(LinqToDBForEFToolsDataConnection)), body, queryParam);
+							Expression newExpr = contextProp;
+							if (newExpr.Type != e.Type)
+								newExpr = Expression.Convert(newExpr, e.Type);
+							return newExpr;
 						}
 
-						var lambda       = Expression.Lambda(body, queryParam, dcParam);
+						return e;
+					});
 
-						return new[] { (T) (Attribute) new QueryFilterAttribute { FilterFunc = lambda.Compile() } };
+					filterBody = LinqToDBForEFTools.TransformExpression(filterBody, null, null, _model);
+
+					// we have found dependency, check for compatibility
+
+					var filterLambda = Expression.Lambda(filterBody, filter.Parameters[0]);
+					Expression body  = Expression.Call(Methods.Queryable.Where.MakeGenericMethod(type), queryParam, filterLambda);
+
+					var checkType = filter.Body != filterBody;
+					if (checkType)
+					{
+						body = Expression.Condition(
+							Expression.TypeIs(dcParam, typeof(LinqToDBForEFToolsDataConnection)), body, queryParam);
 					}
-				}
-			}
 
-			if (typeof(T) == typeof(TableAttribute))
-			{
-				var tableAttribute = type.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.TableAttribute>(inherit);
-				if (tableAttribute != null)
-					return new[] { (T)(Attribute)new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema } };
-			}
-			else if (_model != null && typeof(T) == typeof(InheritanceMappingAttribute))
-			{
-				if (et != null)
+					var lambda       = Expression.Lambda(body, queryParam, dcParam);
+
+					result.Add(new QueryFilterAttribute() { FilterFunc = lambda.Compile() });
+				}
+
+				// InheritanceMappingAttribute
+				if (_model != null)
 				{
 					var derivedEntities = _model.GetEntityTypes().Where(e => e.BaseType == et && e.Relational().DiscriminatorValue != null).ToList();
 
-					return
-						derivedEntities.Select(e =>
-								(T)(Attribute)new InheritanceMappingAttribute
-								{
-									Type = e.ClrType, 
-									Code = e.Relational().DiscriminatorValue
-								}
-							)
-							.ToArray();
+					foreach (var e in derivedEntities)
+					{
+						result.Add(
+							new InheritanceMappingAttribute()
+							{
+								Type = e.ClrType,
+								Code = e.Relational().DiscriminatorValue
+							}
+							);
+					}
 				}
-
+			}
+			else
+			{
+				// TableAttribute
+				var tableAttribute = type.GetAttribute<System.ComponentModel.DataAnnotations.Schema.TableAttribute>();
+				if (tableAttribute != null)
+					(result ??= new()).Add(new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema });
 			}
 
-			return Array.Empty<T>();
+			return result == null ? Array.Empty<MappingAttribute>() : result.ToArray();
 		}
 
 		static bool CompareProperty(MemberInfo? property, MemberInfo memberInfo)
@@ -138,11 +139,11 @@ namespace LinqToDB.EntityFrameworkCore
 
 			if (property == null)
 				return false;
-			
+
 			if (memberInfo.DeclaringType?.IsAssignableFrom(property.DeclaringType) == true
-			    && memberInfo.Name == property.Name 
-			    && memberInfo.MemberType == property.MemberType 
-			    && memberInfo.GetMemberType() == property.GetMemberType())
+				&& memberInfo.Name == property.Name
+				&& memberInfo.MemberType == property.MemberType
+				&& memberInfo.GetMemberType() == property.GetMemberType())
 			{
 				return true;
 			}
@@ -189,130 +190,139 @@ namespace LinqToDB.EntityFrameworkCore
 				_ => DataType.Undefined
 			};
 		}
-		
-		public T[] GetAttributes<T>(Type type, MemberInfo memberInfo, bool inherit = true) where T : Attribute
+
+		public MappingAttribute[] GetAttributes(Type type, MemberInfo memberInfo)
 		{
-			if (typeof(Expression).IsSameOrParentOf(type)) 
-				return Array.Empty<T>();
+			if (typeof(Expression).IsSameOrParentOf(type))
+				return Array.Empty<MappingAttribute>();
 
-			if (typeof(T) == typeof(ColumnAttribute))
+			List<MappingAttribute>? result = null;
+			var hasColumn = false;
+
+			var et = _model?.FindEntityType(type);
+			if (et != null)
 			{
-				var et = _model?.FindEntityType(type);
-				if (et != null)
+				var props = et.GetProperties();
+				var prop  = props.FirstOrDefault(p => CompareProperty(p, memberInfo));
+
+				// ColumnAttribute
+				if (prop != null)
 				{
-					var props = et.GetProperties();
-					var prop  = props.FirstOrDefault(p => CompareProperty(p, memberInfo));
-					
-					if (prop != null)
+					hasColumn = true;
+					var discriminator = et.Relational().DiscriminatorProperty;
+
+					var isPrimaryKey    = prop.IsPrimaryKey();
+					var primaryKeyOrder = 0;
+					if (isPrimaryKey)
 					{
-						var discriminator = et.Relational().DiscriminatorProperty;
-
-						var isPrimaryKey = prop.IsPrimaryKey();
-						var primaryKeyOrder = 0;
-						if (isPrimaryKey)
+						var pk = prop.GetContainingPrimaryKey()!;
+						var idx = 0;
+						foreach (var p in pk.Properties)
 						{
-							var pk = prop.GetContainingPrimaryKey()!;
-							primaryKeyOrder = pk.Properties.Select((p, i) => new { p, index = i })
-								                  .FirstOrDefault(v => CompareProperty(v.p, memberInfo))?.index ?? 0;
-						}
-
-						var annotations = prop.GetAnnotations();
-						if (_annotationProvider != null)
-						{
-							annotations = annotations.Concat(_annotationProvider.For(prop));
-						}
-
-						var isIdentity = annotations
-							.Any(a =>
+							if (CompareProperty(p, memberInfo))
 							{
-								if (a.Name.EndsWith(":ValueGenerationStrategy"))
+								primaryKeyOrder = idx;
+								break;
+							}
+
+							idx++;
+						}
+					}
+
+					var annotations = prop.GetAnnotations();
+					if (_annotationProvider != null)
+					{
+						annotations = annotations.Concat(_annotationProvider.For(prop));
+					}
+
+					var isIdentity = annotations
+						.Any(static a =>
+						{
+							if (a.Name.EndsWith(":ValueGenerationStrategy"))
+							{
+								var value = a.Value?.ToString();
+
+								if (value != null && (value.Contains("Identity") || value.Contains("Serial")))
+									return true;
+							};
+
+							if (a.Name.EndsWith(":Autoincrement"))
+								return a.Value is bool b && b;
+
+							// for postgres
+							if (a.Name == "Relational:DefaultValueSql")
+							{
+								if (a.Value is string str)
 								{
-									var value = a.Value?.ToString();
-
-									if (value != null && (value.Contains("Identity") || value.Contains("Serial")))
-										return true;
-								};
-
-								if (a.Name.EndsWith(":Autoincrement"))
-									return a.Value is bool b && b;
-
-								// for postgres
-								if (a.Name == "Relational:DefaultValueSql")
-								{
-									if (a.Value is string str)
-									{
-										return str.ToLowerInvariant().Contains("nextval");
-									}
+									return str.ToLowerInvariant().Contains("nextval");
 								}
+							}
 
-								return false;
-							});
+							return false;
+						});
 
-						var dataType = DataType.Undefined;
+					var dataType = DataType.Undefined;
 
-						var relational = prop.Relational();
+					var relational = prop.Relational();
 
-						if (annotations.FirstOrDefault(a => a.Value is RelationalTypeMapping)?.Value is RelationalTypeMapping typeMapping)
+					if (annotations.FirstOrDefault(a => a.Value is RelationalTypeMapping)?.Value is RelationalTypeMapping typeMapping)
+					{
+						if (typeMapping.DbType != null)
 						{
-							if (typeMapping.DbType != null)
-							{
-								dataType = DbTypeToDataType(typeMapping.DbType.Value);
-							}
-							else
-							{
-								var ms = _model != null ? LinqToDBForEFTools.GetMappingSchema(_model, null) : MappingSchema.Default;
-								dataType = ms.GetDataType(typeMapping.ClrType).Type.DataType;
-							}
+							dataType = DbTypeToDataType(typeMapping.DbType.Value);
 						}
-
-						var behaviour = prop.BeforeSaveBehavior;
-						var skipOnInsert = prop.ValueGenerated.HasFlag(ValueGenerated.OnAdd);
-
-						if (skipOnInsert)
+						else
 						{
-							skipOnInsert = isIdentity || behaviour != PropertySaveBehavior.Save;
+							var ms = _model != null ? LinqToDBForEFTools.GetMappingSchema(_model, null, null) : MappingSchema.Default;
+							dataType = ms.GetDataType(typeMapping.ClrType).Type.DataType;
 						}
+					}
 
-						var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
-						                   prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
+					var behaviour = prop.BeforeSaveBehavior;
+					var skipOnInsert = prop.ValueGenerated.HasFlag(ValueGenerated.OnAdd);
 
-						return new T[]
+					if (skipOnInsert)
+					{
+						skipOnInsert = isIdentity || behaviour != PropertySaveBehavior.Save;
+					}
+
+					var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
+						prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
+
+					(result ??= new()).Add(
+						new ColumnAttribute()
 						{
-							(T)(Attribute)new ColumnAttribute
-							{
-								Name            = relational.ColumnName,
-								Length          = prop.GetMaxLength() ?? 0,
-								CanBeNull       = prop.IsNullable,
-								DbType          = relational.ColumnType,
-								DataType        = dataType,
-								IsPrimaryKey    = isPrimaryKey,
-								PrimaryKeyOrder = primaryKeyOrder,
-								IsIdentity      = isIdentity,
-								IsDiscriminator = discriminator == prop,
-								SkipOnInsert    = skipOnInsert,
-								SkipOnUpdate    = skipOnUpdate
-							}
+							Name = relational.ColumnName,
+							Length = prop.GetMaxLength() ?? 0,
+							CanBeNull = prop.IsNullable,
+							DbType = relational.ColumnType,
+							DataType = dataType,
+							IsPrimaryKey = isPrimaryKey,
+							PrimaryKeyOrder = primaryKeyOrder,
+							IsIdentity = isIdentity,
+							IsDiscriminator = discriminator == prop,
+							SkipOnInsert = skipOnInsert,
+							SkipOnUpdate = skipOnUpdate
+						}
+					);
+
+					// ValueConverterAttribute
+					var converter = prop.GetValueConverter();
+					if (converter != null)
+					{
+						var valueConverterAttribute = new ValueConverterAttribute()
+						{
+							ValueConverter = new ValueConverter(converter.ConvertToProviderExpression, converter.ConvertFromProviderExpression, false)
 						};
+
+						result.Add(valueConverterAttribute);
 					}
 				}
 
-				var columnAttributes = memberInfo.GetCustomAttributes<System.ComponentModel.DataAnnotations.Schema.ColumnAttribute>(inherit);
-
-				return columnAttributes.Select(c => (T)(Attribute)new ColumnAttribute
+				// AssociationAttribute
+				foreach (var navigation in et.GetNavigations())
 				{
-					Name = c.Name,
-					DbType = c.TypeName,
-				}).ToArray();
-			}
-
-			if (typeof(T) == typeof(AssociationAttribute))
-			{
-				var et = _model?.FindEntityType(type);
-				var navigations = et?.GetNavigations().Where(n => CompareProperty(n.PropertyInfo, memberInfo)).ToArray();
-				if (navigations?.Length > 0)
-				{
-					var associations = new List<AssociationAttribute>();
-					foreach (var navigation in navigations)
+					if (CompareProperty(navigation.PropertyInfo, memberInfo))
 					{
 						var fk = navigation.ForeignKey;
 						if (!navigation.IsDependentToPrincipal())
@@ -320,100 +330,87 @@ namespace LinqToDB.EntityFrameworkCore
 							// Could not track when EF decides to do INNER JOIN
 							var canBeNull = true;
 
-							var thisKey  = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
-							var otherKey = string.Join(",", fk.Properties.Select(p => p.Name));
-							associations.Add(new AssociationAttribute
+							var thisKey  = string.Join(",", fk.PrincipalKey.Properties.Select(static p => p.Name));
+							var otherKey = string.Join(",", fk.Properties.Select(static p => p.Name));
+							(result ??= new()).Add(new AssociationAttribute()
 							{
-								ThisKey         = thisKey,
-								OtherKey        = otherKey,
-								CanBeNull       = canBeNull,
+								ThisKey = thisKey,
+								OtherKey = otherKey,
+								CanBeNull = canBeNull
 							});
 						}
 						else
 						{
-							var thisKey  = string.Join(",", fk.Properties.Select(p => p.Name));
-							var otherKey = string.Join(",", fk.PrincipalKey.Properties.Select(p => p.Name));
-							associations.Add(new AssociationAttribute
+							var thisKey  = string.Join(",", fk.Properties.Select(static p => p.Name));
+							var otherKey = string.Join(",", fk.PrincipalKey.Properties.Select(static p => p.Name));
+							(result ??= new()).Add(new AssociationAttribute()
 							{
-								ThisKey         = thisKey,
-								OtherKey        = otherKey,
-								CanBeNull       = !fk.IsRequired,
+								ThisKey = thisKey,
+								OtherKey = otherKey,
+								CanBeNull = !fk.IsRequired
 							});
 						}
 					}
-
-					return associations.Select(a => (T)(Attribute)a).ToArray();
 				}
-			} 
-			else if (typeof(T) == typeof(Sql.ExpressionAttribute))
+			}
+
+			if (!hasColumn)
 			{
-				// Search for translator first
-				if (_dependencies != null)
-				{
-					if (memberInfo.IsMethodEx())
-					{
-						var methodInfo = (MethodInfo) memberInfo;
-						var func = GetDbFunctionFromMethodCall(type, methodInfo);
-						if (func != null)
-							return new T[] { (T) (Attribute) func };
-					}
-					else if (memberInfo.IsPropertyEx())
-					{
-						var propertyInfo = (PropertyInfo) memberInfo;
-						var func = GetDbFunctionFromProperty(type, propertyInfo);
-						if (func != null)
-							return new T[] { (T) (Attribute) func };
-					}
-				}
+				// ColumnAttribute
+				var columnAttribute = memberInfo.GetAttribute<System.ComponentModel.DataAnnotations.Schema.ColumnAttribute>();
 
+				if (columnAttribute != null)
+					(result ??= new()).Add(new ColumnAttribute()
+					{
+						Name = columnAttribute.Name,
+						DbType = columnAttribute.TypeName,
+					});
+			}
+
+			// Search for translator first
+			// Sql.ExpressionAttribute
+			if (_dependencies != null)
+			{
 				if (memberInfo.IsMethodEx())
 				{
-					var method = (MethodInfo) memberInfo;
-
-					//TODO:
-					/*
-					var func = _model?.GetDbFunctions().FirstOrDefault(f => f.MethodInfo == method);
+					var methodInfo = (MethodInfo) memberInfo;
+					var func = GetDbFunctionFromMethodCall(type, methodInfo);
 					if (func != null)
-						return new T[]
-						{
-							(T) (Attribute) new Sql.FunctionAttribute
-							{
-								Name = func.Name,
-								ServerSideOnly = true
-							}
-						};
-
-					var functionAttributes = memberInfo.GetCustomAttributes<DbFunctionAttribute>(inherit);
-					return functionAttributes.Select(f => (T) (Attribute) new Sql.FunctionAttribute
-					{
-						Name = f.Name,
-						ServerSideOnly = true,
-					}).ToArray();
-				*/
+						(result ??= new()).Add(func);
 				}
-			}
-			else if (typeof(T) == typeof(ValueConverterAttribute))
-			{
-				var et = _model?.FindEntityType(type);
-				if (et != null)
+				else if (memberInfo.IsPropertyEx())
 				{
-					var props = et.GetProperties();
-					var prop  = props.FirstOrDefault(p => CompareProperty(p, memberInfo));
-
-					var converter = prop?.GetValueConverter();
-					if (converter != null)
-					{
-						var valueConverterAttribute = new ValueConverterAttribute
-						{
-							ValueConverter = new ValueConverter(converter.ConvertToProviderExpression,
-								converter.ConvertFromProviderExpression, false)
-						};
-						return new T[] { (T) (Attribute) valueConverterAttribute };
-					}
+					var propertyInfo = (PropertyInfo) memberInfo;
+					var func = GetDbFunctionFromProperty(type, propertyInfo);
+					if (func != null)
+						(result ??= new()).Add(func);
 				}
 			}
 
-			return Array.Empty<T>();
+			// Sql.FunctionAttribute
+			// TODO
+			//if (memberInfo.IsMethodEx())
+			//{
+			//	var method = (MethodInfo) memberInfo;
+
+			//	var func = _model?.GetDbFunctions().FirstOrDefault(f => f.MethodInfo == method);
+			//	if (func != null)
+			//		(result ??= new()).Add(new Sql.FunctionAttribute()
+			//		{
+			//			Name = func.Name,
+			//			ServerSideOnly = true
+			//		});
+
+			//	var functionAttribute = memberInfo.GetAttribute<DbFunctionAttribute>();
+			//	if (functionAttribute != null)
+			//		(result ??= new()).Add(new Sql.FunctionAttribute()
+			//		{
+			//			Name = functionAttribute.Name,
+			//			ServerSideOnly = true,
+			//		});
+			//}
+
+			return result == null ? Array.Empty<MappingAttribute>() : result.ToArray();
 		}
 
 		sealed class ValueConverter : IValueConverter
@@ -423,14 +420,13 @@ namespace LinqToDB.EntityFrameworkCore
 				LambdaExpression convertFromProviderExpression, bool handlesNulls)
 			{
 				FromProviderExpression = convertFromProviderExpression;
-				ToProviderExpression   = convertToProviderExpression;
-				HandlesNulls           = handlesNulls;
+				ToProviderExpression = convertToProviderExpression;
+				HandlesNulls = handlesNulls;
 			}
 
-			public bool             HandlesNulls           { get; }
+			public bool HandlesNulls { get; }
 			public LambdaExpression FromProviderExpression { get; }
-			public LambdaExpression ToProviderExpression   { get; }
-		
+			public LambdaExpression ToProviderExpression { get; }
 		}
 
 		sealed class SqlTransparentExpression : Expression
@@ -447,12 +443,12 @@ namespace LinqToDB.EntityFrameworkCore
 				return ReferenceEquals(this, other);
 			}
 
-			public override bool Equals(object obj)
+			public override bool Equals(object? obj)
 			{
-				if (ReferenceEquals(null, obj)) return false;
+				if (obj is null) return false;
 				if (ReferenceEquals(this, obj)) return true;
 				if (obj.GetType() != GetType()) return false;
-				return Equals((SqlTransparentExpression) obj);
+				return Equals((SqlTransparentExpression)obj);
 			}
 
 			public override Type Type => Expression.Type;
@@ -469,7 +465,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (_dependencies == null || _model == null)
 				return null;
 
-			methodInfo = (MethodInfo?) type.GetMemberEx(methodInfo) ?? methodInfo;
+			methodInfo = (MethodInfo?)type.GetMemberEx(methodInfo) ?? methodInfo;
 
 			var found = _calculatedExtensions.GetOrAdd(methodInfo, mi =>
 			{
@@ -512,14 +508,14 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				EFCoreExpressionAttribute? result = null;
 
-				if ((propInfo.GetMethod?.IsStatic != true) 
-				    && !(mi is DynamicColumnInfo) 
-				    && !mi.GetCustomAttributes<Sql.ExpressionAttribute>().Any())
+				if ((propInfo.GetMethod?.IsStatic != true)
+					&& !(mi is DynamicColumnInfo)
+					&& !mi.HasAttribute<Sql.ExpressionAttribute>())
 				{
 					var objExpr =  new SqlTransparentExpression(Expression.Constant(DefaultValue.GetValue(type), type));
 					var mcExpr = Expression.MakeMemberAccess(objExpr, propInfo);
 
-					var newExpression = _dependencies.MemberTranslator.Translate(mcExpr);
+					var newExpression = _dependencies!.MemberTranslator.Translate(mcExpr);
 					if (newExpression != null)
 					{
 						var parametersArray = new Expression[] { objExpr };
@@ -547,8 +543,8 @@ namespace LinqToDB.EntityFrameworkCore
 					{
 						if (param is SqlTransparentExpression transparent)
 						{
-							if (transparent.Expression is ConstantExpression constantExpr &&
-							    expr is ConstantExpression sqlConstantExpr)
+							if (transparent.Expression is ConstantExpression &&
+								expr is ConstantExpression)
 							{
 								//found = sqlConstantExpr.Value.Equals(constantExpr.Value);
 								found = true;
@@ -578,7 +574,7 @@ namespace LinqToDB.EntityFrameworkCore
 					if (!sqlFunction.IsNiladic)
 					{
 						text = text + "(";
-						for (int i = 0; i < sqlFunction.Arguments.Count; i++)
+						for (var i = 0; i < sqlFunction.Arguments.Count; i++)
 						{
 							var paramText = PrepareExpressionText(sqlFunction.Arguments[i]);
 							if (i > 0)
@@ -593,8 +589,8 @@ namespace LinqToDB.EntityFrameworkCore
 				}
 
 				if (newExpression.GetType().GetProperty("Left") != null &&
-				    newExpression.GetType().GetProperty("Right") != null &&
-				    newExpression.GetType().GetProperty("Operator") != null)
+					newExpression.GetType().GetProperty("Right") != null &&
+					newExpression.GetType().GetProperty("Operator") != null)
 				{
 					// Handling NpgSql's CustomBinaryExpression
 
@@ -614,9 +610,9 @@ namespace LinqToDB.EntityFrameworkCore
 			var converted = UnwrapConverted(newExpression);
 			var expressionText = PrepareExpressionText(converted);
 			var result = new EFCoreExpressionAttribute(expressionText)
-				{ ServerSideOnly = true, IsPredicate = memberInfo.GetMemberType() == typeof(bool) };
+			{ ServerSideOnly = true, IsPredicate = memberInfo.GetMemberType() == typeof(bool) };
 
-			if (converted is SqlFunctionExpression || converted is SqlFragmentExpression)
+			if (converted is SqlFunctionExpression or SqlFragmentExpression)
 				result.Precedence = Precedence.Primary;
 
 			return result;
@@ -627,7 +623,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (expr is SqlFunctionExpression func)
 			{
 				if (string.Equals(func.FunctionName, "COALESCE", StringComparison.InvariantCultureIgnoreCase) &&
-				    func.Arguments.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Extension)
+					func.Arguments?.Count == 2 && func.Arguments[1].NodeType == ExpressionType.Extension)
 					return UnwrapConverted(func.Arguments[0]);
 			}
 
@@ -638,5 +634,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			return Array.Empty<MemberInfo>();
 		}
+
+		string IMetadataReader.GetObjectID() => _objectId;
 	}
 }
