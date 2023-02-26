@@ -9,7 +9,6 @@ using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 {
-
 	[TestFixture]
 	public class JsonConverTests : TestsBase
 	{
@@ -85,13 +84,13 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<JsonConvertContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseSqlServer("Server=.;Database=JsonConvertContext;Integrated Security=SSPI");
+			optionsBuilder.UseSqlServer(Settings.JsonConvertConnectionString);
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
 		}
 
-		public static string JsonValue(string column, [NotParameterized] string path)
+		public static string JsonValue(string? column, [NotParameterized] string path)
 		{
 			throw new NotSupportedException();
 		}
@@ -133,7 +132,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 						p.NameLocalized,
 						p.CrashEnum,
 						p.GuidColumn,
-						JsonValue = JsonValue(p.JsonColumn!, path)
+						JsonValue = JsonValue(p.JsonColumn, path)
 					});
 
 				var item = items.FirstOrDefault();
@@ -152,7 +151,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				//
 				// Assert.That(concrete.English, Is.EqualTo("English"));
 			}
-
 		}
 	}
 }
