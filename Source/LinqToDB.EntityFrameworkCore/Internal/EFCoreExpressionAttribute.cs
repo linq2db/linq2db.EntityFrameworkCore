@@ -8,7 +8,7 @@ using LinqToDB.SqlQuery;
 namespace LinqToDB.EntityFrameworkCore.Internal
 {
 	/// <summary>
-	/// Maps linq2db expression.
+	/// Maps Linq To DB expression.
 	/// </summary>
 	public class EFCoreExpressionAttribute : Sql.ExpressionAttribute
 	{

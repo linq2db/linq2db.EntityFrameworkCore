@@ -17,7 +17,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null)
 				throw new LinqToDBForEFToolsException($"Can not load current context from {nameof(dbSet)}");
 
-			var dc = CreateLinqToDbContext(context);
+			var dc = CreateLinqToDBContext(context);
 			return dc.GetTable<T>();
 		}
 
