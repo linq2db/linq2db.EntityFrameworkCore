@@ -9,19 +9,31 @@ namespace LinqToDB.EntityFrameworkCore
 	public static partial class LinqToDBForEFTools
 	{
 		/// <summary>
-		/// Registers custom options related to LinqToDB provider
+		/// Registers custom options related to LinqToDB provider.
 		/// </summary>
 		/// <param name="optionsBuilder"></param>
-		/// <param name="linq2DbOptionsAction">Custom options action</param>
+		/// <param name="linq2dbOptionsAction">Custom options action.</param>
 		/// <returns></returns>
+		[Obsolete($"Use {nameof(UseLinqToDB)} overload.")]
 		public static DbContextOptionsBuilder UseLinqToDb(
 			this DbContextOptionsBuilder optionsBuilder,
-			Action<LinqToDBContextOptionsBuilder>? linq2DbOptionsAction = null)
+			Action<LinqToDBContextOptionsBuilder>? linq2dbOptionsAction = null)
+			=> UseLinqToDB(optionsBuilder, linq2dbOptionsAction);
+
+		/// <summary>
+		/// Registers custom options related to LinqToDB provider.
+		/// </summary>
+		/// <param name="optionsBuilder"></param>
+		/// <param name="linq2dbOptionsAction">Custom options action.</param>
+		/// <returns></returns>
+		public static DbContextOptionsBuilder UseLinqToDB(
+			this DbContextOptionsBuilder optionsBuilder,
+			Action<LinqToDBContextOptionsBuilder>? linq2dbOptionsAction = null)
 		{
 			((IDbContextOptionsBuilderInfrastructure)optionsBuilder)
 				.AddOrUpdateExtension(GetOrCreateExtension(optionsBuilder));
 
-			linq2DbOptionsAction?.Invoke(new LinqToDBContextOptionsBuilder(optionsBuilder));
+			linq2dbOptionsAction?.Invoke(new LinqToDBContextOptionsBuilder(optionsBuilder));
 
 			return optionsBuilder;
 		}
