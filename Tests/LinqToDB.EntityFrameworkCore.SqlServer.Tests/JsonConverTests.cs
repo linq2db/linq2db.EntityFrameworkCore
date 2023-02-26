@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -10,7 +9,6 @@ using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 {
-
 	[TestFixture]
 	public class JsonConverTests : TestsBase
 	{
@@ -82,7 +80,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<JsonConvertContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseSqlServer("Server=.;Database=JsonConvertContext;Integrated Security=SSPI");
+			optionsBuilder.UseSqlServer(Settings.JsonConvertConnectionString);
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
@@ -116,18 +114,21 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var queryable = ctx.EventScheduleItems
 					.Where(p => p.Id < 10).ToLinqToDB();
 
-				var item = queryable
+				var items = queryable
 					.Select(p => new
 					{
 						p.Id,
 						p.NameLocalized,
 						p.CrashEnum,
-						p.GuidColumn
-					}).FirstOrDefault();
-				
-				Assert.That(item.NameLocalized.English, Is.EqualTo("English"));
-				Assert.That(item.NameLocalized.German,  Is.EqualTo("German"));
-				Assert.That(item.NameLocalized.Slovak,  Is.EqualTo("Slovak"));
+						p.GuidColumn,
+					});
+
+				var item = items.FirstOrDefault();
+
+				Assert.IsNotNull(item);
+				Assert.That(item!.NameLocalized.English, Is.EqualTo("English"));
+				Assert.That(item.NameLocalized.German,   Is.EqualTo("German"));
+				Assert.That(item.NameLocalized.Slovak,   Is.EqualTo("Slovak"));
 
 				//TODO: make it work
 				// var concrete = queryable.Select(p => new
@@ -138,7 +139,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				//
 				// Assert.That(concrete.English, Is.EqualTo("English"));
 			}
-
 		}
 	}
 }

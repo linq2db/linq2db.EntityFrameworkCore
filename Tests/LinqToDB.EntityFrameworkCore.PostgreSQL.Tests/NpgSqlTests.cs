@@ -25,7 +25,8 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 			var optionsBuilder = new DbContextOptionsBuilder<NpgSqlEnititesContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			optionsBuilder.UseNpgsql("Server=DBHost;Port=5432;Database=TestData;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
+			//optionsBuilder.UseNpgsql("Server=DBHost;Port=5432;Database=TestData;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
+			optionsBuilder.UseNpgsql("Server=localhost;Port=5415;Database=TestData;User Id=postgres;Password=Password12!;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
@@ -104,7 +105,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 		public void TestUnnest()
 		{
 			using var db = CreateNpgSqlEntitiesContext();
-			using var dc = db.CreateLinqToDbConnection();
+			using var dc = db.CreateLinqToDBConnection();
 
 			var guids = new Guid[] { Guid.Parse("271425b1-ebe8-400d-b71d-a6e47a460ae3"),
 				Guid.Parse("b75de94e-6d7b-4c70-bfa1-f8639a6a5b35") };
