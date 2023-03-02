@@ -6,6 +6,7 @@ using LinqToDB.EntityFrameworkCore.BaseTests.Interceptors;
 using LinqToDB.EntityFrameworkCore.BaseTests.Interceptors.Extensions;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
 using LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.Northwind;
+using LinqToDB.Interceptors;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
@@ -78,7 +79,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			return ctx;
 		}
 
-		private NorthwindContext CreateContextWithountLinqToDBExtensions()
+		private NorthwindContext CreateContextWithoutLinqToDBExtensions()
 		{
 			var ctx = new NorthwindContext(_northwindOptionsWithEfCoreInterceptorsOnly);
 			return ctx;
@@ -165,7 +166,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		[Test]
 		public void TestEfCoreSideOfComboInterceptor()
 		{
-			using (var ctx = CreateContextWithountLinqToDBExtensions())
+			using (var ctx = CreateContextWithoutLinqToDBExtensions())
 			{
 				var query =
 					from pd in ctx.Products
@@ -180,7 +181,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		[Test]
 		public void TestLinqToDBSideOfComboInterceptor()
 		{
-			using (var ctx = CreateContextWithountLinqToDBExtensions())
+			using (var ctx = CreateContextWithoutLinqToDBExtensions())
 			{
 				var query =
 					from pd in ctx.Products
@@ -190,6 +191,54 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 				var items = query.Take(2).ToLinqToDB().ToArray();
 			}
 			Assert.IsTrue(_testEfCoreAndLinqToDBInterceptor.HasInterceptorBeenInvoked);
+		}
+
+		[Test]
+		public void Issue306()
+		{
+			var interceptor = new DummyInterceptor();
+
+			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
+			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
+			optionsBuilder.UseLinqToDB(builder =>
+			{
+				builder.AddInterceptor(interceptor);
+			});
+			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
+
+			using var ctx = new NorthwindContext(optionsBuilder.Options);
+			var query = ctx.Products.ToLinqToDB().ToArray();
+
+			Assert.NotZero(interceptor.Count);
+		}
+
+		public class DummyInterceptor : UnwrapDataObjectInterceptor
+		{
+			public int Count { get; set; }
+
+			public override DbConnection UnwrapConnection(IDataContext dataContext, DbConnection connection)
+			{
+				Count++;
+				return connection;
+			}
+
+			public override DbTransaction UnwrapTransaction(IDataContext dataContext, DbTransaction transaction)
+			{
+				Count++;
+				return transaction;
+			}
+
+			public override DbCommand UnwrapCommand(IDataContext dataContext, DbCommand command)
+			{
+				Count++;
+				return command;
+			}
+
+			public override DbDataReader UnwrapDataReader(IDataContext dataContext, DbDataReader dataReader)
+			{
+				Count++;
+				return dataReader;
+			}
 		}
 	}
 }
