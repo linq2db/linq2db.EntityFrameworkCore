@@ -26,6 +26,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 
 		public NorthwindContext(DbContextOptions options) : base(options)
 		{
+			
 		}
 
 		[DbFunction("ProcessLong", "dbo")]
