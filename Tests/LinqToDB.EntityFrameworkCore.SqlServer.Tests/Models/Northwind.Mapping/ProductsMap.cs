@@ -8,6 +8,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 	{
 		public override void Configure(EntityTypeBuilder<Product> builder)
 		{
+			builder.ToTable(t => t.IsTemporal());
+
 			builder.HasKey(e => e.ProductId);
 
 			builder.HasIndex(e => e.CategoryId)
