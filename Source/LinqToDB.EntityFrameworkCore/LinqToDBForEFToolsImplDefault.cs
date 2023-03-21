@@ -560,6 +560,13 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static readonly MethodInfo ToSql = MemberHelper.MethodOfGeneric(() => Sql.ToSql(1));
 
+		private static readonly MethodInfo AsSqlServerTable    = MemberHelper.MethodOfGeneric<ITable<object>>(q => DataProvider.SqlServer.SqlServerTools.AsSqlServer(q));
+		private static readonly MethodInfo TemporalAsOfTable   = MemberHelper.MethodOfGeneric<ISqlServerSpecificTable<object>>(t => SqlServerHints.TemporalTableAsOf(t, default));
+		private static readonly MethodInfo TemporalFromTo      = MemberHelper.MethodOfGeneric<ISqlServerSpecificTable<object>>(t => SqlServerHints.TemporalTableFromTo(t, default, default));
+		private static readonly MethodInfo TemporalBetween     = MemberHelper.MethodOfGeneric<ISqlServerSpecificTable<object>>(t => SqlServerHints.TemporalTableBetween(t, default, default));
+		private static readonly MethodInfo TemporalContainedIn = MemberHelper.MethodOfGeneric<ISqlServerSpecificTable<object>>(t => SqlServerHints.TemporalTableContainedIn(t, default, default));
+		private static readonly MethodInfo TemporalAll         = MemberHelper.MethodOfGeneric<ISqlServerSpecificTable<object>>(t => SqlServerHints.TemporalTableAll(t));
+
 		/// <summary>
 		/// Removes conversions from expression.
 		/// </summary>
@@ -724,6 +731,27 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 
 			return result;
+		}
+
+		/// <summary>
+		/// Gets current property value via reflection.
+		/// </summary>
+		/// <typeparam name="TValue">Property value type.</typeparam>
+		/// <param name="obj">Object instance</param>
+		/// <param name="propName">Property name</param>
+		/// <returns>Property value.</returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		protected static TValue GetPropValue<TValue>(object obj, string propName)
+		{
+			var prop = obj.GetType().GetProperty(propName);
+			if (prop == null)
+			{
+				throw new InvalidOperationException($"Property {obj.GetType().Name}.{propName} not found.");
+			}
+			var propValue = prop.GetValue(obj);
+			if (propValue == default)
+				return default!;
+			return (TValue)propValue;
 		}
 
 		/// <summary>
@@ -948,19 +976,12 @@ namespace LinqToDB.EntityFrameworkCore
 
 					case ExpressionType.Extension:
 					{
-						if (dc != null && e is FromSqlQueryRootExpression fromSqlQueryRoot)
+						if (dc != null)
 						{
-							//convert the arguments from the FromSqlOnQueryable method from EF, to a L2DB FromSql call
-							return new TransformInfo(Expression.Call(null,
-								L2DBFromSqlMethodInfo.MakeGenericMethod(fromSqlQueryRoot.EntityType.ClrType),
-								Expression.Constant(dc),
-								Expression.New(RawSqlStringConstructor, Expression.Constant(fromSqlQueryRoot.Sql)),
-								fromSqlQueryRoot.Argument));
-						}
-						else if (dc != null && e is QueryRootExpression queryRoot)
-						{
-							var newExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(queryRoot.EntityType.ClrType), Expression.Constant(dc));
-							return new TransformInfo(newExpr);
+							if (e is QueryRootExpression queryRoot)
+							{
+								return new TransformInfo(TransformQueryRootExpression(dc, queryRoot));
+							}
 						}
 
 						break;
@@ -980,6 +1001,97 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 
 			return newExpression;
+		}
+
+		/// <summary>
+		/// Transforms <see cref="QueryRootExpression"/> descendants to linq2db analogue. Handles Temporal tables also.
+		/// </summary>
+		/// <param name="dc">Data context.</param>
+		/// <param name="queryRoot">Query root expression</param>
+		/// <returns>Transformed expression.</returns>
+		protected virtual Expression TransformQueryRootExpression(IDataContext dc, QueryRootExpression queryRoot)
+		{
+			static Expression GetAsOfSqlServer(Expression getTableExpr, Type entityType)
+			{
+				return Expression.Call(
+					AsSqlServerTable.MakeGenericMethod(entityType),
+					getTableExpr);
+			}
+
+			if (queryRoot is FromSqlQueryRootExpression fromSqlQueryRoot)
+			{
+				//convert the arguments from the FromSqlOnQueryable method from EF, to a L2DB FromSql call
+				return Expression.Call(null,
+					L2DBFromSqlMethodInfo.MakeGenericMethod(fromSqlQueryRoot.EntityType.ClrType),
+					Expression.Constant(dc),
+					Expression.New(RawSqlStringConstructor, Expression.Constant(fromSqlQueryRoot.Sql)),
+					fromSqlQueryRoot.Argument);
+			}
+
+			var entityType = queryRoot.EntityType.ClrType;
+			var getTableExpr = Expression.Call(null, Methods.LinqToDB.GetTable.MakeGenericMethod(entityType),
+				Expression.Constant(dc));
+
+			var expressionTypeName = queryRoot.GetType().Name;
+			if (expressionTypeName == "TemporalAsOfQueryRootExpression")
+			{
+				var pointInTime = GetPropValue<DateTime>(queryRoot, "PointInTime");
+
+				var asOf = Expression.Call(TemporalAsOfTable.MakeGenericMethod(entityType), 
+					GetAsOfSqlServer(getTableExpr, entityType),
+					Expression.Constant(pointInTime));
+
+				return asOf;
+			}
+
+			if (expressionTypeName == "TemporalFromToQueryRootExpression")
+			{
+				var from = GetPropValue<DateTime>(queryRoot, "From");
+				var to = GetPropValue<DateTime>(queryRoot, "To");
+
+				var fromTo = Expression.Call(TemporalFromTo.MakeGenericMethod(entityType),
+					GetAsOfSqlServer(getTableExpr, entityType),
+					Expression.Constant(from),
+					Expression.Constant(to));
+
+				return fromTo;
+			}
+
+			if (expressionTypeName == "TemporalBetweenQueryRootExpression")
+			{
+				var from = GetPropValue<DateTime>(queryRoot, "From");
+				var to = GetPropValue<DateTime>(queryRoot, "To");
+
+				var fromTo = Expression.Call(TemporalBetween.MakeGenericMethod(entityType),
+					GetAsOfSqlServer(getTableExpr, entityType),
+					Expression.Constant(from),
+					Expression.Constant(to));
+
+				return fromTo;
+			}
+
+			if (expressionTypeName == "TemporalContainedInQueryRootExpression")
+			{
+				var from = GetPropValue<DateTime>(queryRoot, "From");
+				var to = GetPropValue<DateTime>(queryRoot, "To");
+
+				var fromTo = Expression.Call(TemporalContainedIn.MakeGenericMethod(entityType),
+					GetAsOfSqlServer(getTableExpr, entityType),
+					Expression.Constant(from),
+					Expression.Constant(to));
+
+				return fromTo;
+			}
+
+			if (expressionTypeName == "TemporalAllQueryRootExpression")
+			{
+				var all = Expression.Call(TemporalAll.MakeGenericMethod(entityType),
+					GetAsOfSqlServer(getTableExpr, entityType));
+
+				return all;
+			}
+
+			return getTableExpr;
 		}
 
 		static Expression EnsureEnumerable(Expression expression, MappingSchema mappingSchema)
