@@ -161,5 +161,41 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			pk.IsIdentity.Should().BeFalse();
 			Assert.AreEqual("Field", pk.ColumnName);
 		}
+
+		[Test]
+		public virtual async Task TestEnums()
+		{
+			using var context = CreateContext();
+			context.WithEnums.AddRange(
+				new WithEnums[]
+				{
+					new WithEnums
+					{
+						Status = StatusEnum.Completed
+					},
+					new WithEnums
+					{
+						Status = StatusEnum.Pending
+					},
+					new WithEnums
+					{
+						Status = StatusEnum.Rejected
+					},
+					new WithEnums
+					{
+						Status = StatusEnum.Reviewed
+					},
+					new WithEnums
+					{
+						Status = StatusEnum.Verified
+					},
+				});
+
+			await context.SaveChangesAsync();
+
+			var item = await context.WithEnums.ToListAsyncLinqToDB();
+		}
+
+
 	}
 }
