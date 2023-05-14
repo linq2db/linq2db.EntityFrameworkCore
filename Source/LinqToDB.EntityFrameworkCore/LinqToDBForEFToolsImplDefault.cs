@@ -924,7 +924,7 @@ namespace LinqToDB.EntityFrameworkCore
 								// Invoking function to evaluate EF's Subquery located in function
 
 								var obj = EvaluateExpression(methodCall.Object);
-								var arguments = methodCall.Arguments.Select(EvaluateExpression).ToArray();
+								var arguments = methodCall.Arguments.Select(a => EvaluateExpression(a.Transform(LocalTransform))).ToArray();
 								if (methodCall.Method.Invoke(obj, arguments) is IQueryable result)
 								{
 									if (!ExpressionEqualityComparer.Instance.Equals(methodCall, result.Expression))
