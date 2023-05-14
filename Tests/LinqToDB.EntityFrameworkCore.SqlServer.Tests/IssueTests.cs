@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using FluentAssertions;
+using LinqToDB.DataProvider.SqlServer;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel;
 using Microsoft.EntityFrameworkCore;
@@ -81,5 +82,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			Assert.That(db.LastQuery, Does.Not.Contain("INNER"));
 		}
 
+		[Test]
+		public void Issue321Test()
+		{
+			using var ctx = CreateContext();
+
+			var _ = ctx.Patents.AsSqlServer().ToLinqToDB().ToArray();
+		}
 	}
 }
