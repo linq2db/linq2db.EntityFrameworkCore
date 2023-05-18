@@ -43,9 +43,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 				.IsRequired()
 				.HasMaxLength(20);
 
-			builder.Property(e => e.Notes).HasColumnType("ntext");
+			builder.Property(e => e.Notes).HasColumnType("nvarchar(max)");
 
-			builder.Property(e => e.Photo).HasColumnType("image");
+			builder.Property(e => e.Photo).HasColumnType("varbinary(max)");
 
 			builder.Property(e => e.PhotoPath).HasMaxLength(255);
 

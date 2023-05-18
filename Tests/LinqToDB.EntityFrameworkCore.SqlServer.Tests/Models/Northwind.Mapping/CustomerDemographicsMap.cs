@@ -18,7 +18,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 				.HasMaxLength(10)
 				.ValueGeneratedNever();
 
-			builder.Property(e => e.CustomerDesc).HasColumnType("ntext");
+			builder.Property(e => e.CustomerDesc).HasColumnType("nvarchar(max)");
 		}
 	}
 }
