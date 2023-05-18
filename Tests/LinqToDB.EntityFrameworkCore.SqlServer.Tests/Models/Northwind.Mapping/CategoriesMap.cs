@@ -22,9 +22,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 				.IsRequired()
 				.HasMaxLength(15);
 
-			builder.Property(e => e.Description).HasColumnType("ntext");
+			builder.Property(e => e.Description).HasColumnType("nvarchar(max)");
 
-			builder.Property(e => e.Picture).HasColumnType("image");
+			builder.Property(e => e.Picture).HasColumnType("varbinary(max)");
 		}
 	}
 }
