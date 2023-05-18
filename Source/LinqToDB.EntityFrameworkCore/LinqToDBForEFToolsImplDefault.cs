@@ -547,6 +547,12 @@ namespace LinqToDB.EntityFrameworkCore
 		static readonly MethodInfo TagWithMethodInfo =
 			MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.TagWith(string.Empty));
 
+		static readonly MethodInfo AsSplitQueryMethodInfo =
+			MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsSplitQuery());
+
+		static readonly MethodInfo AsSingleQueryMethodInfo =
+			MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsSingleQuery());
+
 		static readonly MethodInfo ThenIncludeEnumerableMethodInfo =
 			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null!));
 
@@ -881,6 +887,11 @@ namespace LinqToDB.EntityFrameworkCore
 							break;
 						}
 
+						if (generic == AsSplitQueryMethodInfo || generic == AsSingleQueryMethodInfo)
+						{
+							return new TransformInfo(methodCall.Arguments[0], false, true);
+						}
+
 						if (typeof(ITable<>).IsSameOrParentOf(methodCall.Type))
 						{
 							if (generic.Name == "ToLinqToDBTable")
@@ -902,8 +913,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type) && methodCall.Type.Assembly != typeof(LinqExtensions).Assembly)
 						{
-							if (null == methodCall.Find(nonEvaluatableParameters,
-								    (c, t) => t.NodeType == ExpressionType.Parameter && c.Contains(t)))
+							if (dc.MappingSchema.GetAttribute<ExpressionMethodAttribute>(methodCall.Type, methodCall.Method) == null 
+							    && null == methodCall.Find(nonEvaluatableParameters,
+								    (c, t) => t.NodeType == ExpressionType.Parameter && c.Contains(t) || t.NodeType == ExpressionType.Extension))
 							{
 								// Invoking function to evaluate EF's Subquery located in function
 
