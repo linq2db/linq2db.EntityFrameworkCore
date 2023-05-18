@@ -916,7 +916,7 @@ namespace LinqToDB.EntityFrameworkCore
 							break;
 						}
 
-						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type))
+						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type) && methodCall.Type.Assembly != typeof(LinqExtensions).Assembly)
 						{
 							if (null == methodCall.Find(nonEvaluatableParameters,
 								    (c, t) => t.NodeType == ExpressionType.Parameter && c.Contains(t)))
@@ -924,7 +924,7 @@ namespace LinqToDB.EntityFrameworkCore
 								// Invoking function to evaluate EF's Subquery located in function
 
 								var obj = EvaluateExpression(methodCall.Object);
-								var arguments = methodCall.Arguments.Select(a => EvaluateExpression(a.Transform(LocalTransform))).ToArray();
+								var arguments = methodCall.Arguments.Select(EvaluateExpression).ToArray();
 								if (methodCall.Method.Invoke(obj, arguments) is IQueryable result)
 								{
 									if (!ExpressionEqualityComparer.Instance.Equals(methodCall, result.Expression))
