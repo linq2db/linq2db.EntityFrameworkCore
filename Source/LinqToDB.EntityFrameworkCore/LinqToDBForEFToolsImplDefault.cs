@@ -922,8 +922,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type) && methodCall.Type.Assembly != typeof(LinqExtensions).Assembly)
 						{
-							if (null == methodCall.Find(nonEvaluatableParameters,
-								    (c, t) => t.NodeType == ExpressionType.Parameter && c.Contains(t)))
+							if ((dc == null || dc.MappingSchema.GetAttribute<ExpressionMethodAttribute>(methodCall.Type, methodCall.Method) == null)
+							    && null == methodCall.Find(nonEvaluatableParameters,
+								    (c, t) => t.NodeType == ExpressionType.Parameter && c.Contains(t) || t.NodeType == ExpressionType.Extension))
 							{
 								// Invoking function to evaluate EF's Subquery located in function
 
