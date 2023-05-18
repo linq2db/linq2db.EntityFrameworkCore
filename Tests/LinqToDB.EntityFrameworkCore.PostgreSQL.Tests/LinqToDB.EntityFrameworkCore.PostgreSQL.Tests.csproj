@@ -4,10 +4,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="FluentAssertions" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" />
 	</ItemGroup>
 
 	<ItemGroup>
