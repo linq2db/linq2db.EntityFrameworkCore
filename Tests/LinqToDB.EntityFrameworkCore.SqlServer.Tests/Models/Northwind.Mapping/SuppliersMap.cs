@@ -37,7 +37,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind.Mapping
 
 			builder.Property(e => e.Fax).HasMaxLength(24);
 
-			builder.Property(e => e.HomePage).HasColumnType("ntext");
+			builder.Property(e => e.HomePage).HasColumnType("nvarchar(max)");
 
 			builder.Property(e => e.Phone).HasMaxLength(24);
 
