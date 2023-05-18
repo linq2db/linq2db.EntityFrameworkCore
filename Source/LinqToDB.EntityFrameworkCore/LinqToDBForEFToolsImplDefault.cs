@@ -929,8 +929,8 @@ namespace LinqToDB.EntityFrameworkCore
 
 						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type) && methodCall.Type.Assembly != typeof(LinqExtensions).Assembly)
 						{
-							if (((dc != null && dc.MappingSchema.HasAttribute<ExpressionMethodAttribute>(methodCall.Type, methodCall.Method))
-								|| (dc == null && methodCall.Method.HasAttribute<ExpressionMethodAttribute>()))
+							if (((dc != null && !dc.MappingSchema.HasAttribute<ExpressionMethodAttribute>(methodCall.Type, methodCall.Method))
+								|| (dc == null && !methodCall.Method.HasAttribute<ExpressionMethodAttribute>()))
 								&& null == methodCall.Find(nonEvaluatableParameters,
 								    (c, t) => t.NodeType == ExpressionType.Parameter && c.Contains(t) || t.NodeType == ExpressionType.Extension))
 							{
