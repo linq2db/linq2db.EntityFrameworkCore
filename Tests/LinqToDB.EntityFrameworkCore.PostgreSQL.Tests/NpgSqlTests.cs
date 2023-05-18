@@ -6,6 +6,7 @@ using LinqToDB.DataProvider.PostgreSQL;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.NpgSqlEntities;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
@@ -23,10 +24,9 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 		public NpgSqlTests()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NpgSqlEnititesContext>();
-			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
-			//optionsBuilder.UseNpgsql("Server=DBHost;Port=5432;Database=TestData;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
-			optionsBuilder.UseNpgsql("Server=localhost;Port=5415;Database=TestData;User Id=postgres;Password=Password12!;Pooling=true;MinPoolSize=10;MaxPoolSize=100;");
+			//optionsBuilder.UseNpgsql("Server=DBHost;Port=5432;Database=TestData;User Id=postgres;Password=TestPassword;Pooling=true;MinPoolSize=10;MaxPoolSize=100;", o => o.UseNodaTime());
+			optionsBuilder.UseNpgsql("Server=localhost;Port=5415;Database=TestData;User Id=postgres;Password=Password12!;Pooling=true;MinPoolSize=10;MaxPoolSize=100;", o => o.UseNodaTime());
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
 			_options = optionsBuilder.Options;
@@ -102,7 +102,6 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 			db.BulkCopy(toInsert);
 		}
 
-
 		[Test]
 		public void TestUnnest()
 		{
@@ -120,6 +119,5 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 
 			query.Invoking(q => q.ToArray()).Should().NotThrow();
 		}
-
 	}
 }
