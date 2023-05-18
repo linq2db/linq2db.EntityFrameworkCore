@@ -916,7 +916,7 @@ namespace LinqToDB.EntityFrameworkCore
 							break;
 						}
 
-						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type))
+						if (typeof(IQueryable<>).IsSameOrParentOf(methodCall.Type) && methodCall.Type.Assembly != typeof(LinqExtensions).Assembly)
 						{
 							if (null == methodCall.Find(nonEvaluatableParameters,
 								    (c, t) => t.NodeType == ExpressionType.Parameter && c.Contains(t)))
