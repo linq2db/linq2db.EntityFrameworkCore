@@ -7,11 +7,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore.Query.Internal;
-
-using JetBrains.Annotations;
 using LinqToDB.Expressions;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace LinqToDB.EntityFrameworkCore.Internal
 {
@@ -24,7 +21,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 	///		It may change or be removed without further notice.
 	/// </summary>
 	/// <typeparam name="T">Type of query element.</typeparam>
-	public class LinqToDBForEFQueryProvider<T> : IAsyncQueryProvider, IQueryProviderAsync, IQueryable<T>, System.Collections.Generic.IAsyncEnumerable<T>
+	public class LinqToDBForEFQueryProvider<T> : IAsyncQueryProvider, IQueryProviderAsync, IQueryable<T>, IAsyncEnumerable<T>
 	{
 		/// <summary>
 		/// Creates instance of adapter.

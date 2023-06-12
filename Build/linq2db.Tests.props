@@ -2,7 +2,9 @@
 	<Import Project="linq2db.Default.props" />
 	
 	<PropertyGroup>
-		<TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+		<CheckEolTargetFramework>false</CheckEolTargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>
