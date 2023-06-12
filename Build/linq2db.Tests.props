@@ -3,6 +3,8 @@
 	
 	<PropertyGroup>
 		<TargetFrameworks>net7.0</TargetFrameworks>
+
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
 	</PropertyGroup>
 	
 	<ItemGroup>
