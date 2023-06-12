@@ -94,8 +94,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			var recreate = _inheritanceOptions == null;
 
-			if (_inheritanceOptions == null)
-				_inheritanceOptions = CreateInheritanceOptions();
+			_inheritanceOptions ??= CreateInheritanceOptions();
 
 			var ctx = new InheritanceContext(_inheritanceOptions);
 			if (recreate)
