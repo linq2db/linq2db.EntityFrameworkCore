@@ -11,8 +11,10 @@
 
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<WarningLevel>4</WarningLevel>
+		<WarningLevel>9999</WarningLevel>
 		<ErrorReport>prompt</ErrorReport>
+		<Features>strict</Features>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 
 		<AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -31,12 +33,20 @@
 
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 
+		<!--required for SkipLocalInit-->
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+
 		<TargetFrameworks>net6.0</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<AnalysisLevel>preview</AnalysisLevel>
-		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<RunAnalyzers>true</RunAnalyzers>
+		<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+		<RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+		<AnalysisLevel>preview-All</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<ReportAnalyzer>true</ReportAnalyzer>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 </Project>
