@@ -46,7 +46,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 				i => (ValueConverter)Activator.CreateInstance(ct, i.MappingHints)!
 			);
 
-			[return: NotNullIfNotNull("type")]
+			[return: NotNullIfNotNull(nameof(type))]
 			static Type? Unwrap(Type? type) => type == null ? null : Nullable.GetUnderlyingType(type) ?? type;
 		}
 	}}
