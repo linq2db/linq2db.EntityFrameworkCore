@@ -2,8 +2,6 @@
 using System.Linq;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Newtonsoft.Json;
 using NUnit.Framework;
 
