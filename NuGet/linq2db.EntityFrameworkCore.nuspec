@@ -16,7 +16,7 @@
 		<dependencies>
 			<group targetFramework="net6.0">
 				<dependency id="Microsoft.EntityFrameworkCore.Relational" version="7.0.0" />
-				<dependency id="linq2db" version="5.2.1" />
+				<dependency id="linq2db" version="5.3.0" />
 			</group>
 		</dependencies>
 	</metadata>
