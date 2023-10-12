@@ -749,11 +749,8 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <exception cref="InvalidOperationException"></exception>
 		protected static TValue GetPropValue<TValue>(object obj, string propName)
 		{
-			var prop = obj.GetType().GetProperty(propName);
-			if (prop == null)
-			{
-				throw new InvalidOperationException($"Property {obj.GetType().Name}.{propName} not found.");
-			}
+			var prop = obj.GetType().GetProperty(propName)
+				?? throw new InvalidOperationException($"Property {obj.GetType().Name}.{propName} not found.");
 			var propValue = prop.GetValue(obj);
 			if (propValue == default)
 				return default!;
@@ -1155,19 +1152,13 @@ namespace LinqToDB.EntityFrameworkCore
 			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance)!;
 			var compiler = (QueryCompiler)compilerField.GetValue(query.Provider)!;
 
-			var queryContextFactoryField = compiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance);
-
-			if (queryContextFactoryField == null)
-				throw new LinqToDBForEFToolsException($"Can not find private field '{compiler.GetType()}._queryContextFactory' in current EFCore Version.");
-
+			var queryContextFactoryField = compiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance)
+				?? throw new LinqToDBForEFToolsException($"Can not find private field '{compiler.GetType()}._queryContextFactory' in current EFCore Version.");
 			if (queryContextFactoryField.GetValue(compiler) is not RelationalQueryContextFactory queryContextFactory)
 				throw new LinqToDBForEFToolsException("LinqToDB Tools for EFCore support only Relational Databases.");
 
-			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
-
-			if (dependenciesProperty == null)
-				throw new LinqToDBForEFToolsException($"Can not find protected property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version.");
-
+			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance)
+				?? throw new LinqToDBForEFToolsException($"Can not find protected property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version.");
 			var dependencies = (QueryContextDependencies)dependenciesProperty.GetValue(queryContextFactory)!;
 
 			return dependencies.CurrentContext?.Context;

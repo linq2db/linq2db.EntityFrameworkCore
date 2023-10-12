@@ -1,7 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<Import Project="..\..\Build\linq2db.Tests.props" />
-
 	<ItemGroup>
 		<Compile Remove="Models\UniversalEntities\**" />
 		<EmbeddedResource Remove="Models\UniversalEntities\**" />
