@@ -1,6 +1,10 @@
-﻿<Project>
-	<Import Project="linq2db.Default.props" />
-	
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Import Project="$(MSBuildThisFileDirectory)\..\Directory.Build.props" />
+
+	<PropertyGroup>
+		<NoWarn>$(NoWarn);CS1591</NoWarn>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.NET.Test.Sdk" />
 		<PackageReference Include="NUnit3TestAdapter">
@@ -9,5 +13,4 @@
 		</PackageReference>
 		<PackageReference Include="NUnit" />
 	</ItemGroup>
-
 </Project>
