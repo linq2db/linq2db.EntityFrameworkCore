@@ -30,7 +30,13 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.ForMapping
 					b.Property(e => e.UnicodeString).HasMaxLength(50).IsUnicode();
 				}
 			);
-			
+
+			modelBuilder.Entity<TypesTable>(b =>
+			{
+				b.Property(e => e.DateTime);
+				b.Property(e => e.String).HasMaxLength(100);
+			});
+
 			modelBuilder.Entity<WithInheritance>(b =>
 			{
 				b.HasDiscriminator(x => x.Discriminator);
