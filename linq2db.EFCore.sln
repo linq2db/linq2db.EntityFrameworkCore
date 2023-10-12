@@ -10,10 +10,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{A3F30061
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		azure-pipelines.yml = azure-pipelines.yml
+		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
-		Build\linq2db.Default.props = Build\linq2db.Default.props
 		Build\linq2db.snk = Build\linq2db.snk
-		Build\linq2db.Tests.props = Build\linq2db.Tests.props
 		Build\SetVersion.ps1 = Build\SetVersion.ps1
 	EndProjectSection
 EndProject
@@ -41,6 +40,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToDB.EntityFrameworkCore.SQLite.Tests", "Tests\LinqToDB.EntityFrameworkCore.SQLite.Tests\LinqToDB.EntityFrameworkCore.SQLite.Tests.csproj", "{615C5697-5FA7-490C-8812-3D61994A8AC1}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "LinqToDB.EntityFrameworkCore.FSharpTests", "Tests\LinqToDB.EntityFrameworkCore.FSharpTests\LinqToDB.EntityFrameworkCore.FSharpTests.fsproj", "{ECF4637B-1C93-4D87-BDF2-E7F4DF7ED5C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{3727B214-909A-4A19-8BF5-E281C0D7A6E5}"
+	ProjectSection(SolutionItems) = preProject
+		Tests\Directory.Build.props = Tests\Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,6 +83,14 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{71CBC83D-C406-4EB3-8AFC-88C0ECA9C0E8} = {3727B214-909A-4A19-8BF5-E281C0D7A6E5}
+		{C8883CDC-DB45-4D5D-A573-3D14BDC8AF85} = {3727B214-909A-4A19-8BF5-E281C0D7A6E5}
+		{F65A1BBB-46F4-48A4-9778-1A5396A876AE} = {3727B214-909A-4A19-8BF5-E281C0D7A6E5}
+		{0F013A9A-AC97-4A5E-A5D7-E1B64541CC46} = {3727B214-909A-4A19-8BF5-E281C0D7A6E5}
+		{615C5697-5FA7-490C-8812-3D61994A8AC1} = {3727B214-909A-4A19-8BF5-E281C0D7A6E5}
+		{ECF4637B-1C93-4D87-BDF2-E7F4DF7ED5C9} = {3727B214-909A-4A19-8BF5-E281C0D7A6E5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {96E250D9-36FF-46EA-980A-4F8D1F88D51F}

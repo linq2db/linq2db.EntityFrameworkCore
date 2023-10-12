@@ -9,7 +9,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 		public static Id<T, TId> AsId<T, TId>(this TId id)
 			where T : IHasId<T, TId>
 			where TId : notnull
-			=> new Id<T, TId>(id);
+			=> new(id);
 	}   
 	
 	public readonly struct Id<T, TId>
