@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<Import Project="..\..\Build\linq2db.Tests.props" />
 	<PropertyGroup>
-		<NoWarn>CS8002</NoWarn>
+		<NoWarn>$(NoWarn);CS8002</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
