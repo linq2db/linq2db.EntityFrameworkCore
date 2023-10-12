@@ -8,11 +8,12 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.ForMapping
 		{
 		}
 
-		public DbSet<WithIdentity> WithIdentity { get; set; } = null!;
-		public DbSet<NoIdentity> NoIdentity { get; set; } = null!;
-		public DbSet<UIntTable> UIntTable { get; set; } = null!;
-		public DbSet<StringTypes> StringTypes { get; set; } = null!;
+		public DbSet<WithIdentity> WithIdentity => Set<WithIdentity>();
+		public DbSet<NoIdentity> NoIdentity => Set<NoIdentity>();
+		public DbSet<UIntTable> UIntTable => Set<UIntTable>();
+		public DbSet<StringTypes> StringTypes => Set<StringTypes>();
+		public DbSet<WithEnums> WithEnums => Set<WithEnums>();
 
-		public DbSet<WithDuplicateProperties> WithDuplicateProperties { get; set; } = null!;
+		public DbSet<WithDuplicateProperties> WithDuplicateProperties => Set<WithDuplicateProperties>();
 	}
 }
