@@ -107,17 +107,12 @@ namespace LinqToDB.EntityFrameworkCore
 				// InheritanceMappingAttribute
 				if (_model != null)
 				{
-					var derivedEntities = _model.GetEntityTypes().Where(e => e.BaseType == et && e.Relational().DiscriminatorValue != null).ToList();
-
-					foreach (var e in derivedEntities)
+					foreach (var e in _model.GetEntityTypes())
 					{
-						result.Add(
-							new InheritanceMappingAttribute()
+						if (GetBaseTypeRecursive(e) == et && e.GetDiscriminatorValue() != null)
 							{
-								Type = e.ClrType,
-								Code = e.Relational().DiscriminatorValue
+							result.AddRange(GetMappingAttributesRecursive(e));
 							}
-							);
 					}
 				}
 			}
@@ -130,6 +125,31 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 
 			return result == null ? Array.Empty<MappingAttribute>() : result.ToArray();
+		}
+
+		static IEntityType GetBaseTypeRecursive(IEntityType entityType)
+		{
+			if (entityType.BaseType == null)
+				return entityType;
+			return GetBaseTypeRecursive(entityType.BaseType);
+		}
+		
+		static IEnumerable<InheritanceMappingAttribute> GetMappingAttributesRecursive(IEntityType entityType)
+		{
+			var mappings = new List<InheritanceMappingAttribute>();
+			return ProcessEntityType(entityType);
+
+			List<InheritanceMappingAttribute> ProcessEntityType(IEntityType et)
+			{
+				mappings.Add(new()
+				{
+					Type = et.ClrType, Code = entityType.GetDiscriminatorValue()
+				});
+				
+				if (et.BaseType == null)
+					return mappings;
+				return ProcessEntityType(et.BaseType);
+			}
 		}
 
 		static bool CompareProperty(MemberInfo? property, MemberInfo memberInfo)

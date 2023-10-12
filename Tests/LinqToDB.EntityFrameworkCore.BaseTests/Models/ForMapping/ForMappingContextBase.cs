@@ -14,5 +14,10 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.ForMapping
 		public DbSet<StringTypes> StringTypes { get; set; } = null!;
 
 		public DbSet<WithDuplicateProperties> WithDuplicateProperties { get; set; } = null!;
+		
+		public DbSet<WithInheritance> WithInheritance { get; set; } = null!;
+		public DbSet<WithInheritanceA> WithInheritanceA { get; set; } = null!;
+		public DbSet<WithInheritanceA1> WithInheritanceA1 { get; set; } = null!;
+		public DbSet<WithInheritanceA2> WithInheritanceA2 { get; set; } = null!;
 	}
 }
