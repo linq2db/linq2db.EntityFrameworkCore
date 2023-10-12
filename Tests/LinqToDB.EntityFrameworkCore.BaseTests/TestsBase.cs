@@ -49,7 +49,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 
 		protected void AreEqual<T>(Func<T, T> fixSelector, IEnumerable<T> expected, IEnumerable<T> result, IEqualityComparer<T> comparer, bool allowEmpty = false)
 		{
-			AreEqual<T>(fixSelector, expected, result, comparer, null, allowEmpty);
+			AreEqual(fixSelector, expected, result, comparer, null, allowEmpty);
 		}
 
 		protected void AreEqual<T>(
