@@ -109,7 +109,7 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					foreach (var e in _model.GetEntityTypes())
 					{
-						if (GetBaseTypeRecursive(e) == et && e.GetDiscriminatorValue() != null)
+						if (GetBaseTypeRecursive(e) == et && e.Relational().DiscriminatorValue != null)
 							{
 							result.AddRange(GetMappingAttributesRecursive(e));
 							}
@@ -146,7 +146,7 @@ namespace LinqToDB.EntityFrameworkCore
 					mappings.Add(new()
 					{
 						Type = et.ClrType,
-						Code = entityType.GetDiscriminatorValue()
+						Code = entityType.Relational().DiscriminatorValue
 					});
 				}
 				
