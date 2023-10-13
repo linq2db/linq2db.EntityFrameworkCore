@@ -7,5 +7,6 @@
 		public static readonly string JsonConvertConnectionString = "Server=.;Database=JsonConvertContext;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true";
 		public static readonly string NorthwindConnectionString   = "Server=.;Database=NorthwindEFCore;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true";
 		public static readonly string ConverterConnectionString   = "Server=.;Database=ConverterTests;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true";
+		public static readonly string InheritanceConnectionString = "Server=.;Database=InheritanceEFCore;Integrated Security=SSPI;Encrypt=true;TrustServerCertificate=true";
 	}
 }

@@ -144,10 +144,14 @@ namespace LinqToDB.EntityFrameworkCore
 
 			List<InheritanceMappingAttribute> ProcessEntityType(IEntityType et)
 			{
-				mappings.Add(new()
+				if (!et.ClrType.IsAbstract)
 				{
-					Type = et.ClrType, Code = entityType.GetDiscriminatorValue()
-				});
+					mappings.Add(new()
+					{
+						Type = et.ClrType,
+						Code = entityType.GetDiscriminatorValue()
+					});
+				}
 				
 				if (et.BaseType == null)
 					return mappings;
