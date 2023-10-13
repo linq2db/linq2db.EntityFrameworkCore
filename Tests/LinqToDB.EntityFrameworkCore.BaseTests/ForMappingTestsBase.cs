@@ -168,13 +168,14 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			using var context = CreateContext();
 			using var connection = context.CreateLinqToDBConnection();
 			
+			context.WithInheritance.AddRange(new List<WithInheritanceA>() { new() { } });
 			context.WithInheritance.AddRange(new List<WithInheritanceA1>() { new() { }, new() { } });
 			context.WithInheritance.AddRange(new List<WithInheritanceA2>() { new() { }, new() { } });
 			await context.SaveChangesAsync();
 
 			var result = context.GetTable<WithInheritanceA>().ToList();
 			
-			result.OfType<WithInheritance>().Should().HaveCount(4);
+			result.OfType<WithInheritance>().Should().HaveCount(5);
 			result.OfType<WithInheritanceA1>().Should().HaveCount(2);
 			result.OfType<WithInheritanceA2>().Should().HaveCount(2);
 		}
