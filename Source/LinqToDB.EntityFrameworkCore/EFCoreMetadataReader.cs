@@ -308,22 +308,25 @@ namespace LinqToDB.EntityFrameworkCore
 					var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
 						prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
 
-					(result ??= new()).Add(
-						new ColumnAttribute()
-						{
-							Name = storeObjectId != null ? prop.GetColumnName(storeObjectId.Value) : null,
-							Length = prop.GetMaxLength() ?? 0,
-							CanBeNull = prop.IsNullable,
-							DbType = prop.GetColumnType(),
-							DataType = dataType,
-							IsPrimaryKey = isPrimaryKey,
-							PrimaryKeyOrder = primaryKeyOrder,
-							IsIdentity = isIdentity,
-							IsDiscriminator = discriminator == prop,
-							SkipOnInsert = skipOnInsert,
-							SkipOnUpdate = skipOnUpdate
-						}
-					);
+					var ca = new ColumnAttribute()
+					{
+						Name = storeObjectId != null ? prop.GetColumnName(storeObjectId.Value) : null,
+						CanBeNull = prop.IsNullable,
+						DbType = prop.GetColumnType(),
+						DataType = dataType,
+						IsPrimaryKey = isPrimaryKey,
+						PrimaryKeyOrder = primaryKeyOrder,
+						IsIdentity = isIdentity,
+						IsDiscriminator = discriminator == prop,
+						SkipOnInsert = skipOnInsert,
+						SkipOnUpdate = skipOnUpdate
+					};
+
+					var maxLen = prop.GetMaxLength();
+					if (maxLen != null)
+						ca.Length = maxLen.Value;
+
+					(result ??= new()).Add(ca);
 
 					// ValueConverterAttribute
 					var converter = prop.GetValueConverter();
