@@ -302,11 +302,9 @@ namespace LinqToDB.EntityFrameworkCore
 					var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
 						prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
 
-					(result ??= new()).Add(
-						new ColumnAttribute()
+					var ca = new ColumnAttribute()
 						{
 							Name = prop.GetColumnName(),
-							Length = prop.GetMaxLength() ?? 0,
 							CanBeNull = prop.IsNullable,
 							DbType = prop.GetColumnType(),
 							DataType = dataType,
@@ -316,8 +314,13 @@ namespace LinqToDB.EntityFrameworkCore
 							IsDiscriminator = discriminator == prop,
 							SkipOnInsert = skipOnInsert,
 							SkipOnUpdate = skipOnUpdate
-						}
-					);
+					};
+
+					var maxLen = prop.GetMaxLength();
+					if (maxLen != null)
+						ca.Length = maxLen.Value;
+
+					(result ??= new()).Add(ca);
 
 					// ValueConverterAttribute
 					var converter = prop.GetValueConverter();
