@@ -56,7 +56,7 @@ stages:
         workingDirectory: '$(Build.SourcesDirectory)'
         arguments: -path $(Build.SourcesDirectory)/NuGet/linq2db.EntityFrameworkCore.nuspec -version $(packageVersion) -branch $(Build.SourceBranchName)
       displayName: Generate nuspec
-      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.7'), eq(variables['Build.SourceBranchName'], 'master')))
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.7'), eq(variables['Build.SourceBranchName'], 'version7')))
 
     - task: NuGetToolInstaller@1
 
@@ -79,7 +79,7 @@ stages:
         pathToPublish: '$(Build.SourcesDirectory)/NuGet/built'
         artifactName: '$(artifact_nugets)'
       displayName: Publish nugets to artifacts
-      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.7'), eq(variables['Build.SourceBranchName'], 'master')))
+      condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'release.7'), eq(variables['Build.SourceBranchName'], 'version7')))
 
     - task: NuGetCommand@2
       inputs:
