@@ -554,6 +554,7 @@ namespace LinqToDB.EntityFrameworkCore
 			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null!));
 
 		static readonly MethodInfo AsNoTrackingMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsNoTracking());
+		static readonly MethodInfo AsNoTrackingWithIdentityResolutionMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsNoTrackingWithIdentityResolution());
 
 		static readonly MethodInfo EFProperty = MemberHelper.MethodOfGeneric(() => EF.Property<object>(1, ""));
 
@@ -809,7 +810,8 @@ namespace LinqToDB.EntityFrameworkCore
 										methodCall.Arguments[0], Expression.NewArrayInit(typeof(Type)));
 									return new TransformInfo(newMethod, false, true);
 								}
-								else if (generic == AsNoTrackingMethodInfo)
+								else if (generic == AsNoTrackingMethodInfo
+									|| generic == AsNoTrackingWithIdentityResolutionMethodInfo)
 								{
 									isTunnel = true;
 									tracking = false;
