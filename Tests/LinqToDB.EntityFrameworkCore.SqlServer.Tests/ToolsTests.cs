@@ -72,7 +72,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			if (ctx.Database.EnsureCreated())
 			{
 				NorthwindData.Seed(ctx);
-			}			
+			}
 			return ctx;
 		}
 
