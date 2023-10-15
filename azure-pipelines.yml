@@ -36,6 +36,7 @@ stages:
     - task: UseDotNet@2
       displayName: 'Install .NET 8'
       inputs:
+        includePreviewVersions: true
         version: 8.x
 
     - task: PowerShell@2
