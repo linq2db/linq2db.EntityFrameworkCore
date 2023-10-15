@@ -46,11 +46,12 @@ stages:
         arguments: -path $(Build.SourcesDirectory)/Directory.Build.props -version $(assemblyVersion)
       displayName: Update assembly version
 
-    - task: MSBuild@1
+    - task: DotNetCoreCLI@2
       inputs:
-        solution: '$(solution)'
+        command: 'build'
+        projects: '$(solution)'
         configuration: '$(build_configuration)'
-        msbuildArguments: '/t:Restore;Rebuild -m /p:ContinuousIntegrationBuild=true'
+        arguments: '-property:ContinuousIntegrationBuild=true'
       displayName: Build Solution
 
     - powershell: echo "##vso[task.setvariable variable=packageVersion]$(packageVersion)-rc.$(Build.BuildId)"
