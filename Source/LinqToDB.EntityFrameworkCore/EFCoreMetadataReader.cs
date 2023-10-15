@@ -124,10 +124,10 @@ namespace LinqToDB.EntityFrameworkCore
 				// TableAttribute
 				var tableAttribute = type.GetAttribute<System.ComponentModel.DataAnnotations.Schema.TableAttribute>();
 				if (tableAttribute != null)
-					(result ??= new()).Add(new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema });
+					(result = new()).Add(new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema });
 			}
 
-			return result == null ? Array.Empty<MappingAttribute>() : result.ToArray();
+			return result == null ? [] : result.ToArray();
 		}
 
 		static IEntityType GetBaseTypeRecursive(IEntityType entityType)
@@ -137,7 +137,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return GetBaseTypeRecursive(entityType.BaseType);
 		}
 		
-		static IEnumerable<InheritanceMappingAttribute> GetMappingAttributesRecursive(IEntityType entityType)
+		static List<InheritanceMappingAttribute> GetMappingAttributesRecursive(IEntityType entityType)
 		{
 			var mappings = new List<InheritanceMappingAttribute>();
 			return ProcessEntityType(entityType);
@@ -221,7 +221,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public MappingAttribute[] GetAttributes(Type type, MemberInfo memberInfo)
 		{
 			if (typeof(Expression).IsSameOrParentOf(type))
-				return Array.Empty<MappingAttribute>();
+				return [];
 
 			List<MappingAttribute>? result = null;
 			var hasColumn = false;
@@ -279,7 +279,7 @@ namespace LinqToDB.EntityFrameworkCore
 							{
 								if (a.Value is string str)
 								{
-									return str.ToLowerInvariant().Contains("nextval");
+									return str.Contains("nextval", StringComparison.InvariantCultureIgnoreCase);
 								}
 							}
 
@@ -301,15 +301,15 @@ namespace LinqToDB.EntityFrameworkCore
 						}
 					}
 
-					var behaviour = prop.GetBeforeSaveBehavior();
+					var behavior = prop.GetBeforeSaveBehavior();
 					var skipOnInsert = prop.ValueGenerated.HasFlag(ValueGenerated.OnAdd);
 
 					if (skipOnInsert)
 					{
-						skipOnInsert = isIdentity || behaviour != PropertySaveBehavior.Save;
+						skipOnInsert = isIdentity || behavior != PropertySaveBehavior.Save;
 					}
 
-					var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
+					var skipOnUpdate = behavior != PropertySaveBehavior.Save ||
 						prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
 
 					var ca = new ColumnAttribute()
@@ -432,7 +432,7 @@ namespace LinqToDB.EntityFrameworkCore
 					});
 			}
 
-			return result == null ? Array.Empty<MappingAttribute>() : result.ToArray();
+			return result == null ? [] : result.ToArray();
 		}
 
 		sealed class ValueConverter : IValueConverter
@@ -462,7 +462,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			protected override void Print(ExpressionPrinter expressionPrinter)
 			{
-				expressionPrinter.Print(Expression);
+				expressionPrinter.PrintExpression(Expression);
 			}
 
 			private bool Equals(SqlTransparentExpression other)
@@ -493,7 +493,7 @@ namespace LinqToDB.EntityFrameworkCore
 			};
 		}
 
-		private Sql.ExpressionAttribute? GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
+		private EFCoreExpressionAttribute? GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
@@ -536,7 +536,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return found;
 		}
 
-		private Sql.ExpressionAttribute? GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
+		private EFCoreExpressionAttribute? GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
@@ -629,7 +629,7 @@ namespace LinqToDB.EntityFrameworkCore
 				// https://github.com/npgsql/efcore.pg/blob/main/src/EFCore.PG/Query/Expressions/Internal/PostgresBinaryExpression.cs
 				if (newExpression.GetType().Name == "PostgresBinaryExpression")
 				{
-					// Handling NpgSql's PostgresBinaryExpression
+					// Handling Npgsql PostgresBinaryExpression
 
 					var left  = (Expression)newExpression.GetType().GetProperty("Left")!.GetValue(newExpression)!;
 					var right = (Expression)newExpression.GetType().GetProperty("Right")!.GetValue(newExpression)!;
@@ -714,7 +714,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		public MemberInfo[] GetDynamicColumns(Type type)
 		{
-			return Array.Empty<MemberInfo>();
+			return [];
 		}
 
 		string IMetadataReader.GetObjectID() => _objectId;

@@ -31,7 +31,7 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 			_options = optionsBuilder.Options;
 		}
 
-		private NorthwindContext CreateMySqlSqlExntitiesContext()
+		private NorthwindContext CreateMySqlSqlEntitiesContext()
 		{
 			var ctx = new NorthwindContext(_options);
 			ctx.Database.EnsureDeleted();
@@ -42,7 +42,7 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 		[Test]
 		public void SimpleProviderTest()
 		{
-			using (var db = CreateMySqlSqlExntitiesContext())
+			using (var db = CreateMySqlSqlEntitiesContext())
 			{
 				var items = db.Customers.Where(e => e.Address != null).ToLinqToDB().ToArray();
 			}

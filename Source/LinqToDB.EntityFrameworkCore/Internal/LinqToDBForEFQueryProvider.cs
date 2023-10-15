@@ -31,7 +31,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		/// <param name="expression">Query expression.</param>
 		public LinqToDBForEFQueryProvider(IDataContext dataContext, Expression expression)
 		{
-			if (expression == null) throw new ArgumentNullException(nameof(expression));
+			ArgumentNullException.ThrowIfNull(expression);
 			var dataContext1 = dataContext ?? throw new ArgumentNullException(nameof(dataContext));
 			QueryProvider = (IQueryProviderAsync) Internals.CreateExpressionQueryInstance<T>(dataContext1, expression);
 			QueryProviderAsQueryable = (IQueryable<T>) QueryProvider;

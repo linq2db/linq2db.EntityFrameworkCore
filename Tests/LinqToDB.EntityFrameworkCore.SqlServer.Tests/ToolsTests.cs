@@ -18,7 +18,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	public class ToolsTests : TestsBase
 	{
 		private readonly DbContextOptions _options;
-		private readonly DbContextOptions<NorthwindContext> _inmemoryOptions;
+		private readonly DbContextOptions<NorthwindContext> _inMemoryOptions;
 
 		static ToolsTests()
 		{
@@ -42,12 +42,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			optionsBuilder.UseInMemoryDatabase("sample");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
-			_inmemoryOptions = optionsBuilder.Options;
+			_inMemoryOptions = optionsBuilder.Options;
 		}
 
 		private NorthwindContext CreateContextInMemory()
 		{
-			var ctx = new NorthwindContext(_inmemoryOptions);
+			var ctx = new NorthwindContext(_inMemoryOptions);
 			ctx.Database.EnsureCreated();
 			return ctx;
 		}
@@ -55,14 +55,16 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		private void SetIdentityInsert(DbContext ctx, string tableName, bool isOn)
 		{
 			var str = $"SET IDENTITY_INSERT {tableName} " + (isOn ? "ON" : "OFF");
+#pragma warning disable CA1031 // Do not catch general exception types
 			try
 			{
 				ctx.Database.ExecuteSqlRaw(str);
 			}
-			catch (Exception)
+			catch
 			{
 				// swallow
 			}
+#pragma warning restore CA1031 // Do not catch general exception types
 		}
 
 		private NorthwindContext CreateContext(bool enableFilter)
@@ -75,14 +77,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				NorthwindData.Seed(ctx);
 			}			
 			return ctx;
-		}
-
-		public class VwProductAndDescription
-		{
-			public int ProductId { get; set; }
-			public string Name { get; set; } = null!;
-			public string ProductModel { get; set; } = null!;
-			public string Description { get; set; } = null!;
 		}
 
 		[Test]
@@ -122,8 +116,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
+#pragma warning disable CA1866 // Use char overload
 				var query = ProductQuery(ctx)
 					.Where(pd => pd.ProductName.StartsWith("a"));
+#pragma warning restore CA1866 // Use char overload
 
 				query.Where(p => p.ProductName == "a").Delete();
 			}
@@ -135,9 +131,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
+#pragma warning disable CA1866 // Use char overload
 				var query = ProductQuery(ctx)
 					.ToLinqToDB()
 					.Where(pd => pd.ProductName.StartsWith("a"));
+#pragma warning restore CA1866 // Use char overload
 			}
 		}
 
@@ -146,8 +144,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
+#pragma warning disable CA1866 // Use char overload
 				var query = ProductQuery(ctx)
 					.Where(pd => pd.ProductName.StartsWith("a"));
+#pragma warning restore CA1866 // Use char overload
 			}
 		}
 
@@ -215,12 +215,14 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
-				using (var transaction = ctx.Database.BeginTransaction())
+				await using (var transaction = await ctx.Database.BeginTransactionAsync())
 				using (var db = ctx.CreateLinqToDBConnection())
 				{
 
+#pragma warning disable CA1866 // Use char overload
 					var test1 = await ctx.Products.Where(p => p.ProductName.StartsWith("U")).MaxAsync(p => p.QuantityPerUnit);
 					var test2 = await ctx.Products.Where(p => p.ProductName.StartsWith("U")).MaxAsyncLinqToDB(p => p.QuantityPerUnit);
+#pragma warning restore CA1866 // Use char overload
 
 					Assert.AreEqual(test1, test2);
 
@@ -228,7 +230,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 						.ToLinqToDB(db)
 						.Delete();
 
-					transaction.Rollback();
+					await transaction.RollbackAsync();
 				}
 			}
 		}
@@ -239,9 +241,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext(enableFilter))
 			using (var db = ctx.CreateLinqToDBConnection())
 			{
+#pragma warning disable CA1866 // Use char overload
 				var query = ProductQuery(ctx)
 					.ToLinqToDB(db)
 					.Where(pd => pd.ProductName.StartsWith("a"));
+#pragma warning restore CA1866 // Use char overload
 
 				var items = query.ToArray();
 			}
@@ -534,7 +538,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 				ctx.ChangeTracker.DetectChanges();
 				var changedEntry = ctx.ChangeTracker.Entries().Single(e => e.State == EntityState.Modified);
-				ctx.SaveChanges();
+				await ctx.SaveChangesAsync();
 			}
 		}
 
@@ -558,7 +562,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				ctx.ChangeTracker.DetectChanges();
 				var changedEntry = ctx.ChangeTracker.Entries().SingleOrDefault(e => e.State == EntityState.Modified);
 				Assert.AreEqual(changedEntry, null);
-				ctx.SaveChanges();
+				await ctx.SaveChangesAsync();
 			}
 		}
 
@@ -584,7 +588,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					ctx.ChangeTracker.DetectChanges();
 					var changedEntry = ctx.ChangeTracker.Entries().SingleOrDefault(e => e.State == EntityState.Modified);
 					Assert.AreEqual(changedEntry, null);
-					ctx.SaveChanges();
+					await ctx.SaveChangesAsync();
 				}
 			}
 			finally
@@ -867,7 +871,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
-		static DbContextOptions CreateInheritanceOptions()
+		static DbContextOptions<InheritanceContext> CreateInheritanceOptions()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<InheritanceContext>();
 

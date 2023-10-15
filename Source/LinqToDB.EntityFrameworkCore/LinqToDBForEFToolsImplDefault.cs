@@ -103,7 +103,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		/// <summary>
 		/// Returns LINQ To DB provider, based on provider data from EF Core.
-		/// Could be overriden if you have issues with default detection mechanisms.
+		/// Could be overridden if you have issues with default detection mechanisms.
 		/// </summary>
 		/// <param name="options">Linq To DB context options.</param>
 		/// <param name="providerInfo">Provider information, extracted from EF Core.</param>
@@ -438,8 +438,8 @@ namespace LinqToDB.EntityFrameworkCore
 			IValueConverterSelector? convertorSelector,
 			DataOptions dataOptions)
 		{
-			if (mappingSchema == null) throw new ArgumentNullException(nameof(mappingSchema));
-			if (model == null)         throw new ArgumentNullException(nameof(model));
+			ArgumentNullException.ThrowIfNull(mappingSchema);
+			ArgumentNullException.ThrowIfNull(model);
 
 			if (convertorSelector == null)
 				return;
@@ -805,7 +805,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var tracking           = true;
 			var ignoreTracking     = false;
 
-			var nonEvaluatableParameters = new HashSet<ParameterExpression>();
+			var nonEvaluableParameters = new HashSet<ParameterExpression>();
 
 			TransformInfo LocalTransform(Expression e)
 			{
@@ -817,7 +817,7 @@ namespace LinqToDB.EntityFrameworkCore
 					{
 						foreach (var parameter in ((LambdaExpression)e).Parameters)
 						{
-							nonEvaluatableParameters.Add(parameter);
+							nonEvaluableParameters.Add(parameter);
 						}
 
 						break;
@@ -890,7 +890,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 									var propName = (string)EvaluateExpression(methodCall.Arguments[1])!;
 									var param    = Expression.Parameter(methodCall.Method.GetGenericArguments()[0], "e");
-									var propPath = propName.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
+									var propPath = propName.Split('.', StringSplitOptions.RemoveEmptyEntries);
 									var prop     = (Expression)param;
 									for (int i = 0; i < propPath.Length; i++)
 									{
@@ -962,7 +962,7 @@ namespace LinqToDB.EntityFrameworkCore
 						{
 							if (((dc != null && !dc.MappingSchema.HasAttribute<ExpressionMethodAttribute>(methodCall.Type, methodCall.Method))
 								|| (dc == null && !methodCall.Method.HasAttribute<ExpressionMethodAttribute>()))
-								&& null == methodCall.Find(nonEvaluatableParameters,
+								&& null == methodCall.Find(nonEvaluableParameters,
 								    (c, t) => t.NodeType == ExpressionType.Parameter && c.Contains(t) || t.NodeType == ExpressionType.Extension))
 							{
 								// Invoking function to evaluate EF's Subquery located in function
@@ -1146,7 +1146,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return expression;
 		}
 
-		static Expression EnsureEnumerable(LambdaExpression lambda, MappingSchema mappingSchema)
+		static LambdaExpression EnsureEnumerable(LambdaExpression lambda, MappingSchema mappingSchema)
 		{
 			var newBody = EnsureEnumerable(lambda.Body, mappingSchema);
 			if (newBody != lambda.Body)
