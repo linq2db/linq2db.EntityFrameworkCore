@@ -40,6 +40,7 @@ namespace LinqToDB.EntityFrameworkCore
 		private readonly IRelationalAnnotationProvider?                               _annotationProvider;
 		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new();
 		private readonly IDiagnosticsLogger<DbLoggerCategory.Query>?                  _logger;
+		private readonly DatabaseDependencies?                                        _databaseDependencies;
 
 		public EFCoreMetadataReader(IModel? model, IInfrastructure<IServiceProvider>? accessor)
 		{
@@ -47,10 +48,11 @@ namespace LinqToDB.EntityFrameworkCore
 
 			if (accessor != null)
 			{
-				_dependencies       = accessor.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-				_mappingSource      = accessor.GetService<IRelationalTypeMappingSource>();
-				_annotationProvider = accessor.GetService<IRelationalAnnotationProvider>();
-				_logger             = accessor.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+				_dependencies         = accessor.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
+				_mappingSource        = accessor.GetService<IRelationalTypeMappingSource>();
+				_annotationProvider   = accessor.GetService<IRelationalAnnotationProvider>();
+				_logger               = accessor.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+				_databaseDependencies = accessor.GetService<DatabaseDependencies>();
 			}
 
 			_objectId = $".{_model?.GetHashCode() ?? 0}.{_dependencies?.GetHashCode() ?? 0}.{_mappingSource?.GetHashCode() ?? 0}.{_annotationProvider?.GetHashCode() ?? 0}.{_logger?.GetHashCode() ?? 0}.";
@@ -533,21 +535,23 @@ namespace LinqToDB.EntityFrameworkCore
 						var p = parameterInfos[i];
 
 						parametersArray[i] = new SqlTransparentExpression(
-								Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType),
-								ctx.this_._mappingSource?.FindMapping(p.ParameterType));
+							Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType),
+							ctx.this_._mappingSource?.FindMapping(p.ParameterType));
 					}
 
-					SqlExpression? newExpression = null;
-					try
+					// https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql/issues/1801
+					if (ctx.this_._dependencies!.MethodCallTranslatorProvider.GetType().Name == "MySqlMethodCallTranslatorProvider")
 					{
-						newExpression = ctx.this_._dependencies!.MethodCallTranslatorProvider.Translate(ctx.this_._model!, objExpr, ctx.methodInfo, parametersArray, ctx.this_._logger!);
+						var contextProperty = ctx.this_._dependencies!.MethodCallTranslatorProvider.GetType().GetProperty("QueryCompilationContext")
+						?? throw new InvalidOperationException("MySqlMethodCallTranslatorProvider.QueryCompilationContext property not found");
+
+						if (contextProperty.GetValue(ctx.this_._dependencies!.MethodCallTranslatorProvider) == null)
+						{
+							contextProperty.SetValue(ctx.this_._dependencies!.MethodCallTranslatorProvider, ctx.this_._databaseDependencies!.QueryCompilationContextFactory.Create(false));
+						}
 					}
-					catch (InvalidOperationException) when (ctx.this_._dependencies!.MethodCallTranslatorProvider.GetType().Name == "MySqlMethodCallTranslatorProvider")
-					{
-						// "workaround"
-						// https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql/issues/1801
-						// prevents use of mysql-specific extensions
-					}
+
+					var newExpression = ctx.this_._dependencies!.MethodCallTranslatorProvider.Translate(ctx.this_._model!, objExpr, ctx.methodInfo, parametersArray, ctx.this_._logger!);
 					if (newExpression != null)
 					{
 						if (!ctx.methodInfo.IsStatic)
