@@ -27,3 +27,4 @@ uniqueidentifier
 tinyint
 Deserialize
 varbinary
+mysql

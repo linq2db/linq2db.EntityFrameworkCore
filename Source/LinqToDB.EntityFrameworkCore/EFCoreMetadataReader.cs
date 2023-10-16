@@ -520,7 +520,17 @@ namespace LinqToDB.EntityFrameworkCore
 								ctx.this_._mappingSource?.FindMapping(p.ParameterType));
 					}
 
-					var newExpression = ctx.this_._dependencies!.MethodCallTranslatorProvider.Translate(ctx.this_._model!, objExpr, ctx.methodInfo, parametersArray, ctx.this_._logger!);
+					SqlExpression? newExpression = null;
+					try
+					{
+						newExpression = ctx.this_._dependencies!.MethodCallTranslatorProvider.Translate(ctx.this_._model!, objExpr, ctx.methodInfo, parametersArray, ctx.this_._logger!);
+					}
+					catch (InvalidOperationException) when (ctx.this_._dependencies!.MethodCallTranslatorProvider.GetType().Name == "MySqlMethodCallTranslatorProvider")
+					{
+						// "workaround"
+						// https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql/issues/1801
+						// prevents use of mysql-specific extensions
+					}
 					if (newExpression != null)
 					{
 						if (!ctx.methodInfo.IsStatic)
