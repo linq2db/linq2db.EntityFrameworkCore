@@ -19,24 +19,19 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		private readonly DbContextOptions _northwindOptions;
 		private readonly DbContextOptions _northwindOptionsWithEfCoreInterceptorsOnly;
 		private DbConnection? _dbConnection;
-		static TestCommandInterceptor _testCommandInterceptor;
-		static TestDataContextInterceptor _testDataContextInterceptor;
-		static TestConnectionInterceptor _testConnectionInterceptor;
-		static TestEntityServiceInterceptor _testEntityServiceInterceptor;
-		static TestEfCoreAndLinqToDBComboInterceptor _testEfCoreAndLinqToDBInterceptor;
+		static TestCommandInterceptor _testCommandInterceptor = new();
+		static TestDataContextInterceptor _testDataContextInterceptor = new();
+		static TestConnectionInterceptor _testConnectionInterceptor = new();
+		static TestEntityServiceInterceptor _testEntityServiceInterceptor = new();
+		static TestEfCoreAndLinqToDBComboInterceptor _testEfCoreAndLinqToDBInterceptor = new();
 
 		static InterceptorTests()
 		{
-			_testCommandInterceptor = new TestCommandInterceptor();
-			_testDataContextInterceptor = new TestDataContextInterceptor();
-			_testConnectionInterceptor = new TestConnectionInterceptor();
-			_testEntityServiceInterceptor = new TestEntityServiceInterceptor();
-			_testEfCoreAndLinqToDBInterceptor = new TestEfCoreAndLinqToDBComboInterceptor();
 			LinqToDBForEFTools.Initialize();
 			DataConnection.TurnTraceSwitchOn();
 		}
 
-		static DbContextOptions CreateNorthwindOptions()
+		static DbContextOptions<NorthwindContext> CreateNorthwindOptions()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
@@ -55,7 +50,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			return optionsBuilder.Options;
 		}
 
-		static DbContextOptions CreateNorthwindOptionsWithEfCoreInterceptorsOnly()
+		static DbContextOptions<NorthwindContext> CreateNorthwindOptionsWithEfCoreInterceptorsOnly()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
 			optionsBuilder.UseSqlite(SQLITE_CONNECTION_STRING);
@@ -78,7 +73,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			return ctx;
 		}
 
-		private NorthwindContext CreateContextWithountLinqToDBExtensions()
+		private NorthwindContext CreateContextWithoutLinqToDBExtensions()
 		{
 			var ctx = new NorthwindContext(_northwindOptionsWithEfCoreInterceptorsOnly);
 			return ctx;
@@ -165,7 +160,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		[Test]
 		public void TestEfCoreSideOfComboInterceptor()
 		{
-			using (var ctx = CreateContextWithountLinqToDBExtensions())
+			using (var ctx = CreateContextWithoutLinqToDBExtensions())
 			{
 				var query =
 					from pd in ctx.Products
@@ -180,7 +175,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		[Test]
 		public void TestLinqToDBSideOfComboInterceptor()
 		{
-			using (var ctx = CreateContextWithountLinqToDBExtensions())
+			using (var ctx = CreateContextWithoutLinqToDBExtensions())
 			{
 				var query =
 					from pd in ctx.Products

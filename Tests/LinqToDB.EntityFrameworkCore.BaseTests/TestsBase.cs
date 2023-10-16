@@ -107,11 +107,11 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 
 			for (var i = 0; i < resultList.Count; i++)
 			{
-				var elist = expectedList[i].ToList();
-				var rlist = resultList[i].ToList();
+				var expectedElement = expectedList[i].ToList();
+				var resultElement = resultList[i].ToList();
 
-				if (elist.Count > 0 || rlist.Count > 0)
-					AreEqual(elist, rlist);
+				if (expectedElement.Count > 0 || resultElement.Count > 0)
+					AreEqual(expectedElement, resultElement);
 			}
 		}
 

@@ -40,7 +40,7 @@ namespace LinqToDB.EntityFrameworkCore
 		}
 
 		/// <summary>
-		/// Initilaizes SQL Server's DbFunctions dynamically to avoid dependency
+		/// Initializes SQL Server's DbFunctions dynamically to avoid dependency
 		/// </summary>
 		static void InitializeSqlServerMapping()
 		{

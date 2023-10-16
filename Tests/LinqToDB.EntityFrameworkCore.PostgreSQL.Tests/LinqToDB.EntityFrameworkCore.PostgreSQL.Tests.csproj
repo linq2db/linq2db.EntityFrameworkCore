@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
-		<PackageReference Include="FluentAssertions" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" />
 	</ItemGroup>
 

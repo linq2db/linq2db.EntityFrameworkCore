@@ -46,7 +46,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var ms = LinqToDBForEFTools.GetMappingSchema(db.Model, db, null);
 				var ed = ms.GetEntityDescriptor(typeof(StringTypes));
 
-				ed.Columns.First(c => c.MemberName == nameof(StringTypes.AnsiString)).DataType.Should()
+				ed.Columns.First(c => c.MemberName == nameof(StringTypes.AsciiString)).DataType.Should()
 					.Be(DataType.VarChar);
 
 				ed.Columns.First(c => c.MemberName == nameof(StringTypes.UnicodeString)).DataType.Should()

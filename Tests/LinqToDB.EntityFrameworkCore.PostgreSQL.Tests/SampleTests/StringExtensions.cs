@@ -10,7 +10,9 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 				return input;
 
 			var startUnderscores = UnderscoresMatcher().Match(input);
+#pragma warning disable CA1308 // Normalize strings to uppercase
 			return startUnderscores + Replacer().Replace(input, "$1_$2").ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
 		}
 
 		[GeneratedRegex("^_+")]

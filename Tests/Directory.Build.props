@@ -2,7 +2,7 @@
 	<Import Project="$(MSBuildThisFileDirectory)\..\Directory.Build.props" />
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0</TargetFrameworks>
+		<TargetFrameworks>net8.0</TargetFrameworks>
 
 		<NoWarn>$(NoWarn);CS1591</NoWarn>
 	</PropertyGroup>

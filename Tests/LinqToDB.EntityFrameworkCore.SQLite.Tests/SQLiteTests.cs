@@ -28,7 +28,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			_options = optionsBuilder.Options;
 		}
 
-		private NorthwindContext CreateSQLiteSqlExntitiesContext()
+		private NorthwindContext CreateSQLiteSqlEntitiesContext()
 		{
 			var ctx = new NorthwindContext(_options);
 			ctx.Database.EnsureDeleted();

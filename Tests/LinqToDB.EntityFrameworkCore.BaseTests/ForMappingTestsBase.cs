@@ -65,7 +65,6 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 
 			t.BulkCopy(items);
 
-
 			items.Should().BeEquivalentTo(t);
 		}
 
@@ -129,7 +128,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			Assert.AreEqual(connection1.MappingSchema, connection2.MappingSchema);
 		}
 
-		sealed class TestEntity
+		protected sealed class TestEntity
 		{
 			public int Field { get; set; }
 		}

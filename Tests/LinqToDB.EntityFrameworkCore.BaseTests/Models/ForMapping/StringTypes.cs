@@ -7,7 +7,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.ForMapping
 		[Key]
 		public int Id { get; set; }
 
-		public string? AnsiString { get; set; }
+		public string? AsciiString { get; set; }
 
 		public string? UnicodeString { get; set; }
 	}
