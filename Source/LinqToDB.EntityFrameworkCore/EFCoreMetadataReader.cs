@@ -107,17 +107,12 @@ namespace LinqToDB.EntityFrameworkCore
 				// InheritanceMappingAttribute
 				if (_model != null)
 				{
-					var derivedEntities = _model.GetEntityTypes().Where(e => e.BaseType == et && e.Relational().DiscriminatorValue != null).ToList();
-
-					foreach (var e in derivedEntities)
+					foreach (var e in _model.GetEntityTypes())
 					{
-						result.Add(
-							new InheritanceMappingAttribute()
+						if (GetBaseTypeRecursive(e) == et && e.Relational().DiscriminatorValue != null)
 							{
-								Type = e.ClrType,
-								Code = e.Relational().DiscriminatorValue
+							result.AddRange(GetMappingAttributesRecursive(e));
 							}
-							);
 					}
 				}
 			}
@@ -130,6 +125,35 @@ namespace LinqToDB.EntityFrameworkCore
 			}
 
 			return result == null ? Array.Empty<MappingAttribute>() : result.ToArray();
+		}
+
+		static IEntityType GetBaseTypeRecursive(IEntityType entityType)
+		{
+			if (entityType.BaseType == null)
+				return entityType;
+			return GetBaseTypeRecursive(entityType.BaseType);
+		}
+		
+		static IEnumerable<InheritanceMappingAttribute> GetMappingAttributesRecursive(IEntityType entityType)
+		{
+			var mappings = new List<InheritanceMappingAttribute>();
+			return ProcessEntityType(entityType);
+
+			List<InheritanceMappingAttribute> ProcessEntityType(IEntityType et)
+			{
+				if (!et.ClrType.IsAbstract)
+				{
+					mappings.Add(new()
+					{
+						Type = et.ClrType,
+						Code = entityType.Relational().DiscriminatorValue
+					});
+				}
+				
+				if (et.BaseType == null)
+					return mappings;
+				return ProcessEntityType(et.BaseType);
+			}
 		}
 
 		static bool CompareProperty(MemberInfo? property, MemberInfo memberInfo)
@@ -289,11 +313,9 @@ namespace LinqToDB.EntityFrameworkCore
 					var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
 						prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
 
-					(result ??= new()).Add(
-						new ColumnAttribute()
+					var ca = new ColumnAttribute()
 						{
 							Name = relational.ColumnName,
-							Length = prop.GetMaxLength() ?? 0,
 							CanBeNull = prop.IsNullable,
 							DbType = relational.ColumnType,
 							DataType = dataType,
@@ -303,8 +325,13 @@ namespace LinqToDB.EntityFrameworkCore
 							IsDiscriminator = discriminator == prop,
 							SkipOnInsert = skipOnInsert,
 							SkipOnUpdate = skipOnUpdate
-						}
-					);
+					};
+
+					var maxLen = prop.GetMaxLength();
+					if (maxLen != null)
+						ca.Length = maxLen.Value;
+
+					(result ??= new()).Add(ca);
 
 					// ValueConverterAttribute
 					var converter = prop.GetValueConverter();

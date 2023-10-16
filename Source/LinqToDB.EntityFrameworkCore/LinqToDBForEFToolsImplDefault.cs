@@ -173,15 +173,46 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				case ProviderName.SqlServer:
 					return CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2005:
+					return CreateSqlServerProvider(SqlServerVersion.v2005, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2008:
+					return CreateSqlServerProvider(SqlServerVersion.v2008, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2012:
+					return CreateSqlServerProvider(SqlServerVersion.v2012, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2014:
+					return CreateSqlServerProvider(SqlServerVersion.v2014, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2016:
+					return CreateSqlServerProvider(SqlServerVersion.v2016, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2017:
+					return CreateSqlServerProvider(SqlServerVersion.v2017, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2019:
+					return CreateSqlServerProvider(SqlServerVersion.v2019, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2022:
+					return CreateSqlServerProvider(SqlServerVersion.v2022, connectionInfo.ConnectionString);
+
 				case ProviderName.MySql:
 				case ProviderName.MySqlConnector:
+				case ProviderName.MariaDB:
 					return MySqlTools.GetDataProvider(provInfo.ProviderName);
+
 				case ProviderName.PostgreSQL:
 					return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
+				case ProviderName.PostgreSQL92:
+					return CreatePostgreSqlProvider(PostgreSQLVersion.v92, connectionInfo.ConnectionString);
+				case ProviderName.PostgreSQL93:
+					return CreatePostgreSqlProvider(PostgreSQLVersion.v93, connectionInfo.ConnectionString);
+				case ProviderName.PostgreSQL95:
+					return CreatePostgreSqlProvider(PostgreSQLVersion.v95, connectionInfo.ConnectionString);
+				case ProviderName.PostgreSQL15:
+					return CreatePostgreSqlProvider(PostgreSQLVersion.v15, connectionInfo.ConnectionString);
+
 				case ProviderName.SQLite:
+				case ProviderName.SQLiteMS:
 					return SQLiteTools.GetDataProvider(provInfo.ProviderName);
+
 				case ProviderName.Firebird:
 					return FirebirdTools.GetDataProvider();
+
 				case ProviderName.DB2:
 				case ProviderName.DB2LUW:
 					return DB2Tools.GetDataProvider(DB2Version.LUW);
@@ -204,6 +235,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 				case ProviderName.SqlCe:
 					return SqlCeTools.GetDataProvider();
+
 				//case ProviderName.Access:
 				//	return new AccessDataProvider();
 
@@ -1043,19 +1075,13 @@ namespace LinqToDB.EntityFrameworkCore
 			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance)!;
 			var compiler = (QueryCompiler)compilerField.GetValue(query.Provider)!;
 
-			var queryContextFactoryField = compiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance);
-
-			if (queryContextFactoryField == null)
-				throw new LinqToDBForEFToolsException($"Can not find private field '{compiler.GetType()}._queryContextFactory' in current EFCore Version.");
-
+			var queryContextFactoryField = compiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance)
+				?? throw new LinqToDBForEFToolsException($"Can not find private field '{compiler.GetType()}._queryContextFactory' in current EFCore Version.");
 			if (!(queryContextFactoryField.GetValue(compiler) is RelationalQueryContextFactory queryContextFactory))
 				throw new LinqToDBForEFToolsException("LinqToDB Tools for EFCore support only Relational Databases.");
 
-			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
-
-			if (dependenciesProperty == null)
-				throw new LinqToDBForEFToolsException($"Can not find private property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version.");
-
+			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance)
+				?? throw new LinqToDBForEFToolsException($"Can not find private property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version.");
 			var dependencies = (QueryContextDependencies) dependenciesProperty.GetValue(queryContextFactory);
 
 			return dependencies.CurrentDbContext?.Context;

@@ -6,7 +6,6 @@ using LinqToDB.DataProvider.PostgreSQL;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.Models.NpgSqlEntities;
 using Microsoft.EntityFrameworkCore;
-using NodaTime;
 using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests

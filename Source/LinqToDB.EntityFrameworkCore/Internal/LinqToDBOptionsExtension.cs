@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LinqToDB.EntityFrameworkCore.Internal
