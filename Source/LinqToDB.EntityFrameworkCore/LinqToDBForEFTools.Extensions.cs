@@ -13,10 +13,8 @@ namespace LinqToDB.EntityFrameworkCore
 		public static ITable<T> ToLinqToDBTable<T>(this DbSet<T> dbSet)
 			where T : class
 		{
-			var context = Implementation.GetCurrentContext(dbSet);
-			if (context == null)
-				throw new LinqToDBForEFToolsException($"Can not load current context from {nameof(dbSet)}");
-
+			var context = Implementation.GetCurrentContext(dbSet)
+				?? throw new LinqToDBForEFToolsException($"Can not load current context from {nameof(dbSet)}");
 			var dc = CreateLinqToDBContext(context);
 			return dc.GetTable<T>();
 		}
