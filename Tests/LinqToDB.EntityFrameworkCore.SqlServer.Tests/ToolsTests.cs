@@ -86,7 +86,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			if (ctx.Database.EnsureCreated())
 			{
 				NorthwindData.Seed(ctx);
-			}
+			}			
 			return ctx;
 		}
 
@@ -94,8 +94,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			var recreate = _inheritanceOptions == null;
 
-			if (_inheritanceOptions == null)
-				_inheritanceOptions = CreateInheritanceOptions();
+			_inheritanceOptions ??= CreateInheritanceOptions();
 
 			var ctx = new InheritanceContext(_inheritanceOptions);
 			if (recreate)
@@ -922,6 +921,5 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 		*/
-
 	}
 }

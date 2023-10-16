@@ -12,7 +12,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 		public static Id<TEntity, TKey> AsId<TEntity, TKey>(this TKey @object)
 			where TEntity : IEntity<TKey>
 			where TKey : notnull
-			=> new Id<TEntity, TKey>(@object);
+			=> new(@object);
 	}
 	
 	public readonly struct Id<TEntity, TKey> : IEquatable<Id<TEntity, TKey>> where TEntity : IEntity<TKey>

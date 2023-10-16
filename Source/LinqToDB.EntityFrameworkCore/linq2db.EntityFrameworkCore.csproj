@@ -1,7 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<Import Project="..\..\Build\linq2db.Default.props" />
-
 	<PropertyGroup>
 		<Description>Allows to execute Linq to DB (linq2db) queries in Entity Framework Core DbContext.</Description>
 		<Title>Linq to DB (linq2db) extensions for Entity Framework Core</Title>
@@ -24,6 +22,8 @@
 	<ItemGroup>
 		<PackageReference Include="linq2db" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+
+		<PackageReference Include="PolySharp" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

@@ -1,6 +1,6 @@
-﻿<Project>
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<PropertyGroup>
-		<Version>5.15.0</Version>
+		<Version>5.18.0</Version>
 
 		<Authors>Svyatoslav Danyliv, Igor Tkachev, Dmitry Lukashenko, Ilya Chudin</Authors>
 		<Product>Linq to DB</Product>
@@ -11,8 +11,10 @@
 
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<WarningLevel>4</WarningLevel>
+		<WarningLevel>9999</WarningLevel>
 		<ErrorReport>prompt</ErrorReport>
+		<Features>strict</Features>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 
 		<AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -27,15 +29,22 @@
 		<GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
 		<GenerateAssemblyFileVersionAttribute>true</GenerateAssemblyFileVersionAttribute>
 		<GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 
-		<CheckEolTargetFramework>false</CheckEolTargetFramework>
+		<!--required for SkipLocalInit-->
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+		<AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<AnalysisLevel>preview</AnalysisLevel>
-		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<RunAnalyzers>true</RunAnalyzers>
+		<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+		<RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+		<AnalysisLevel>preview-All</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<ReportAnalyzer>true</ReportAnalyzer>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 </Project>
