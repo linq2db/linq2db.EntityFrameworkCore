@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using LinqToDB.Common.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -258,14 +259,30 @@ namespace LinqToDB.EntityFrameworkCore
 
 					var storeObjectId = GetStoreObjectIdentifier(et);
 
+					var isIdentity = false;
 					var annotations = prop.GetAnnotations();
 					if (_annotationProvider != null && storeObjectId != null)
 					{
 						if (prop.FindColumn(storeObjectId.Value) is IColumn column)
 							annotations = annotations.Concat(_annotationProvider.For(column, false));
+
+						if (_annotationProvider.GetType().Name == "SqliteAnnotationProvider")
+						{
+							// copy-paste logic, not available anymore in v8
+							// https://github.com/dotnet/efcore/blob/release/8.0/src/EFCore.Sqlite.Core/Metadata/Internal/SqliteAnnotationProvider.cs#L70-L75
+							var primaryKey = prop.DeclaringType.ContainingEntityType.FindPrimaryKey();
+							if (primaryKey is { Properties.Count: 1 }
+								&& primaryKey.Properties[0] == prop
+								&& prop.ValueGenerated == ValueGenerated.OnAdd
+								&& prop.ClrType.IsInteger()
+								&& prop.FindTypeMapping()?.Converter == null)
+							{
+								isIdentity = true;
+							}
+						}
 					}
 
-					var isIdentity = annotations
+					isIdentity = isIdentity || annotations
 						.Any(static a =>
 						{
 							if (a.Name.EndsWith(":ValueGenerationStrategy"))

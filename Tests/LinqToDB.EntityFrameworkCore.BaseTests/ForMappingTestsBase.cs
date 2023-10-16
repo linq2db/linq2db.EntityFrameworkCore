@@ -65,7 +65,6 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 
 			t.BulkCopy(items);
 
-
 			items.Should().BeEquivalentTo(t);
 		}
 
