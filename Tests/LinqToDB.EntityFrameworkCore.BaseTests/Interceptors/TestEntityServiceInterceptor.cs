@@ -1,7 +1,4 @@
-﻿using System.Data.Common;
-using System.Threading;
-using System.Threading.Tasks;
-using LinqToDB.Interceptors;
+﻿using LinqToDB.Interceptors;
 
 namespace LinqToDB.EntityFrameworkCore.BaseTests.Interceptors
 {

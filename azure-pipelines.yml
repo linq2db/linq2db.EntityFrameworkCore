@@ -1,8 +1,8 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 7.5.0
-  nugetVersion: 7.5.0
+  assemblyVersion: 8.0.0
+  nugetVersion: 8.0.0-rc.2
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
@@ -32,24 +32,26 @@ stages:
 
     steps:
 
-
+    
     - task: UseDotNet@2
-      displayName: 'Install .NET 7'
+      displayName: 'Install .NET 8'
       inputs:
-        version: 7.x
+        includePreviewVersions: true
+        version: 8.x
 
     - task: PowerShell@2
       inputs:
         filePath: '$(Build.SourcesDirectory)/Build/SetVersion.ps1'
         workingDirectory: '$(Build.SourcesDirectory)'
-        arguments: -path $(Build.SourcesDirectory)/Build/linq2db.Default.props -version $(assemblyVersion)
+        arguments: -path $(Build.SourcesDirectory)/Directory.Build.props -version $(assemblyVersion)
       displayName: Update assembly version
 
-    - task: MSBuild@1
+    - task: DotNetCoreCLI@2
       inputs:
-        solution: '$(solution)'
+        command: 'build'
+        projects: '$(solution)'
         configuration: '$(build_configuration)'
-        msbuildArguments: '/t:Restore;Rebuild -m /p:ContinuousIntegrationBuild=true'
+        arguments: '-property:ContinuousIntegrationBuild=true'
       displayName: Build Solution
 
     - powershell: echo "##vso[task.setvariable variable=packageVersion]$(packageVersion)-rc.$(Build.BuildId)"

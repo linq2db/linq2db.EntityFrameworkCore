@@ -1,20 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\Build\linq2db.Tests.props" />
+	<PropertyGroup>
+		<WarningLevel>5</WarningLevel>
+		<DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+	</PropertyGroup>
 
-    <PropertyGroup>
-        <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
-    </PropertyGroup>
+	<ItemGroup>
+		<Compile Include="Tests.fs" />
+	</ItemGroup>
 
-    <ItemGroup>
-        <Compile Include="Tests.fs" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.csproj" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
-        <PackageReference Include="EntityFrameworkCore.FSharp" />
-        <PackageReference Include="FSharp.Core" />
-    </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\Source\LinqToDB.EntityFrameworkCore\linq2db.EntityFrameworkCore.csproj" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+		<PackageReference Include="EntityFrameworkCore.FSharp" />
+	</ItemGroup>
 
 </Project>

@@ -65,7 +65,6 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 
 			t.BulkCopy(items);
 
-
 			items.Should().BeEquivalentTo(t);
 		}
 
@@ -129,7 +128,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			Assert.AreEqual(connection1.MappingSchema, connection2.MappingSchema);
 		}
 
-		sealed class TestEntity
+		protected sealed class TestEntity
 		{
 			public int Field { get; set; }
 		}
@@ -160,6 +159,24 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			pk = ed.Columns.Single(c => c.IsPrimaryKey);
 			pk.IsIdentity.Should().BeFalse();
 			Assert.AreEqual("Field", pk.ColumnName);
+		}
+
+		[Test]
+		public virtual async Task TestInheritance()
+		{
+			using var context = CreateContext();
+			using var connection = context.CreateLinqToDBConnection();
+			
+			context.WithInheritance.AddRange(new List<WithInheritanceA>() { new() { } });
+			context.WithInheritance.AddRange(new List<WithInheritanceA1>() { new() { }, new() { } });
+			context.WithInheritance.AddRange(new List<WithInheritanceA2>() { new() { }, new() { } });
+			await context.SaveChangesAsync();
+
+			var result = context.GetTable<WithInheritanceA>().ToList();
+			
+			result.OfType<WithInheritance>().Should().HaveCount(5);
+			result.OfType<WithInheritanceA1>().Should().HaveCount(2);
+			result.OfType<WithInheritanceA2>().Should().HaveCount(2);
 		}
 	}
 }

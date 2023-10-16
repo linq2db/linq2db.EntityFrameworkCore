@@ -46,11 +46,24 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var ms = LinqToDBForEFTools.GetMappingSchema(db.Model, db, null);
 				var ed = ms.GetEntityDescriptor(typeof(StringTypes));
 
-				ed.Columns.First(c => c.MemberName == nameof(StringTypes.AnsiString)).DataType.Should()
+				ed.Columns.First(c => c.MemberName == nameof(StringTypes.AsciiString)).DataType.Should()
 					.Be(DataType.VarChar);
 
 				ed.Columns.First(c => c.MemberName == nameof(StringTypes.UnicodeString)).DataType.Should()
 					.Be(DataType.NVarChar);
+			}
+		}
+
+		[Test(Description = "https://github.com/linq2db/linq2db.EntityFrameworkCore/issues/349")]
+		public void TestColumnLengthMappings()
+		{
+			using (var db = CreateContext())
+			{
+				var ms = LinqToDBForEFTools.GetMappingSchema(db.Model, db, null);
+				var ed = ms.GetEntityDescriptor(typeof(TypesTable));
+
+				ed.Columns.First(c => c.MemberName == nameof(TypesTable.DateTime)).Length.Should().BeNull();
+				ed.Columns.First(c => c.MemberName == nameof(TypesTable.String)).Length.Should().Be(100);
 			}
 		}
 

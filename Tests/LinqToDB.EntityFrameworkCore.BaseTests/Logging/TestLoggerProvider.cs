@@ -10,7 +10,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 	/// A provider of <see cref="ConsoleLogger"/> instances.
 	/// </summary>
 	[ProviderAlias("Console")]
-	public class TestLoggerProvider : ILoggerProvider, ISupportExternalScope
+	public sealed class TestLoggerProvider : ILoggerProvider, ISupportExternalScope
 	{
 		private readonly IOptionsMonitor<ConsoleLoggerOptions> _options;
 		private readonly ConcurrentDictionary<string, TestLogger> _loggers;

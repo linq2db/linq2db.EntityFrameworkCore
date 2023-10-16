@@ -26,7 +26,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Bulk insert operation status.</returns>
 		public static BulkCopyRowsCopied BulkCopy<T>(this DbContext context, BulkCopyOptions options, IEnumerable<T> source) where T : class
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
+			ArgumentNullException.ThrowIfNull(context);
 
 			using (var dc = context.CreateLinqToDBConnection())
 			{
@@ -44,7 +44,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Bulk insert operation status.</returns>
 		public static BulkCopyRowsCopied BulkCopy<T>(this DbContext context, int maxBatchSize, IEnumerable<T> source) where T : class
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
+			ArgumentNullException.ThrowIfNull(context);
 
 			using (var dc = context.CreateLinqToDBConnection())
 			{
@@ -63,7 +63,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Bulk insert operation status.</returns>
 		public static BulkCopyRowsCopied BulkCopy<T>(this DbContext context, IEnumerable<T> source) where T : class
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
+			ArgumentNullException.ThrowIfNull(context);
 
 			using (var dc = context.CreateLinqToDBConnection())
 			{
@@ -91,8 +91,8 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken cancellationToken = default)
 			where T : class
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
-			if (source  == null) throw new ArgumentNullException(nameof(source));
+			ArgumentNullException.ThrowIfNull(context);
+			ArgumentNullException.ThrowIfNull(source);
 
 			using (var dc = context.CreateLinqToDBConnection())
 			{
@@ -117,11 +117,8 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken cancellationToken = default)
 			where T : class
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
-			if (source  == null) throw new ArgumentNullException(nameof(source));
-
-			if (context == null) throw new ArgumentNullException(nameof(context));
-			if (source  == null) throw new ArgumentNullException(nameof(source));
+			ArgumentNullException.ThrowIfNull(context);
+			ArgumentNullException.ThrowIfNull(source);
 
 			using (var dc = context.CreateLinqToDBConnection())
 			{
@@ -141,8 +138,8 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken cancellationToken = default)
 			where T : class
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
-			if (source  == null) throw new ArgumentNullException(nameof(source));
+			ArgumentNullException.ThrowIfNull(context);
+			ArgumentNullException.ThrowIfNull(source);
 
 			using (var dc = context.CreateLinqToDBConnection())
 			{
@@ -164,8 +161,8 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken cancellationToken = default)
 			where T : class
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
-			if (source  == null) throw new ArgumentNullException(nameof(source));
+			ArgumentNullException.ThrowIfNull(context);
+			ArgumentNullException.ThrowIfNull(source);
 
 			using (var dc = context.CreateLinqToDBConnection())
 			{
@@ -190,8 +187,8 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken cancellationToken = default)
 			where T : class
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
-			if (source  == null) throw new ArgumentNullException(nameof(source));
+			ArgumentNullException.ThrowIfNull(context);
+			ArgumentNullException.ThrowIfNull(source);
 
 			using (var dc = context.CreateLinqToDBConnection())
 			{
@@ -211,8 +208,8 @@ namespace LinqToDB.EntityFrameworkCore
 			CancellationToken cancellationToken = default)
 			where T : class
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
-			if (source  == null) throw new ArgumentNullException(nameof(source));
+			ArgumentNullException.ThrowIfNull(context);
+			ArgumentNullException.ThrowIfNull(source);
 
 			using (var dc = context.CreateLinqToDBConnection())
 			{
@@ -236,10 +233,12 @@ namespace LinqToDB.EntityFrameworkCore
 		public static IValueInsertable<T> Into<T>(this DbContext context, ITable<T> target)
 			where T: notnull
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
-			if (target == null)  throw new ArgumentNullException(nameof(target));
+			ArgumentNullException.ThrowIfNull(context);
+			ArgumentNullException.ThrowIfNull(target);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
 			return context.CreateLinqToDBConnection().Into(target);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 		}
 
 		#endregion
@@ -254,9 +253,11 @@ namespace LinqToDB.EntityFrameworkCore
 		public static ITable<T> GetTable<T>(this DbContext context)
 			where T : class
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
+			ArgumentNullException.ThrowIfNull(context);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
 			return context.CreateLinqToDBContext().GetTable<T>();
+#pragma warning restore CA2000 // Dispose objects before losing scope
 		}
 
 		#endregion
@@ -270,7 +271,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public static DataOptions? GetLinqToDBOptions(this DbContext context)
 
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
+			ArgumentNullException.ThrowIfNull(context);
 
 			var contextOptions = ((IInfrastructure<IServiceProvider>)context.Database)?
 				.Instance?.GetService(typeof(IDbContextOptions)) as IDbContextOptions;
@@ -284,9 +285,9 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Db context options.</returns>
 		public static DataOptions? GetLinqToDBOptions(this IDbContextOptions contextOptions)
 		{
-			if (contextOptions == null) throw new ArgumentNullException(nameof(contextOptions));
+			ArgumentNullException.ThrowIfNull(contextOptions);
 
-			return contextOptions?.FindExtension<LinqToDBOptionsExtension>()?.Options;
+			return contextOptions.FindExtension<LinqToDBOptionsExtension>()?.Options;
 		}
 
 		#endregion

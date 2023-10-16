@@ -1,11 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<Import Project="..\..\Build\linq2db.Tests.props" />
-
 	<ItemGroup>
-	  <Compile Remove="Models\UniversalEntities\**" />
-	  <EmbeddedResource Remove="Models\UniversalEntities\**" />
-	  <None Remove="Models\UniversalEntities\**" />
+		<Compile Remove="Models\UniversalEntities\**" />
+		<EmbeddedResource Remove="Models\UniversalEntities\**" />
+		<None Remove="Models\UniversalEntities\**" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -13,7 +11,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\LinqToDB.EntityFrameworkCore.BaseTests\LinqToDB.EntityFrameworkCore.BaseTests.csproj" />
+		<ProjectReference Include="..\LinqToDB.EntityFrameworkCore.BaseTests\LinqToDB.EntityFrameworkCore.BaseTests.csproj" />
 	</ItemGroup>
 
 </Project>

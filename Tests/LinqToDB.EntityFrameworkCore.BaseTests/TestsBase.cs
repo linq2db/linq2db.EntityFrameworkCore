@@ -49,7 +49,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 
 		protected void AreEqual<T>(Func<T, T> fixSelector, IEnumerable<T> expected, IEnumerable<T> result, IEqualityComparer<T> comparer, bool allowEmpty = false)
 		{
-			AreEqual<T>(fixSelector, expected, result, comparer, null, allowEmpty);
+			AreEqual(fixSelector, expected, result, comparer, null, allowEmpty);
 		}
 
 		protected void AreEqual<T>(
@@ -107,11 +107,11 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 
 			for (var i = 0; i < resultList.Count; i++)
 			{
-				var elist = expectedList[i].ToList();
-				var rlist = resultList[i].ToList();
+				var expectedElement = expectedList[i].ToList();
+				var resultElement = resultList[i].ToList();
 
-				if (elist.Count > 0 || rlist.Count > 0)
-					AreEqual(elist, rlist);
+				if (expectedElement.Count > 0 || resultElement.Count > 0)
+					AreEqual(expectedElement, resultElement);
 			}
 		}
 

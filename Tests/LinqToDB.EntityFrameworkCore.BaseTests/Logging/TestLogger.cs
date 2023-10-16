@@ -8,9 +8,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 {
 	internal sealed class TestLogger : ILogger
 	{
-		private static readonly string _loglevelPadding = ": ";
-		private static readonly string _messagePadding;
-		private static readonly string _newLineWithMessagePadding;
+		private const string _logLevelPadding = ": ";
+		private static readonly string _messagePadding = new (' ', GetLogLevelString(LogLevel.Critical).Length + _logLevelPadding.Length);
+		private static readonly string _newLineWithMessagePadding = Environment.NewLine + _messagePadding;
 
 		private readonly ConsoleColor DefaultConsoleColor = ConsoleColor.Black;
 
@@ -18,13 +18,6 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		[ThreadStatic]
 		private static StringBuilder? _logBuilder;
-
-		static TestLogger()
-		{
-			var logLevelString = GetLogLevelString(LogLevel.Information);
-			_messagePadding = new string(' ', logLevelString.Length + _loglevelPadding.Length);
-			_newLineWithMessagePadding = Environment.NewLine + _messagePadding;
-		}
 
 		internal TestLogger(string name)
 		{
@@ -42,10 +35,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 				return;
 			}
 
-			if (formatter == null)
-			{
-				throw new ArgumentNullException(nameof(formatter));
-			}
+			ArgumentNullException.ThrowIfNull(formatter);
 
 			var message = formatter(state, exception);
 
@@ -117,7 +107,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			var logLevelColors = GetLogLevelConsoleColors(logLevel);
 			var logLevelString = GetLogLevelString(logLevel);
 			// category and event id
-			logBuilder.Append(_loglevelPadding)
+			logBuilder.Append(_logLevelPadding)
 				.Append(logName)
 				.Append('[')
 				.Append(eventId)
@@ -150,13 +140,13 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 #pragma warning restore CS0618 // Type or member is obsolete
 
 			return new LogMessageEntry(
-				message: logBuilder.ToString(),
-				timeStamp: timestampFormat != null ? DateTime.Now.ToString(timestampFormat) : null,
-				levelString: logLevelString,
-				levelBackground: logLevelColors.Background,
-				levelForeground: logLevelColors.Foreground,
-				messageColor: DefaultConsoleColor,
-				logAsError: logLevel >= Options?.LogToStandardErrorThreshold
+				Message: logBuilder.ToString(),
+				TimeStamp: timestampFormat != null ? DateTime.Now.ToString(timestampFormat) : null,
+				LevelString: logLevelString,
+				LevelBackground: logLevelColors.Background,
+				LevelForeground: logLevelColors.Foreground,
+				MessageColor: DefaultConsoleColor,
+				LogAsError: logLevel >= Options?.LogToStandardErrorThreshold
 			);
 		}
 
@@ -168,7 +158,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			// Example:
 			// <6>ConsoleApp.Program[10] Request received
 
-			// loglevel
+			// log level
 			var logLevelString = GetSyslogSeverityString(logLevel);
 			logBuilder.Append(logLevelString);
 
@@ -210,8 +200,8 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			logBuilder.Append(Environment.NewLine);
 
 			return new LogMessageEntry(
-				message: logBuilder.ToString(),
-				logAsError: logLevel >= Options?.LogToStandardErrorThreshold
+				Message: logBuilder.ToString(),
+				LogAsError: logLevel >= Options?.LogToStandardErrorThreshold
 			);
 
 			static void AppendAndReplaceNewLine(StringBuilder sb, string message)
@@ -236,9 +226,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			switch (logLevel)
 			{
 				case LogLevel.Trace:
-					return "trce";
+					return "trace";
 				case LogLevel.Debug:
-					return "dbug";
+					return "debug";
 				case LogLevel.Information:
 					return "info";
 				case LogLevel.Warning:
@@ -246,7 +236,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 				case LogLevel.Error:
 					return "fail";
 				case LogLevel.Critical:
-					return "crit";
+					return "critical";
 				default:
 					throw new ArgumentOutOfRangeException(nameof(logLevel));
 			}
@@ -314,9 +304,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 				scopeProvider.ForEachScope((scope, state) =>
 				{
-					var (builder, paddAt) = state;
-					var padd = paddAt == builder.Length;
-					if (padd)
+					var (builder, paddingAt) = state;
+					var addPadding = paddingAt == builder.Length;
+					if (addPadding)
 					{
 						builder.Append(_messagePadding);
 						builder.Append("=> ");
@@ -335,17 +325,6 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			}
 		}
 
-		private readonly struct ConsoleColors
-		{
-			public ConsoleColors(ConsoleColor? foreground, ConsoleColor? background)
-			{
-				Foreground = foreground;
-				Background = background;
-			}
-
-			public ConsoleColor? Foreground { get; }
-
-			public ConsoleColor? Background { get; }
-		}
+		private readonly record struct ConsoleColors(ConsoleColor? Foreground, ConsoleColor? Background);
 	}
 }

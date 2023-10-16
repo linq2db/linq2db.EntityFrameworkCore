@@ -68,12 +68,6 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 				orderDetail.Product = product;
 				product.OrderDetails.Add(orderDetail);
 			}
-
-			// foreach (var employee in _employees)
-			// {
-			//     var manager = _employees.FirstOrDefault(e => employee.ReportsTo == e.EmployeeId);
-			//     employee.Manager = manager;
-			// }
 		}
 
 		public IQueryable<TEntity> Set<TEntity>()

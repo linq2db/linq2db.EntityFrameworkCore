@@ -1,5 +1,3 @@
-# EditorConfig is awesome: https://EditorConfig.org
-
 root = true
 
 [*]
@@ -7,6 +5,7 @@ indent_style = tab
 indent_size = 4
 insert_final_newline = true
 end_of_line = crlf
+spelling_exclusion_path = spellcheck.txt
 
 # Code files
 [*.{cs,csx,vb,vbx}]
@@ -162,15 +161,20 @@ dotnet_diagnostic.CA3076.severity = none # CA3076: Insecure XSLT Script Executio
 #########################################################################################################
 dotnet_diagnostic.CA1000.severity = none # CA1000: Do not declare static members on generic types
 dotnet_diagnostic.CA1001.severity = none # CA1001: Types that own disposable fields should be disposable
+dotnet_diagnostic.CA1002.severity = none # CA1002: Do not expose generic lists
 dotnet_diagnostic.CA1010.severity = none # CA1010: Collections should implement generic interface
+dotnet_diagnostic.CA1033.severity = none # CA1033: Interface methods should be callable by child types
 dotnet_diagnostic.CA1050.severity = none # CA1050: Declare types in namespaces
 dotnet_diagnostic.CA1036.severity = none # CA1036: Override methods on comparable types
 dotnet_diagnostic.CA1051.severity = none # CA1051: Do not declare visible instance fields
+dotnet_diagnostic.CA1056.severity = none # CA1056: URI properties should not be strings
+dotnet_diagnostic.CA1062.severity = none # CA1062: Validate arguments of public methods
 dotnet_diagnostic.CA1067.severity = none # CA1067: Override Equals when implementing IEquatable
 dotnet_diagnostic.CA1068.severity = none # CA1068: CancellationToken parameters must come last
 dotnet_diagnostic.CA1069.severity = none # CA1069: Enums should not have duplicate values
 dotnet_diagnostic.CA1304.severity = none # CA1304: Specify CultureInfo
 dotnet_diagnostic.CA1305.severity = none # CA1305: Specify IFormatProvider
+dotnet_diagnostic.CA1307.severity = none # CA1307: Specify StringComparison for clarity
 dotnet_diagnostic.CA1309.severity = none # CA1309: Use ordinal StringComparison
 dotnet_diagnostic.CA1310.severity = none # CA1310: Specify StringComparison for correctness
 dotnet_diagnostic.CA1707.severity = none # CA1707: Identifiers should not contain underscores
@@ -180,8 +184,12 @@ dotnet_diagnostic.CA1715.severity = none # CA1715: Identifiers should have corre
 dotnet_diagnostic.CA1716.severity = none # CA1716: Identifiers should not match keywords
 dotnet_diagnostic.CA1720.severity = none # CA1720: Identifiers should not contain type names
 dotnet_diagnostic.CA1806.severity = none # CA1806: Do not ignore method results
+dotnet_diagnostic.CA1819.severity = none # CA1819: Properties should not return arrays
 dotnet_diagnostic.CA1822.severity = none # CA1822: Mark members as static
+dotnet_diagnostic.CA1859.severity = none # CA1859: Use concrete types when possible for improved performance
 dotnet_diagnostic.CA2211.severity = none # CA2211: Non-constant fields should not be visible
+dotnet_diagnostic.CA2225.severity = none # CA2225: Operator overloads have named alternates
+dotnet_diagnostic.CA2227.severity = none # CA2227: Remove property setter
 
 ###################################################################################
 # VS analyzers                                                                    #
@@ -252,6 +260,8 @@ dotnet_diagnostic.IDE0080.severity = none # IDE0080: Remove unnecessary suppress
 dotnet_diagnostic.IDE0081.severity = none # IDE0081: Remove ByVal
 dotnet_diagnostic.IDE0083.severity = none # IDE0083: Use pattern matching (not operator)
 dotnet_diagnostic.IDE0130.severity = none # IDE0130: Namespace does not match folder structure
+dotnet_diagnostic.IDE0290.severity = none # IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0305.severity = none # IDE0305: Use collection expression (from ToArray)
 dotnet_diagnostic.IDE1006.severity = none # IDE1006: Naming rule violation
 
 dotnet_diagnostic.CS1998.severity = error # CS1998: Async method lacks 'await' operators and will run synchronously

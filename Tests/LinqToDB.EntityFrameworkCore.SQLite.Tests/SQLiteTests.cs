@@ -1,7 +1,9 @@
-﻿using LinqToDB.Data;
+﻿using System.Linq;
+using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.SQLite.Tests.Models.Northwind;
 using Microsoft.EntityFrameworkCore;
+using NUnit.Framework;
 
 namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 {
@@ -18,7 +20,6 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 		public SQLiteTests()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
-			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
 
 			optionsBuilder.UseSqlite("Data Source=northwind.db;");
 
@@ -27,12 +28,27 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 			_options = optionsBuilder.Options;
 		}
 
-		private NorthwindContext CreateSQLiteSqlExntitiesContext()
+		private NorthwindContext CreateSQLiteSqlEntitiesContext()
 		{
 			var ctx = new NorthwindContext(_options);
 			ctx.Database.EnsureDeleted();
 			ctx.Database.EnsureCreated();
 			return ctx;
+		}
+
+		[Test(Description = "https://github.com/linq2db/linq2db.EntityFrameworkCore/issues/343")]
+		public void TestFunctionsMapping()
+		{
+			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
+			optionsBuilder.UseSqlite("Data Source=northwind.db;");
+			optionsBuilder.UseLinqToDB(x => x.AddCustomOptions(o => o.UseSQLiteMicrosoft()));
+			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
+
+			using var ctx = new NorthwindContext(optionsBuilder.Options);
+			ctx.Database.EnsureDeleted();
+			ctx.Database.EnsureCreated();
+
+			ctx.Categories.ToLinqToDB().ToList();
 		}
 	}
 }

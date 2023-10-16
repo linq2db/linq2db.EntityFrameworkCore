@@ -1,9 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<Import Project="..\..\Build\linq2db.Tests.props" />
-
 	<ItemGroup>
-		<PackageReference Include="FluentAssertions" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" />
 	</ItemGroup>
 

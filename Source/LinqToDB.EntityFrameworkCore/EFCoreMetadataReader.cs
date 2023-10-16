@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using LinqToDB.Common.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -39,6 +40,7 @@ namespace LinqToDB.EntityFrameworkCore
 		private readonly IRelationalAnnotationProvider?                               _annotationProvider;
 		private readonly ConcurrentDictionary<MemberInfo, EFCoreExpressionAttribute?> _calculatedExtensions = new();
 		private readonly IDiagnosticsLogger<DbLoggerCategory.Query>?                  _logger;
+		private readonly DatabaseDependencies?                                        _databaseDependencies;
 
 		public EFCoreMetadataReader(IModel? model, IInfrastructure<IServiceProvider>? accessor)
 		{
@@ -46,10 +48,11 @@ namespace LinqToDB.EntityFrameworkCore
 
 			if (accessor != null)
 			{
-				_dependencies       = accessor.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
-				_mappingSource      = accessor.GetService<IRelationalTypeMappingSource>();
-				_annotationProvider = accessor.GetService<IRelationalAnnotationProvider>();
-				_logger             = accessor.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+				_dependencies         = accessor.GetService<RelationalSqlTranslatingExpressionVisitorDependencies>();
+				_mappingSource        = accessor.GetService<IRelationalTypeMappingSource>();
+				_annotationProvider   = accessor.GetService<IRelationalAnnotationProvider>();
+				_logger               = accessor.GetService<IDiagnosticsLogger<DbLoggerCategory.Query>>();
+				_databaseDependencies = accessor.GetService<DatabaseDependencies>();
 			}
 
 			_objectId = $".{_model?.GetHashCode() ?? 0}.{_dependencies?.GetHashCode() ?? 0}.{_mappingSource?.GetHashCode() ?? 0}.{_annotationProvider?.GetHashCode() ?? 0}.{_logger?.GetHashCode() ?? 0}.";
@@ -112,16 +115,9 @@ namespace LinqToDB.EntityFrameworkCore
 				{
 					foreach (var e in _model.GetEntityTypes())
 					{
-						if (e.BaseType == et && e.GetDiscriminatorValue() != null)
+						if (GetBaseTypeRecursive(e) == et && e.GetDiscriminatorValue() != null)
 						{
-
-							result.Add(
-								new InheritanceMappingAttribute()
-								{
-									Type = e.ClrType,
-									Code = e.GetDiscriminatorValue()
-								}
-								);
+							result.AddRange(GetMappingAttributesRecursive(e));
 						}
 					}
 				}
@@ -131,10 +127,39 @@ namespace LinqToDB.EntityFrameworkCore
 				// TableAttribute
 				var tableAttribute = type.GetAttribute<System.ComponentModel.DataAnnotations.Schema.TableAttribute>();
 				if (tableAttribute != null)
-					(result ??= new()).Add(new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema });
+					(result = new()).Add(new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema });
 			}
 
-			return result == null ? Array.Empty<MappingAttribute>() : result.ToArray();
+			return result == null ? [] : result.ToArray();
+		}
+
+		static IEntityType GetBaseTypeRecursive(IEntityType entityType)
+		{
+			if (entityType.BaseType == null)
+				return entityType;
+			return GetBaseTypeRecursive(entityType.BaseType);
+		}
+		
+		static List<InheritanceMappingAttribute> GetMappingAttributesRecursive(IEntityType entityType)
+		{
+			var mappings = new List<InheritanceMappingAttribute>();
+			return ProcessEntityType(entityType);
+
+			List<InheritanceMappingAttribute> ProcessEntityType(IEntityType et)
+			{
+				if (!et.ClrType.IsAbstract)
+				{
+					mappings.Add(new()
+					{
+						Type = et.ClrType,
+						Code = entityType.GetDiscriminatorValue()
+					});
+				}
+				
+				if (et.BaseType == null)
+					return mappings;
+				return ProcessEntityType(et.BaseType);
+			}
 		}
 
 		static bool CompareProperty(MemberInfo? property, MemberInfo memberInfo)
@@ -199,7 +224,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public MappingAttribute[] GetAttributes(Type type, MemberInfo memberInfo)
 		{
 			if (typeof(Expression).IsSameOrParentOf(type))
-				return Array.Empty<MappingAttribute>();
+				return [];
 
 			List<MappingAttribute>? result = null;
 			var hasColumn = false;
@@ -236,14 +261,30 @@ namespace LinqToDB.EntityFrameworkCore
 
 					var storeObjectId = GetStoreObjectIdentifier(et);
 
+					var isIdentity = false;
 					var annotations = prop.GetAnnotations();
 					if (_annotationProvider != null && storeObjectId != null)
 					{
 						if (prop.FindColumn(storeObjectId.Value) is IColumn column)
 							annotations = annotations.Concat(_annotationProvider.For(column, false));
+
+						if (_annotationProvider.GetType().Name == "SqliteAnnotationProvider")
+						{
+							// copy-paste logic, not available anymore in v8
+							// https://github.com/dotnet/efcore/blob/release/8.0/src/EFCore.Sqlite.Core/Metadata/Internal/SqliteAnnotationProvider.cs#L70-L75
+							var primaryKey = prop.DeclaringType.ContainingEntityType.FindPrimaryKey();
+							if (primaryKey is { Properties.Count: 1 }
+								&& primaryKey.Properties[0] == prop
+								&& prop.ValueGenerated == ValueGenerated.OnAdd
+								&& prop.ClrType.IsInteger()
+								&& prop.FindTypeMapping()?.Converter == null)
+							{
+								isIdentity = true;
+							}
+						}
 					}
 
-					var isIdentity = annotations
+					isIdentity = isIdentity || annotations
 						.Any(static a =>
 						{
 							if (a.Name.EndsWith(":ValueGenerationStrategy"))
@@ -257,7 +298,7 @@ namespace LinqToDB.EntityFrameworkCore
 							{
 								if (a.Value is string str)
 								{
-									return str.ToLowerInvariant().Contains("nextval");
+									return str.Contains("nextval", StringComparison.InvariantCultureIgnoreCase);
 								}
 							}
 
@@ -279,33 +320,36 @@ namespace LinqToDB.EntityFrameworkCore
 						}
 					}
 
-					var behaviour = prop.GetBeforeSaveBehavior();
+					var behavior = prop.GetBeforeSaveBehavior();
 					var skipOnInsert = prop.ValueGenerated.HasFlag(ValueGenerated.OnAdd);
 
 					if (skipOnInsert)
 					{
-						skipOnInsert = isIdentity || behaviour != PropertySaveBehavior.Save;
+						skipOnInsert = isIdentity || behavior != PropertySaveBehavior.Save;
 					}
 
-					var skipOnUpdate = behaviour != PropertySaveBehavior.Save ||
+					var skipOnUpdate = behavior != PropertySaveBehavior.Save ||
 						prop.ValueGenerated.HasFlag(ValueGenerated.OnUpdate);
 
-					(result ??= new()).Add(
-						new ColumnAttribute()
-						{
-							Name = storeObjectId != null ? prop.GetColumnName(storeObjectId.Value) : null,
-							Length = prop.GetMaxLength() ?? 0,
-							CanBeNull = prop.IsNullable,
-							DbType = prop.GetColumnType(),
-							DataType = dataType,
-							IsPrimaryKey = isPrimaryKey,
-							PrimaryKeyOrder = primaryKeyOrder,
-							IsIdentity = isIdentity,
-							IsDiscriminator = discriminator == prop,
-							SkipOnInsert = skipOnInsert,
-							SkipOnUpdate = skipOnUpdate
-						}
-					);
+					var ca = new ColumnAttribute()
+					{
+						Name = storeObjectId != null ? prop.GetColumnName(storeObjectId.Value) : null,
+						CanBeNull = prop.IsNullable,
+						DbType = prop.GetColumnType(),
+						DataType = dataType,
+						IsPrimaryKey = isPrimaryKey,
+						PrimaryKeyOrder = primaryKeyOrder,
+						IsIdentity = isIdentity,
+						IsDiscriminator = discriminator == prop,
+						SkipOnInsert = skipOnInsert,
+						SkipOnUpdate = skipOnUpdate
+					};
+
+					var maxLen = prop.GetMaxLength();
+					if (maxLen != null)
+						ca.Length = maxLen.Value;
+
+					(result ??= new()).Add(ca);
 
 					// ValueConverterAttribute
 					var converter = prop.GetValueConverter();
@@ -407,7 +451,7 @@ namespace LinqToDB.EntityFrameworkCore
 					});
 			}
 
-			return result == null ? Array.Empty<MappingAttribute>() : result.ToArray();
+			return result == null ? [] : result.ToArray();
 		}
 
 		sealed class ValueConverter : IValueConverter
@@ -437,7 +481,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			protected override void Print(ExpressionPrinter expressionPrinter)
 			{
-				expressionPrinter.Print(Expression);
+				expressionPrinter.PrintExpression(Expression);
 			}
 
 			private bool Equals(SqlTransparentExpression other)
@@ -468,7 +512,7 @@ namespace LinqToDB.EntityFrameworkCore
 			};
 		}
 
-		private Sql.ExpressionAttribute? GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
+		private EFCoreExpressionAttribute? GetDbFunctionFromMethodCall(Type type, MethodInfo methodInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
@@ -491,8 +535,20 @@ namespace LinqToDB.EntityFrameworkCore
 						var p = parameterInfos[i];
 
 						parametersArray[i] = new SqlTransparentExpression(
-								Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType),
-								ctx.this_._mappingSource?.FindMapping(p.ParameterType));
+							Expression.Constant(DefaultValue.GetValue(p.ParameterType), p.ParameterType),
+							ctx.this_._mappingSource?.FindMapping(p.ParameterType));
+					}
+
+					// https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql/issues/1801
+					if (ctx.this_._dependencies!.MethodCallTranslatorProvider.GetType().Name == "MySqlMethodCallTranslatorProvider")
+					{
+						var contextProperty = ctx.this_._dependencies!.MethodCallTranslatorProvider.GetType().GetProperty("QueryCompilationContext")
+						?? throw new InvalidOperationException("MySqlMethodCallTranslatorProvider.QueryCompilationContext property not found");
+
+						if (contextProperty.GetValue(ctx.this_._dependencies!.MethodCallTranslatorProvider) == null)
+						{
+							contextProperty.SetValue(ctx.this_._dependencies!.MethodCallTranslatorProvider, ctx.this_._databaseDependencies!.QueryCompilationContextFactory.Create(false));
+						}
 					}
 
 					var newExpression = ctx.this_._dependencies!.MethodCallTranslatorProvider.Translate(ctx.this_._model!, objExpr, ctx.methodInfo, parametersArray, ctx.this_._logger!);
@@ -511,7 +567,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return found;
 		}
 
-		private Sql.ExpressionAttribute? GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
+		private EFCoreExpressionAttribute? GetDbFunctionFromProperty(Type type, PropertyInfo propInfo)
 		{
 			if (_dependencies == null || _model == null)
 				return null;
@@ -604,7 +660,7 @@ namespace LinqToDB.EntityFrameworkCore
 				// https://github.com/npgsql/efcore.pg/blob/main/src/EFCore.PG/Query/Expressions/Internal/PostgresBinaryExpression.cs
 				if (newExpression.GetType().Name == "PostgresBinaryExpression")
 				{
-					// Handling NpgSql's PostgresBinaryExpression
+					// Handling Npgsql PostgresBinaryExpression
 
 					var left  = (Expression)newExpression.GetType().GetProperty("Left")!.GetValue(newExpression)!;
 					var right = (Expression)newExpression.GetType().GetProperty("Right")!.GetValue(newExpression)!;
@@ -689,7 +745,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		public MemberInfo[] GetDynamicColumns(Type type)
 		{
-			return Array.Empty<MemberInfo>();
+			return [];
 		}
 
 		string IMetadataReader.GetObjectID() => _objectId;

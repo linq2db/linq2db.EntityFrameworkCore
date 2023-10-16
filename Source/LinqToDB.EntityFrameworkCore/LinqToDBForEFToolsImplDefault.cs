@@ -103,7 +103,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		/// <summary>
 		/// Returns LINQ To DB provider, based on provider data from EF Core.
-		/// Could be overriden if you have issues with default detection mechanisms.
+		/// Could be overridden if you have issues with default detection mechanisms.
 		/// </summary>
 		/// <param name="options">Linq To DB context options.</param>
 		/// <param name="providerInfo">Provider information, extracted from EF Core.</param>
@@ -173,15 +173,46 @@ namespace LinqToDB.EntityFrameworkCore
 			{
 				case ProviderName.SqlServer:
 					return CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2005:
+					return CreateSqlServerProvider(SqlServerVersion.v2005, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2008:
+					return CreateSqlServerProvider(SqlServerVersion.v2008, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2012:
+					return CreateSqlServerProvider(SqlServerVersion.v2012, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2014:
+					return CreateSqlServerProvider(SqlServerVersion.v2014, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2016:
+					return CreateSqlServerProvider(SqlServerVersion.v2016, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2017:
+					return CreateSqlServerProvider(SqlServerVersion.v2017, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2019:
+					return CreateSqlServerProvider(SqlServerVersion.v2019, connectionInfo.ConnectionString);
+				case ProviderName.SqlServer2022:
+					return CreateSqlServerProvider(SqlServerVersion.v2022, connectionInfo.ConnectionString);
+
 				case ProviderName.MySql:
 				case ProviderName.MySqlConnector:
+				case ProviderName.MariaDB:
 					return MySqlTools.GetDataProvider(provInfo.ProviderName);
+
 				case ProviderName.PostgreSQL:
 					return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
+				case ProviderName.PostgreSQL92:
+					return CreatePostgreSqlProvider(PostgreSQLVersion.v92, connectionInfo.ConnectionString);
+				case ProviderName.PostgreSQL93:
+					return CreatePostgreSqlProvider(PostgreSQLVersion.v93, connectionInfo.ConnectionString);
+				case ProviderName.PostgreSQL95:
+					return CreatePostgreSqlProvider(PostgreSQLVersion.v95, connectionInfo.ConnectionString);
+				case ProviderName.PostgreSQL15:
+					return CreatePostgreSqlProvider(PostgreSQLVersion.v15, connectionInfo.ConnectionString);
+
 				case ProviderName.SQLite:
+				case ProviderName.SQLiteMS:
 					return SQLiteTools.GetDataProvider(provInfo.ProviderName);
+
 				case ProviderName.Firebird:
 					return FirebirdTools.GetDataProvider();
+
 				case ProviderName.DB2:
 				case ProviderName.DB2LUW:
 					return DB2Tools.GetDataProvider(DB2Version.LUW);
@@ -204,6 +235,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 				case ProviderName.SqlCe:
 					return SqlCeTools.GetDataProvider();
+
 				//case ProviderName.Access:
 				//	return new AccessDataProvider();
 
@@ -406,8 +438,8 @@ namespace LinqToDB.EntityFrameworkCore
 			IValueConverterSelector? convertorSelector,
 			DataOptions dataOptions)
 		{
-			if (mappingSchema == null) throw new ArgumentNullException(nameof(mappingSchema));
-			if (model == null)         throw new ArgumentNullException(nameof(model));
+			ArgumentNullException.ThrowIfNull(mappingSchema);
+			ArgumentNullException.ThrowIfNull(model);
 
 			if (convertorSelector == null)
 				return;
@@ -554,6 +586,7 @@ namespace LinqToDB.EntityFrameworkCore
 			MemberHelper.MethodOfGeneric<IIncludableQueryable<object, IEnumerable<object>>>(q => q.ThenInclude<object, object, object>(null!));
 
 		static readonly MethodInfo AsNoTrackingMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsNoTracking());
+		static readonly MethodInfo AsNoTrackingWithIdentityResolutionMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.AsNoTrackingWithIdentityResolution());
 
 		static readonly MethodInfo EFProperty = MemberHelper.MethodOfGeneric(() => EF.Property<object>(1, ""));
 
@@ -749,11 +782,8 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <exception cref="InvalidOperationException"></exception>
 		protected static TValue GetPropValue<TValue>(object obj, string propName)
 		{
-			var prop = obj.GetType().GetProperty(propName);
-			if (prop == null)
-			{
-				throw new InvalidOperationException($"Property {obj.GetType().Name}.{propName} not found.");
-			}
+			var prop = obj.GetType().GetProperty(propName)
+				?? throw new InvalidOperationException($"Property {obj.GetType().Name}.{propName} not found.");
 			var propValue = prop.GetValue(obj);
 			if (propValue == default)
 				return default!;
@@ -775,7 +805,7 @@ namespace LinqToDB.EntityFrameworkCore
 			var tracking           = true;
 			var ignoreTracking     = false;
 
-			var nonEvaluatableParameters = new HashSet<ParameterExpression>();
+			var nonEvaluableParameters = new HashSet<ParameterExpression>();
 
 			TransformInfo LocalTransform(Expression e)
 			{
@@ -787,7 +817,7 @@ namespace LinqToDB.EntityFrameworkCore
 					{
 						foreach (var parameter in ((LambdaExpression)e).Parameters)
 						{
-							nonEvaluatableParameters.Add(parameter);
+							nonEvaluableParameters.Add(parameter);
 						}
 
 						break;
@@ -837,7 +867,8 @@ namespace LinqToDB.EntityFrameworkCore
 										methodCall.Arguments[0], Expression.NewArrayInit(typeof(Type)));
 									return new TransformInfo(newMethod, false, true);
 								}
-								else if (generic == AsNoTrackingMethodInfo)
+								else if (generic == AsNoTrackingMethodInfo
+									|| generic == AsNoTrackingWithIdentityResolutionMethodInfo)
 								{
 									isTunnel = true;
 									tracking = false;
@@ -859,7 +890,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 									var propName = (string)EvaluateExpression(methodCall.Arguments[1])!;
 									var param    = Expression.Parameter(methodCall.Method.GetGenericArguments()[0], "e");
-									var propPath = propName.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
+									var propPath = propName.Split('.', StringSplitOptions.RemoveEmptyEntries);
 									var prop     = (Expression)param;
 									for (int i = 0; i < propPath.Length; i++)
 									{
@@ -931,7 +962,7 @@ namespace LinqToDB.EntityFrameworkCore
 						{
 							if (((dc != null && !dc.MappingSchema.HasAttribute<ExpressionMethodAttribute>(methodCall.Type, methodCall.Method))
 								|| (dc == null && !methodCall.Method.HasAttribute<ExpressionMethodAttribute>()))
-								&& null == methodCall.Find(nonEvaluatableParameters,
+								&& null == methodCall.Find(nonEvaluableParameters,
 								    (c, t) => t.NodeType == ExpressionType.Parameter && c.Contains(t) || t.NodeType == ExpressionType.Extension))
 							{
 								// Invoking function to evaluate EF's Subquery located in function
@@ -1115,7 +1146,7 @@ namespace LinqToDB.EntityFrameworkCore
 			return expression;
 		}
 
-		static Expression EnsureEnumerable(LambdaExpression lambda, MappingSchema mappingSchema)
+		static LambdaExpression EnsureEnumerable(LambdaExpression lambda, MappingSchema mappingSchema)
 		{
 			var newBody = EnsureEnumerable(lambda.Body, mappingSchema);
 			if (newBody != lambda.Body)
@@ -1155,19 +1186,13 @@ namespace LinqToDB.EntityFrameworkCore
 			var compilerField = typeof (EntityQueryProvider).GetField("_queryCompiler", BindingFlags.NonPublic | BindingFlags.Instance)!;
 			var compiler = (QueryCompiler)compilerField.GetValue(query.Provider)!;
 
-			var queryContextFactoryField = compiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance);
-
-			if (queryContextFactoryField == null)
-				throw new LinqToDBForEFToolsException($"Can not find private field '{compiler.GetType()}._queryContextFactory' in current EFCore Version.");
-
+			var queryContextFactoryField = compiler.GetType().GetField("_queryContextFactory", BindingFlags.NonPublic | BindingFlags.Instance)
+				?? throw new LinqToDBForEFToolsException($"Can not find private field '{compiler.GetType()}._queryContextFactory' in current EFCore Version.");
 			if (queryContextFactoryField.GetValue(compiler) is not RelationalQueryContextFactory queryContextFactory)
 				throw new LinqToDBForEFToolsException("LinqToDB Tools for EFCore support only Relational Databases.");
 
-			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance);
-
-			if (dependenciesProperty == null)
-				throw new LinqToDBForEFToolsException($"Can not find protected property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version.");
-
+			var dependenciesProperty = typeof(RelationalQueryContextFactory).GetProperty("Dependencies", BindingFlags.NonPublic | BindingFlags.Instance)
+				?? throw new LinqToDBForEFToolsException($"Can not find protected property '{nameof(RelationalQueryContextFactory)}.Dependencies' in current EFCore Version.");
 			var dependencies = (QueryContextDependencies)dependenciesProperty.GetValue(queryContextFactory)!;
 
 			return dependencies.CurrentContext?.Context;
