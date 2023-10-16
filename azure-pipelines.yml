@@ -50,8 +50,7 @@ stages:
       inputs:
         command: 'build'
         projects: '$(solution)'
-        configuration: '$(build_configuration)'
-        arguments: '-property:ContinuousIntegrationBuild=true'
+        arguments: '-property:ContinuousIntegrationBuild=true --configuration $(build_configuration)'
       displayName: Build Solution
 
     - powershell: echo "##vso[task.setvariable variable=packageVersion]$(packageVersion)-rc.$(Build.BuildId)"
