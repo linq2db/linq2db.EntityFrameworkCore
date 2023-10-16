@@ -63,13 +63,8 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 			var format = Options!.FormatterName;
 			Debug.Assert(format is ConsoleFormatterNames.Simple or ConsoleFormatterNames.Systemd);
 
-			var logBuilder = _logBuilder;
+			var logBuilder = _logBuilder ?? new StringBuilder();
 			_logBuilder = null;
-
-			if (logBuilder == null)
-			{
-				logBuilder = new StringBuilder();
-			}
 
 			LogMessageEntry entry;
 			if (format == ConsoleFormatterNames.Simple)

@@ -54,6 +54,19 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
+		[Test(Description = "https://github.com/linq2db/linq2db.EntityFrameworkCore/issues/349")]
+		public void TestColumnLengthMappings()
+		{
+			using (var db = CreateContext())
+			{
+				var ms = LinqToDBForEFTools.GetMappingSchema(db.Model, db, null);
+				var ed = ms.GetEntityDescriptor(typeof(TypesTable));
+
+				ed.Columns.First(c => c.MemberName == nameof(TypesTable.DateTime)).Length.Should().BeNull();
+				ed.Columns.First(c => c.MemberName == nameof(TypesTable.String)).Length.Should().Be(100);
+			}
+		}
+
 		[Test]
 		public void TestDialectUse()
 		{

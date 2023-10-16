@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
-using FluentAssertions.Specialized;
 using LinqToDB.Data;
 using LinqToDB.EntityFrameworkCore.BaseTests;
 using LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind;
+using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Inheritance;
 using LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind;
 using LinqToDB.Expressions;
 using LinqToDB.Mapping;
@@ -867,5 +867,74 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 
+		static DbContextOptions CreateInheritanceOptions()
+		{
+			var optionsBuilder = new DbContextOptionsBuilder<InheritanceContext>();
+			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
+
+			optionsBuilder.UseSqlServer("Server=.;Database=InheritanceEFCore;Integrated Security=SSPI");
+			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
+			optionsBuilder.EnableSensitiveDataLogging();
+
+			return optionsBuilder.Options;
+		}
+
+		private DbContextOptions? _inheritanceOptions;
+
+		private InheritanceContext CreateInheritanceContext()
+		{
+			var recreate = _inheritanceOptions == null;
+
+			_inheritanceOptions ??= CreateInheritanceOptions();
+
+			var ctx = new InheritanceContext(_inheritanceOptions);
+			if (recreate)
+			{
+				ctx.Database.EnsureDeleted();
+				ctx.Database.EnsureCreated();
+			}
+
+			return ctx;
+		}
+
+		[Test]
+		public void TestInheritanceBulkCopy([Values] BulkCopyType copyType)
+		{
+			using (var ctx = CreateInheritanceContext())
+			{
+				var data = new BlogBase[] { new Blog() { Url = "BlogUrl" }, new RssBlog() { Url = "RssUrl" } };
+
+				ctx.BulkCopy(new BulkCopyOptions(){ BulkCopyType = BulkCopyType.RowByRow }, data);
+
+				var items = ctx.Blogs.ToArray();
+
+				items[0].Should().BeOfType<Blog>();
+				((Blog)items[0]).Url.Should().Be("BlogUrl");
+
+				items[1].Should().BeOfType<RssBlog>();
+				((RssBlog)items[1]).Url.Should().Be("RssUrl");
+			}
+		}
+
+		/*
+		[Test]
+		public void TestInheritanceShadowBulkCopy([Values] BulkCopyType copyType)
+		{
+			using (var ctx = CreateInheritanceContext())
+			{
+				var data = new ShadowBlogBase[] { new ShadowBlog() { Url = "BlogUrl" }, new ShadowRssBlog() { Url = "RssUrl" } };
+
+				ctx.BulkCopy(new BulkCopyOptions(){ BulkCopyType = BulkCopyType.RowByRow }, data);
+
+				var items = ctx.ShadowBlogs.ToArray();
+
+				items[0].Should().BeOfType<ShadowBlog>();
+				((ShadowBlog)items[0]).Url.Should().Be("BlogUrl");
+
+				items[1].Should().BeOfType<ShadowRssBlog>();
+				((ShadowRssBlog)items[1]).Url.Should().Be("RssUrl");
+			}
+		}
+		*/
 	}
 }
