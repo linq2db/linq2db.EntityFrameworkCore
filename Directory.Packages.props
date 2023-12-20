@@ -1,24 +1,24 @@
 ﻿<Project>
 	<ItemGroup>
-		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
 		<PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
-		<PackageVersion Include="NUnit" Version="3.13.3" />
+		<PackageVersion Include="NUnit" Version="3.14.0" />
 		<PackageVersion Include="FluentAssertions" Version="6.12.0" />
 
-		<PackageVersion Include="linq2db" Version="5.3.1" />
-		<PackageVersion Include="linq2db.Tools" Version="5.3.1" />
+		<PackageVersion Include="linq2db" Version="5.3.2" />
+		<PackageVersion Include="linq2db.Tools" Version="5.3.2" />
 
-		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
+		<PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
 
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.0-rc.2.23480.1" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0-rc.2.23480.1" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.0" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
 
-		<PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="8.0.0-rc.2.23479.6" />
+		<PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
 
-		<PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0-beta.2.ci.20231014172607+sha.60ea450" />
-		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="8.0.0-rc.2" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0-rc.2.23480.1" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0-rc.2.23480.1" />
+		<PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0-beta.2" />
+		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="8.0.0" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
 
 		<PackageVersion Include="EntityFrameworkCore.FSharp" Version="6.0.7" />
 	</ItemGroup>
