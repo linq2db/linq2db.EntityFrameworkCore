@@ -51,10 +51,7 @@ optionsBuilder.UseLinqToDB(builder =>
     // add additional mappings
     builder.AddMappingSchema(myCustomMappings);
     // configure SQL Server dialect explicitly
-    //builder.AddCustomOptions(o => o.UseSqlServer(SqlServerVersion.v2022));
-    // due to bug in linq2db 5.0.0, use overload with connection string
-    // will be fixed in next linq2db release
-    builder.AddCustomOptions(o => o.UseSqlServer("unused", SqlServerVersion.v2022));
+    builder.AddCustomOptions(o => o.UseSqlServer(SqlServerVersion.v2022));
 });
 ```
 
