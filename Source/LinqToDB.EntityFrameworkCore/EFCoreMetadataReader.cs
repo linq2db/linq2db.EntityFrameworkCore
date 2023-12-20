@@ -657,10 +657,11 @@ namespace LinqToDB.EntityFrameworkCore
 					return text;
 				}
 
-				// https://github.com/npgsql/efcore.pg/blob/main/src/EFCore.PG/Query/Expressions/Internal/PostgresBinaryExpression.cs
-				if (newExpression.GetType().Name == "PostgresBinaryExpression")
+				// https://github.com/npgsql/efcore.pg/blob/main/src/EFCore.PG/Query/Expressions/Internal/PgBinaryExpression.cs
+				// renamed in 8.0.0
+				if (newExpression.GetType().Name == "PgBinaryExpression")
 				{
-					// Handling Npgsql PostgresBinaryExpression
+					// Handling Npgsql PgBinaryExpression
 
 					var left  = (Expression)newExpression.GetType().GetProperty("Left")!.GetValue(newExpression)!;
 					var right = (Expression)newExpression.GetType().GetProperty("Right")!.GetValue(newExpression)!;
@@ -699,7 +700,7 @@ namespace LinqToDB.EntityFrameworkCore
 						"JsonExistsAny"                 => "?|",
 						"JsonExistsAll"                 => "?&",
 						_ => throw new InvalidOperationException(
-							$"Unknown PostgresBinaryExpression.OperatorType: '{operand}'")
+							$"Unknown PgBinaryExpression.OperatorType: '{operand}'")
 					};
 
 					switch (operand)
