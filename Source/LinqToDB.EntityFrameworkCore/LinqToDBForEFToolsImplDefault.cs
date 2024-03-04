@@ -169,79 +169,38 @@ namespace LinqToDB.EntityFrameworkCore
 				throw new LinqToDBForEFToolsException("Can not detect data provider.");
 			}
 
-			switch (provInfo.ProviderName)
+			return provInfo.ProviderName switch
 			{
-				case ProviderName.SqlServer:
-					return CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString);
-				case ProviderName.SqlServer2005:
-					return CreateSqlServerProvider(SqlServerVersion.v2005, connectionInfo.ConnectionString);
-				case ProviderName.SqlServer2008:
-					return CreateSqlServerProvider(SqlServerVersion.v2008, connectionInfo.ConnectionString);
-				case ProviderName.SqlServer2012:
-					return CreateSqlServerProvider(SqlServerVersion.v2012, connectionInfo.ConnectionString);
-				case ProviderName.SqlServer2014:
-					return CreateSqlServerProvider(SqlServerVersion.v2014, connectionInfo.ConnectionString);
-				case ProviderName.SqlServer2016:
-					return CreateSqlServerProvider(SqlServerVersion.v2016, connectionInfo.ConnectionString);
-				case ProviderName.SqlServer2017:
-					return CreateSqlServerProvider(SqlServerVersion.v2017, connectionInfo.ConnectionString);
-				case ProviderName.SqlServer2019:
-					return CreateSqlServerProvider(SqlServerVersion.v2019, connectionInfo.ConnectionString);
-				case ProviderName.SqlServer2022:
-					return CreateSqlServerProvider(SqlServerVersion.v2022, connectionInfo.ConnectionString);
-
-				case ProviderName.MySql:
-				case ProviderName.MySqlConnector:
-				case ProviderName.MariaDB:
-					return MySqlTools.GetDataProvider(provInfo.ProviderName);
-
-				case ProviderName.PostgreSQL:
-					return CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString);
-				case ProviderName.PostgreSQL92:
-					return CreatePostgreSqlProvider(PostgreSQLVersion.v92, connectionInfo.ConnectionString);
-				case ProviderName.PostgreSQL93:
-					return CreatePostgreSqlProvider(PostgreSQLVersion.v93, connectionInfo.ConnectionString);
-				case ProviderName.PostgreSQL95:
-					return CreatePostgreSqlProvider(PostgreSQLVersion.v95, connectionInfo.ConnectionString);
-				case ProviderName.PostgreSQL15:
-					return CreatePostgreSqlProvider(PostgreSQLVersion.v15, connectionInfo.ConnectionString);
-
-				case ProviderName.SQLite:
-				case ProviderName.SQLiteMS:
-					return SQLiteTools.GetDataProvider(provInfo.ProviderName);
-
-				case ProviderName.Firebird:
-					return FirebirdTools.GetDataProvider();
-
-				case ProviderName.DB2:
-				case ProviderName.DB2LUW:
-					return DB2Tools.GetDataProvider(DB2Version.LUW);
-				case ProviderName.DB2zOS:
-					return DB2Tools.GetDataProvider(DB2Version.zOS);
-
-				case ProviderName.Oracle11Native:
-					return OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Native);
-				case ProviderName.OracleNative:
-					return OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Native);
-				case ProviderName.Oracle11Managed:
-					return OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Managed);
-				case ProviderName.Oracle:
-				case ProviderName.OracleManaged:
-					return OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Managed);
-				case ProviderName.Oracle11Devart:
-					return OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Devart);
-				case ProviderName.OracleDevart:
-					return OracleTools.GetDataProvider( OracleVersion.v12, OracleProvider.Devart);
-
-				case ProviderName.SqlCe:
-					return SqlCeTools.GetDataProvider();
-
+				ProviderName.SqlServer                                                    => CreateSqlServerProvider(SqlServerDefaultVersion, connectionInfo.ConnectionString),
+				ProviderName.SqlServer2005                                                => CreateSqlServerProvider(SqlServerVersion.v2005, connectionInfo.ConnectionString),
+				ProviderName.SqlServer2008                                                => CreateSqlServerProvider(SqlServerVersion.v2008, connectionInfo.ConnectionString),
+				ProviderName.SqlServer2012                                                => CreateSqlServerProvider(SqlServerVersion.v2012, connectionInfo.ConnectionString),
+				ProviderName.SqlServer2014                                                => CreateSqlServerProvider(SqlServerVersion.v2014, connectionInfo.ConnectionString),
+				ProviderName.SqlServer2016                                                => CreateSqlServerProvider(SqlServerVersion.v2016, connectionInfo.ConnectionString),
+				ProviderName.SqlServer2017                                                => CreateSqlServerProvider(SqlServerVersion.v2017, connectionInfo.ConnectionString),
+				ProviderName.SqlServer2019                                                => CreateSqlServerProvider(SqlServerVersion.v2019, connectionInfo.ConnectionString),
+				ProviderName.SqlServer2022                                                => CreateSqlServerProvider(SqlServerVersion.v2022, connectionInfo.ConnectionString),
+				ProviderName.MySql or ProviderName.MySqlConnector or ProviderName.MariaDB => MySqlTools.GetDataProvider(provInfo.ProviderName),
+				ProviderName.PostgreSQL                                                   => CreatePostgreSqlProvider(PostgreSqlDefaultVersion, connectionInfo.ConnectionString),
+				ProviderName.PostgreSQL92                                                 => CreatePostgreSqlProvider(PostgreSQLVersion.v92, connectionInfo.ConnectionString),
+				ProviderName.PostgreSQL93                                                 => CreatePostgreSqlProvider(PostgreSQLVersion.v93, connectionInfo.ConnectionString),
+				ProviderName.PostgreSQL95                                                 => CreatePostgreSqlProvider(PostgreSQLVersion.v95, connectionInfo.ConnectionString),
+				ProviderName.PostgreSQL15                                                 => CreatePostgreSqlProvider(PostgreSQLVersion.v15, connectionInfo.ConnectionString),
+				ProviderName.SQLite or ProviderName.SQLiteMS                              => SQLiteTools.GetDataProvider(provInfo.ProviderName),
+				ProviderName.Firebird                                                     => FirebirdTools.GetDataProvider(),
+				ProviderName.DB2 or ProviderName.DB2LUW                                   => DB2Tools.GetDataProvider(DB2Version.LUW),
+				ProviderName.DB2zOS                                                       => DB2Tools.GetDataProvider(DB2Version.zOS),
+				ProviderName.Oracle11Native                                               => OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Native),
+				ProviderName.OracleNative                                                 => OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Native),
+				ProviderName.Oracle11Managed                                              => OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Managed),
+				ProviderName.Oracle or ProviderName.OracleManaged                         => OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Managed),
+				ProviderName.Oracle11Devart                                               => OracleTools.GetDataProvider(OracleVersion.v11, OracleProvider.Devart),
+				ProviderName.OracleDevart                                                 => OracleTools.GetDataProvider(OracleVersion.v12, OracleProvider.Devart),
+				ProviderName.SqlCe                                                        => SqlCeTools.GetDataProvider(),
 				//case ProviderName.Access:
 				//	return new AccessDataProvider();
-
-				default:
-					throw new LinqToDBForEFToolsException($"Can not instantiate data provider '{provInfo.ProviderName}'.");
-			}
+				_                                                                         => throw new LinqToDBForEFToolsException($"Can not instantiate data provider '{provInfo.ProviderName}'."),
+			};
 		}
 
 		/// <summary>
@@ -251,53 +210,20 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Linq To DB provider settings.</returns>
 		protected virtual LinqToDBProviderInfo? GetLinqToDBProviderInfo(DatabaseFacade database)
 		{
-			switch (database.ProviderName)
+			return database.ProviderName switch
 			{
-				case "Microsoft.EntityFrameworkCore.SqlServer":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.SqlServer };
-
-				case "Pomelo.EntityFrameworkCore.MySql":
-				case "Devart.Data.MySql.EFCore":
-				{
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.MySqlConnector };
-				}
-
-				case "MySql.Data.EntityFrameworkCore":
-				{
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.MySql };
-				}
-
-				case "Npgsql.EntityFrameworkCore.PostgreSQL":
-				case "Devart.Data.PostgreSql.EFCore":
-				{
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.PostgreSQL };
-				}
-
-				case "Microsoft.EntityFrameworkCore.Sqlite":
-				case "Devart.Data.SQLite.EFCore":
-				{
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.SQLite };
-				}
-
-				case "FirebirdSql.EntityFrameworkCore.Firebird":
-				case "EntityFrameworkCore.FirebirdSql":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.Firebird };
-
-				case "IBM.EntityFrameworkCore":
-				case "IBM.EntityFrameworkCore-lnx":
-				case "IBM.EntityFrameworkCore-osx":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW };
-				case "Devart.Data.Oracle.EFCore":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.Oracle };
-				case "EntityFrameworkCore.Jet":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.Access };
-
-				case "EntityFrameworkCore.SqlServerCompact40":
-				case "EntityFrameworkCore.SqlServerCompact35":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.SqlCe };
-			}
-
-			return null;
+				"Microsoft.EntityFrameworkCore.SqlServer"                                                   => new LinqToDBProviderInfo { ProviderName = ProviderName.SqlServer      },
+				"Pomelo.EntityFrameworkCore.MySql" or "Devart.Data.MySql.EFCore"                            => new LinqToDBProviderInfo { ProviderName = ProviderName.MySqlConnector },
+				"MySql.Data.EntityFrameworkCore"                                                            => new LinqToDBProviderInfo { ProviderName = ProviderName.MySql          },
+				"Npgsql.EntityFrameworkCore.PostgreSQL" or "Devart.Data.PostgreSql.EFCore"                  => new LinqToDBProviderInfo { ProviderName = ProviderName.PostgreSQL     },
+				"Microsoft.EntityFrameworkCore.Sqlite" or "Devart.Data.SQLite.EFCore"                       => new LinqToDBProviderInfo { ProviderName = ProviderName.SQLite         },
+				"FirebirdSql.EntityFrameworkCore.Firebird" or "EntityFrameworkCore.FirebirdSql"             => new LinqToDBProviderInfo { ProviderName = ProviderName.Firebird       },
+				"IBM.EntityFrameworkCore" or "IBM.EntityFrameworkCore-lnx" or "IBM.EntityFrameworkCore-osx" => new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW         },
+				"Devart.Data.Oracle.EFCore"                                                                 => new LinqToDBProviderInfo { ProviderName = ProviderName.Oracle         },
+				"EntityFrameworkCore.Jet"                                                                   => new LinqToDBProviderInfo { ProviderName = ProviderName.Access         },
+				"EntityFrameworkCore.SqlServerCompact40" or "EntityFrameworkCore.SqlServerCompact35"        => new LinqToDBProviderInfo { ProviderName = ProviderName.SqlCe          },
+				_                                                                                           => null,
+			};
 		}
 
 		/// <summary>
@@ -307,29 +233,18 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Linq To DB provider settings.</returns>
 		protected virtual LinqToDBProviderInfo? GetLinqToDBProviderInfo(DbConnection connection)
 		{
-			switch (connection.GetType().Name)
+			return connection.GetType().Name switch
 			{
-					case "SqlConnection":
-						return new LinqToDBProviderInfo { ProviderName = ProviderName.SqlServer };
-					case "MySqlConnection":
-						return new LinqToDBProviderInfo { ProviderName = ProviderName.MySql };
-					case "NpgsqlConnection":
-					case "PgSqlConnection":
-						return new LinqToDBProviderInfo { ProviderName = ProviderName.PostgreSQL };
-					case "FbConnection":
-						return new LinqToDBProviderInfo { ProviderName = ProviderName.Firebird };
-					case "DB2Connection":
-						return new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW };
-					case "OracleConnection":
-						return new LinqToDBProviderInfo { ProviderName = ProviderName.Oracle };
-					case "SqliteConnection":
-					case "SQLiteConnection":
-						return new LinqToDBProviderInfo { ProviderName = ProviderName.SQLite };
-					case "JetConnection":
-						return new LinqToDBProviderInfo { ProviderName = ProviderName.Access };
-			}
-
-			return null;
+				"SqlConnection"                          => new LinqToDBProviderInfo { ProviderName = ProviderName.SqlServer  },
+				"MySqlConnection"                        => new LinqToDBProviderInfo { ProviderName = ProviderName.MySql      },
+				"NpgsqlConnection" or "PgSqlConnection"  => new LinqToDBProviderInfo { ProviderName = ProviderName.PostgreSQL },
+				"FbConnection"                           => new LinqToDBProviderInfo { ProviderName = ProviderName.Firebird   },
+				"DB2Connection"                          => new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW     },
+				"OracleConnection"                       => new LinqToDBProviderInfo { ProviderName = ProviderName.Oracle     },
+				"SqliteConnection" or "SQLiteConnection" => new LinqToDBProviderInfo { ProviderName = ProviderName.SQLite     },
+				"JetConnection"                          => new LinqToDBProviderInfo { ProviderName = ProviderName.Access     },
+				_                                        => null,
+			};
 		}
 
 		/// <summary>
@@ -339,33 +254,20 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>Linq To DB provider settings.</returns>
 		protected virtual LinqToDBProviderInfo? GetLinqToDBProviderInfo(RelationalOptionsExtension extensions)
 		{
-			switch (extensions.GetType().Name)
+			return extensions.GetType().Name switch
 			{
-				case "MySqlOptionsExtension":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.MySqlConnector };
-				case "MySQLOptionsExtension":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.MySql };
-				case "NpgsqlOptionsExtension":
-				case "PgSqlOptionsExtension":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.PostgreSQL };
-				case "SqlServerOptionsExtension":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.SqlServer };
-				case "SqliteOptionsExtension":
-				case "SQLiteOptionsExtension":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.SQLite };
-				case "SqlCeOptionsExtension":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.SqlCe };
-				case "FbOptionsExtension":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.Firebird };
-				case "Db2OptionsExtension":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW };
-				case "OracleOptionsExtension":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.Oracle };
-				case "JetOptionsExtension":
-					return new LinqToDBProviderInfo { ProviderName = ProviderName.Access };
-			}
-
-			return null;
+				"MySqlOptionsExtension"                              => new LinqToDBProviderInfo { ProviderName = ProviderName.MySqlConnector },
+				"MySQLOptionsExtension"                              => new LinqToDBProviderInfo { ProviderName = ProviderName.MySql          },
+				"NpgsqlOptionsExtension" or "PgSqlOptionsExtension"  => new LinqToDBProviderInfo { ProviderName = ProviderName.PostgreSQL     },
+				"SqlServerOptionsExtension"                          => new LinqToDBProviderInfo { ProviderName = ProviderName.SqlServer      },
+				"SqliteOptionsExtension" or "SQLiteOptionsExtension" => new LinqToDBProviderInfo { ProviderName = ProviderName.SQLite         },
+				"SqlCeOptionsExtension"                              => new LinqToDBProviderInfo { ProviderName = ProviderName.SqlCe          },
+				"FbOptionsExtension"                                 => new LinqToDBProviderInfo { ProviderName = ProviderName.Firebird       },
+				"Db2OptionsExtension"                                => new LinqToDBProviderInfo { ProviderName = ProviderName.DB2LUW         },
+				"OracleOptionsExtension"                             => new LinqToDBProviderInfo { ProviderName = ProviderName.Oracle         },
+				"JetOptionsExtension"                                => new LinqToDBProviderInfo { ProviderName = ProviderName.Access         },
+				_                                                    => null,
+			};
 		}
 
 		/// <summary>
@@ -569,7 +471,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static readonly MethodInfo IgnoreQueryFiltersMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.IgnoreQueryFilters());
 
-		static readonly MethodInfo IncludeMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.Include(o => o.ToString()));
+		static readonly MethodInfo IncludeMethodInfo = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.Include(o => o));
 
 		static readonly MethodInfo IncludeMethodInfoString = MemberHelper.MethodOfGeneric<IQueryable<object>>(q => q.Include(string.Empty));
 
@@ -860,7 +762,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 									var propName = (string)EvaluateExpression(methodCall.Arguments[1])!;
 									var param    = Expression.Parameter(methodCall.Method.GetGenericArguments()[0], "e");
-									var propPath = propName.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
+									var propPath = propName.Split(_propSeparator, StringSplitOptions.RemoveEmptyEntries);
 									var prop     = (Expression)param;
 									for (int i = 0; i < propPath.Length; i++)
 									{
@@ -1181,5 +1083,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// Entities will be attached only if AsNoTracking() is not used in query and DbContext is configured to track entities. 
 		/// </summary>
 		public virtual bool EnableChangeTracker { get; set; } = true;
+
+		private static readonly char[] _propSeparator = ['.'];
 	}
 }

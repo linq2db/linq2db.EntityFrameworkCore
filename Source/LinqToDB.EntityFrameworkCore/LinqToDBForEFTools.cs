@@ -64,7 +64,7 @@ namespace LinqToDB.EntityFrameworkCore
 				var newExpression = queryable.Expression;
 
 				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
-					.Invoke(null, new object[] { dc, newExpression });
+					.Invoke(null, [dc, newExpression])!;
 
 				if (prev != null)
 					result = prev(result);
@@ -268,7 +268,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			DataConnection? dc = null;
 
-			transaction = transaction ?? context.Database.CurrentTransaction;
+			transaction ??= context.Database.CurrentTransaction;
 
 			var connectionInfo = GetConnectionInfo(info);
 			var provider       = GetDataProvider(options, info, connectionInfo);
@@ -349,7 +349,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			DataConnection? dc = null;
 
-			transaction = transaction ?? context.Database.CurrentTransaction;
+			transaction ??= context.Database.CurrentTransaction;
 
 			var connectionInfo = GetConnectionInfo(info);
 			var provider       = GetDataProvider(options, info, connectionInfo);
@@ -588,7 +588,9 @@ namespace LinqToDB.EntityFrameworkCore
 			var context = Implementation.GetCurrentContext(query)
 				?? throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
 			var dc = CreateLinqToDBContext(context);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
 			return new LinqToDBForEFQueryProvider<T>(dc, query.Expression);
 		}

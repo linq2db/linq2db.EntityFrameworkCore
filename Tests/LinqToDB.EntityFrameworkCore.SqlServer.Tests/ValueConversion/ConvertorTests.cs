@@ -13,14 +13,14 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 	{
 		private DbContextOptions<ConvertorContext> _options;
 
-		public class ConvertorContext : DbContext
+		private sealed class ConvertorContext : DbContext
 		{
 			public ConvertorContext(DbContextOptions options) : base(options)
 			{
 			}
 
 			[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-			public virtual DbSet<SubDivision> Subdivisions { get; set; } = null!;
+			public DbSet<SubDivision> Subdivisions { get; set; } = null!;
 		}
 
 		public ConvertorTests()
@@ -46,32 +46,34 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 				ctx.Database.EnsureCreated();
 
 
-				var resut = db.InsertWithInt64Identity(new SubDivision()
+				var result = db.InsertWithInt64Identity(new SubDivision()
 					{ Code = "C1", Id = new Id<SubDivision, long>(0), Name = "N1", PermanentId = Guid.NewGuid() });
 
-				resut = db.InsertWithInt64Identity(new SubDivision()
+				result = db.InsertWithInt64Identity(new SubDivision()
 					{ Code = "C2", Id = new Id<SubDivision, long>(1), Name = "N2", PermanentId = Guid.NewGuid() });
 
-				resut = db.InsertWithInt64Identity(new SubDivision()
+				result = db.InsertWithInt64Identity(new SubDivision()
 					{ Code = "C3", Id = new Id<SubDivision, long>(2), Name = "N3", PermanentId = Guid.NewGuid() });
 			
 				var ef   = ctx.Subdivisions.Where(s => s.Id == 1L).ToArray();
-				var ltdb = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == 1L).ToArray();
+				var result1 = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == 1L).ToArray();
 				
 				var id = new Id<SubDivision, long>?(0L.AsId<SubDivision>());
-				var ltdb2 = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == id).ToArray();
+				var result2 = ctx.Subdivisions.ToLinqToDB().Where(s => s.Id == id).ToArray();
 				
 				var ids = new[] {1L.AsId<SubDivision>(), 2L.AsId<SubDivision>(),};
-				var ltdbin = ctx.Subdivisions.ToLinqToDB()
-					.Where(s => ids.Contains(s.Id)).ToArray();
+				_ = ctx.Subdivisions.ToLinqToDB().Where(s => ids.Contains(s.Id)).ToArray();
 				
-				var all = ctx.Subdivisions.ToLinqToDB().ToArray();
-				
-				Assert.AreEqual(ef[0].Code, ltdb[0].Code);
-				Assert.AreEqual(ef[0].Id, ltdb[0].Id);
-				
-				Assert.AreEqual(ef[0].Code, ltdb2[0].Code);
-				Assert.AreEqual(ef[0].Id, ltdb2[0].Id);
+				_ = ctx.Subdivisions.ToLinqToDB().ToArray();
+
+				Assert.Multiple(() =>
+				{
+					Assert.That(result1[0].Code, Is.EqualTo(ef[0].Code));
+					Assert.That(result1[0].Id, Is.EqualTo(ef[0].Id));
+
+					Assert.That(result2[0].Code, Is.EqualTo(ef[0].Code));
+					Assert.That(result2[0].Id, Is.EqualTo(ef[0].Id));
+				});
 			}
 		}
 	}
