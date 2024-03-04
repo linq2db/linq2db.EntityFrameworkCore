@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -20,7 +19,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	{
 		private DbContextOptions? _inheritanceOptions;
 		private readonly DbContextOptions _options;
-		private readonly DbContextOptions<NorthwindContext> _inmemoryOptions;
+		private readonly DbContextOptions<NorthwindContext> _inMemoryOptions;
 
 		static ToolsTests()
 		{
@@ -39,7 +38,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 			return optionsBuilder.Options;
 		}
-
 		public ToolsTests()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<NorthwindContext>();
@@ -56,12 +54,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			optionsBuilder.UseInMemoryDatabase("sample");
 			optionsBuilder.UseLoggerFactory(TestUtils.LoggerFactory);
 
-			_inmemoryOptions = optionsBuilder.Options;
+			_inMemoryOptions = optionsBuilder.Options;
 		}
 
 		private NorthwindContext CreateContextInMemory()
 		{
-			var ctx = new NorthwindContext(_inmemoryOptions);
+			var ctx = new NorthwindContext(_inMemoryOptions);
 			ctx.Database.EnsureCreated();
 			return ctx;
 		}
@@ -69,16 +67,18 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		private void SetIdentityInsert(DbContext ctx, string tableName, bool isOn)
 		{
 			var str = $"SET IDENTITY_INSERT {tableName} " + (isOn ? "ON" : "OFF");
+#pragma warning disable CA1031 // Do not catch general exception types
 			try
 			{
 #pragma warning disable EF1000 // Possible SQL injection vulnerability.
 				ctx.Database.ExecuteSqlCommand(str);
 #pragma warning restore EF1000 // Possible SQL injection vulnerability.
 			}
-			catch (Exception)
+			catch
 			{
 				// swallow
 			}
+#pragma warning restore CA1031 // Do not catch general exception types
 		}
 
 		private NorthwindContext CreateContext(bool enableFilter)
@@ -107,14 +107,6 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 
 			return ctx;
-		}
-
-		public class VwProductAndDescription
-		{
-			public int ProductId { get; set; }
-			public string Name { get; set; } = null!;
-			public string ProductModel { get; set; } = null!;
-			public string Description { get; set; } = null!;
 		}
 
 		[Test]
@@ -154,8 +146,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
+#pragma warning disable CA1866 // Use char overload
 				var query = ProductQuery(ctx)
 					.Where(pd => pd.ProductName.StartsWith("a"));
+#pragma warning restore CA1866 // Use char overload
 
 				query.Where(p => p.ProductName == "a").Delete();
 			}
@@ -167,9 +161,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
+#pragma warning disable CA1866 // Use char overload
 				var query = ProductQuery(ctx)
 					.ToLinqToDB()
 					.Where(pd => pd.ProductName.StartsWith("a"));
+#pragma warning restore CA1866 // Use char overload
 			}
 		}
 
@@ -178,8 +174,10 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
+#pragma warning disable CA1866 // Use char overload
 				var query = ProductQuery(ctx)
 					.Where(pd => pd.ProductName.StartsWith("a"));
+#pragma warning restore CA1866 // Use char overload
 			}
 		}
 
@@ -214,30 +212,30 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext(false))
 			{
 				var query = from p in ctx.Orders
-					//where EF.Functions.Like(p., "a%") || true
-					//orderby p.ProductId
-					select new
-					{
-						p.OrderId,
-						// Date = Model.TestFunctions.GetDate(),
-						// Len = Model.TestFunctions.Len(p.Name),
-						DiffYear1 = EF.Functions.DateDiffYear(p.ShippedDate, p.OrderDate),
-						DiffYear2 = p.OrderDate == null ? null : EF.Functions.DateDiffYear(p.ShippedDate, p.OrderDate.Value),
-						DiffMonth1 = EF.Functions.DateDiffMonth(p.ShippedDate, p.OrderDate),
-						DiffMonth2 = p.OrderDate == null ? null : EF.Functions.DateDiffMonth(p.ShippedDate, p.OrderDate.Value),
-						DiffDay1 = EF.Functions.DateDiffDay(p.ShippedDate, p.OrderDate),
-						DiffDay2 = p.OrderDate == null ? null : EF.Functions.DateDiffDay(p.ShippedDate, p.OrderDate.Value),
-						DiffHour1 = EF.Functions.DateDiffHour(p.ShippedDate, p.OrderDate),
-						DiffHour2 = p.OrderDate == null ? null : EF.Functions.DateDiffHour(p.ShippedDate, p.OrderDate.Value),
-						DiffMinute1 = EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate),
-						DiffMinute2 = p.OrderDate == null ? null : EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate.Value),
-						DiffSecond1 = EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate),
-						DiffSecond2 = p.OrderDate == null ? null : EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate.Value),
-						DiffMillisecond1 = EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate!.Value.AddMilliseconds(100)),
-						DiffMillisecond2 = p.OrderDate == null ? null : EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate.Value.AddMilliseconds(100)),
-					};
+								//where EF.Functions.Like(p., "a%") || true
+								//orderby p.ProductId
+							select new
+							{
+								p.OrderId,
+								// Date = Model.TestFunctions.GetDate(),
+								// Len = Model.TestFunctions.Len(p.Name),
+								DiffYear1 = EF.Functions.DateDiffYear(p.ShippedDate, p.OrderDate),
+								DiffYear2 = p.OrderDate == null ? null : EF.Functions.DateDiffYear(p.ShippedDate, p.OrderDate.Value),
+								DiffMonth1 = EF.Functions.DateDiffMonth(p.ShippedDate, p.OrderDate),
+								DiffMonth2 = p.OrderDate == null ? null : EF.Functions.DateDiffMonth(p.ShippedDate, p.OrderDate.Value),
+								DiffDay1 = EF.Functions.DateDiffDay(p.ShippedDate, p.OrderDate),
+								DiffDay2 = p.OrderDate == null ? null : EF.Functions.DateDiffDay(p.ShippedDate, p.OrderDate.Value),
+								DiffHour1 = EF.Functions.DateDiffHour(p.ShippedDate, p.OrderDate),
+								DiffHour2 = p.OrderDate == null ? null : EF.Functions.DateDiffHour(p.ShippedDate, p.OrderDate.Value),
+								DiffMinute1 = EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate),
+								DiffMinute2 = p.OrderDate == null ? null : EF.Functions.DateDiffMinute(p.ShippedDate, p.OrderDate.Value),
+								DiffSecond1 = EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate),
+								DiffSecond2 = p.OrderDate == null ? null : EF.Functions.DateDiffSecond(p.ShippedDate, p.OrderDate.Value),
+								DiffMillisecond1 = EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate!.Value.AddMilliseconds(100)),
+								DiffMillisecond2 = p.OrderDate == null ? null : EF.Functions.DateDiffMillisecond(p.ShippedDate, p.ShippedDate.Value.AddMilliseconds(100)),
+							};
 
-//				var items1 = query.ToArray();
+				//				var items1 = query.ToArray();
 				var items2 = query.ToLinqToDB().ToArray();
 			}
 		}
@@ -247,14 +245,16 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using (var ctx = CreateContext(enableFilter))
 			{
-				using (var transaction = ctx.Database.BeginTransaction())
+				using (var transaction = await ctx.Database.BeginTransactionAsync())
 				using (var db = ctx.CreateLinqToDBConnection())
 				{
 
+#pragma warning disable CA1866 // Use char overload
 					var test1 = await ctx.Products.Where(p => p.ProductName.StartsWith("U")).MaxAsync(p => p.QuantityPerUnit);
 					var test2 = await ctx.Products.Where(p => p.ProductName.StartsWith("U")).MaxAsyncLinqToDB(p => p.QuantityPerUnit);
+#pragma warning restore CA1866 // Use char overload
 
-					Assert.AreEqual(test1, test2);
+					Assert.That(test2, Is.EqualTo(test1));
 
 					ctx.Products.Where(p => p.ProductName == "a")
 						.ToLinqToDB(db)
@@ -271,9 +271,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext(enableFilter))
 			using (var db = ctx.CreateLinqToDBConnection())
 			{
+#pragma warning disable CA1866 // Use char overload
 				var query = ProductQuery(ctx)
 					.ToLinqToDB(db)
 					.Where(pd => pd.ProductName.StartsWith("a"));
+#pragma warning restore CA1866 // Use char overload
 
 				var items = query.ToArray();
 			}
@@ -341,13 +343,16 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext(false))
 			{
 				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx, null);
-				
+
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
 
-				Assert.NotNull(customerPk);
-				Assert.AreEqual(true, customerPk!.IsPrimaryKey);
-				Assert.AreEqual(0, customerPk.PrimaryKeyOrder);
+				Assert.That(customerPk, Is.Not.Null);
+				Assert.Multiple(() =>
+				{
+					Assert.That(customerPk!.IsPrimaryKey, Is.EqualTo(true));
+					Assert.That(customerPk.PrimaryKeyOrder, Is.EqualTo(0));
+				});
 			}
 		}
 
@@ -357,13 +362,16 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext(false))
 			{
 				var ms = LinqToDBForEFTools.GetMappingSchema(ctx.Model, ctx, null);
-				
+
 				var associationOrder = ms.GetAttribute<AssociationAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.Orders));
 
-				Assert.NotNull(associationOrder);
-				Assert.That(associationOrder!.ThisKey, Is.EqualTo("CustomerId"));
-				Assert.That(associationOrder.OtherKey, Is.EqualTo("CustomerId"));
+				Assert.That(associationOrder, Is.Not.Null);
+				Assert.Multiple(() =>
+				{
+					Assert.That(associationOrder!.ThisKey, Is.EqualTo("CustomerId"));
+					Assert.That(associationOrder.OtherKey, Is.EqualTo("CustomerId"));
+				});
 			}
 		}
 
@@ -377,11 +385,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					from p in ctx.Products.IgnoreQueryFilters()
 					join d in ctx.OrderDetails on p.ProductId equals d.ProductId
 					select new { p, d };
-				
+
 				var efResult      = withoutFilterQuery.ToArray();
 				var linq2dbResult = withoutFilterQuery.ToLinqToDB().ToArray();
-				
-				Assert.AreEqual(efResult.Length, linq2dbResult.Length);
+
+				Assert.That(linq2dbResult, Has.Length.EqualTo(efResult.Length));
 
 				var withFilterQuery =
 					from p in ctx.Products
@@ -391,7 +399,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var efResult2  = withFilterQuery.ToArray();
 				var linq2dbResult2 = withFilterQuery.ToLinqToDB().ToArray();
 
-				Assert.AreEqual(efResult2.Length, linq2dbResult2.Length);
+				Assert.That(linq2dbResult2, Has.Length.EqualTo(efResult2.Length));
 			}
 		}
 
@@ -483,22 +491,22 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			using (var ctx = CreateContext(enableFilter))
 			{
 				var query = ctx.Products.Select(p => new
+				{
+					p.ProductName,
+					OrderDetails = p.OrderDetails.Select(od => new
 					{
-						p.ProductName,
-						OrderDetails = p.OrderDetails.Select(od => new
-						{
-							od.Discount,
-							od.Order,
-							od.Product.Supplier!.Products
-						})
-					});
+						od.Discount,
+						od.Order,
+						od.Product.Supplier!.Products
+					})
+				});
 
 				ctx.IsSoftDeleteFilterEnabled = true;
 
 				var expected = await query.ToArrayAsync();
 				var filtered = await query.ToLinqToDB().ToArrayAsync();
 
-				Assert.That(filtered.Length, Is.EqualTo(expected.Length));
+				Assert.That(filtered, Has.Length.EqualTo(expected.Length));
 			}
 		}
 
@@ -557,16 +565,16 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					.Include(o => o.OrderDetails)
 					.ThenInclude(d => d.Product)
 					.ThenInclude(p => p.OrderDetails);
-				
+
 				// var efResult = await query.ToArrayAsync();
 				var result = await query.ToLinqToDB().ToArrayAsync();
 
 				var orderDetail = result[0].OrderDetails.First();
-				orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
+				orderDetail.UnitPrice *= 1.1m;
 
 				ctx.ChangeTracker.DetectChanges();
 				var changedEntry = ctx.ChangeTracker.Entries().Single(e => e.State == EntityState.Modified);
-				ctx.SaveChanges();
+				await ctx.SaveChangesAsync();
 			}
 		}
 
@@ -585,12 +593,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var result = await query.ToLinqToDB().ToArrayAsync();
 
 				var orderDetail = result[0].OrderDetails.First();
-				orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
+				orderDetail.UnitPrice *= 1.1m;
 
 				ctx.ChangeTracker.DetectChanges();
 				var changedEntry = ctx.ChangeTracker.Entries().SingleOrDefault(e => e.State == EntityState.Modified);
-				Assert.AreEqual(changedEntry, null);
-				ctx.SaveChanges();
+				Assert.That(changedEntry, Is.Null);
+				await ctx.SaveChangesAsync();
 			}
 		}
 
@@ -611,12 +619,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					var result = await query.ToLinqToDB().ToArrayAsync();
 
 					var orderDetail = result[0].OrderDetails.First();
-					orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
+					orderDetail.UnitPrice *= 1.1m;
 
 					ctx.ChangeTracker.DetectChanges();
 					var changedEntry = ctx.ChangeTracker.Entries().SingleOrDefault(e => e.State == EntityState.Modified);
-					Assert.AreEqual(changedEntry, null);
-					ctx.SaveChanges();
+					Assert.That(changedEntry, Is.Null);
+					await ctx.SaveChangesAsync();
 				}
 			}
 			finally
@@ -643,30 +651,30 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 
 		//[Test] - issue in EF Core 2.x
-		public void NavigationProperties()
-		{
-			using (var ctx = CreateContext(false))
-			{
-				var query =
-					from o in ctx.Orders
-					from od in o.OrderDetails
-					select new
-					{
-						ProductOrderDetails =
-							od.Product.OrderDetails.Select(d => new { d.OrderId, d.ProductId, d.Quantity })
-								.OrderBy(x => x.OrderId).ThenBy(x => x.ProductId).ThenBy(x => x.Quantity).ToArray(),
-						OrderDetail = new { od.OrderId, od.ProductId, od.Quantity },
-						Product = new { od.Product.ProductId, od.Product.ProductName }
-					};
+		//public void NavigationProperties()
+		//{
+		//	using (var ctx = CreateContext(false))
+		//	{
+		//		var query =
+		//			from o in ctx.Orders
+		//			from od in o.OrderDetails
+		//			select new
+		//			{
+		//				ProductOrderDetails =
+		//					od.Product.OrderDetails.Select(d => new { d.OrderId, d.ProductId, d.Quantity })
+		//						.OrderBy(x => x.OrderId).ThenBy(x => x.ProductId).ThenBy(x => x.Quantity).ToArray(),
+		//				OrderDetail = new { od.OrderId, od.ProductId, od.Quantity },
+		//				Product = new { od.Product.ProductId, od.Product.ProductName }
+		//			};
 
-				query = query.Take(1);
+		//		query = query.Take(1);
 
-				var efResult   = query.ToArray();
-				var l2dbResult = query.ToLinqToDB().ToArray();
-				
-				AreEqualWithComparer(efResult, l2dbResult);
-			}
-		}
+		//		var efResult   = query.ToArray();
+		//		var l2dbResult = query.ToLinqToDB().ToArray();
+
+		//		AreEqualWithComparer(efResult, l2dbResult);
+		//	}
+		//}
 
 		[Test]
 		public async Task TestSetUpdate([Values(true, false)] bool enableFilter)
@@ -705,7 +713,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var id = 1;
 				var query = from c1 in ctx.Categories
 					from c2 in ctx.Categories.FromSql("SELECT * FROM [dbo].[Categories] WHERE CategoryId = {0}", id)
-					select c2;
+							select c2;
 
 				var efResult = await query.ToArrayAsyncEF();
 				var linq2dbResult = await query.ToArrayAsyncLinqToDB();
@@ -733,7 +741,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var id = 1;
 				var query = from c1 in ctx.Categories
 					from c2 in ctx.Categories.FromSql($"SELECT * FROM [dbo].[Categories] WHERE CategoryId = {id}")
-					select c2;
+							select c2;
 
 				var efResult = await query.AsNoTracking().ToArrayAsyncEF();
 				var linq2dbResult = await query.AsNoTracking().ToArrayAsyncLinqToDB();
@@ -808,7 +816,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				using var db = ctx.CreateLinqToDBContext();
 				using var temp = db.CreateTempTable(ctx.Employees, "#TestEmployees");
 
-				Assert.AreEqual(ctx.Employees.Count(), temp.Count());
+				Assert.That(temp.Count(), Is.EqualTo(ctx.Employees.Count()));
 			}
 		}
 
@@ -859,12 +867,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					var query = from p in ctx.Products
 								select NorthwindContext.ProcessLong(commandExecutionTime);
 
-					var exception = Assert.Throws<SqlException>(() =>
+					var exception = Assert.Throws<System.Data.SqlClient.SqlException>(() =>
 					{
 						var result = query.ToLinqToDB().First();
 					})!;
-
-					Assert.AreEqual(exception.Number, timeoutErrorCode);
+					Assert.That(timeoutErrorCode, Is.EqualTo(exception.Number));
 				}
 				finally
 				{
@@ -897,7 +904,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			{
 				var data = new BlogBase[] { new Blog() { Url = "BlogUrl" }, new RssBlog() { Url = "RssUrl" } };
 
-				ctx.BulkCopy(new BulkCopyOptions(){ BulkCopyType = BulkCopyType.RowByRow }, data);
+				ctx.BulkCopy(new BulkCopyOptions() { BulkCopyType = BulkCopyType.RowByRow }, data);
 
 				var items = ctx.Blogs.ToArray();
 
@@ -929,6 +936,5 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			}
 		}
 		*/
-
 	}
 }

@@ -10,9 +10,9 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
         #region Customers
 
         public static Customer[] CreateCustomers()
-            => new[]
-            {
-                new Customer
+            =>
+			[
+				new Customer
                 {
                     CustomerId = "ALFKI",
                     CompanyName = "Alfreds Futterkiste",
@@ -1286,16 +1286,16 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
                     Phone = "(26) 642-7012",
                     Fax = "(26) 642-7012"
                 }
-            };
+            ];
 
         #endregion
 
         #region Employees
 
         public static Employee[] CreateEmployees()
-            => new[]
-            {
-                new Employee
+            =>
+			[
+				new Employee
                 {
                     EmployeeId = 1,
                     LastName = "Davolio",
@@ -1513,16 +1513,16 @@ Winchester Way",
                     ReportsTo = 5,
                     PhotoPath = "http://accweb/emmployees/davolio.bmp"
                 }
-            };
+            ];
 
         #endregion
 
         #region Shippers
 
         public static Shipper[] CreateShippers()
-	        => new[]
-	        {
-		        new Shipper
+	        =>
+			[
+				new Shipper
 		        {
 			        ShipperId = 1,
 			        CompanyName = "Speedy Express",
@@ -1540,16 +1540,16 @@ Winchester Way",
 			        CompanyName = "Federal Shipping",
 			        Phone = "(503) 555-9931"
 		        }
-	        };
+	        ];
 
         #endregion
 
         #region Products
 
         public static Supplier[] CreateSupliers()
-	        => new[]
-	        {
-		        new Supplier
+	        =>
+			[
+				new Supplier
 		        {
 			        SupplierId = 1,
 			        CompanyName = "Exotic Liquids",
@@ -1987,12 +1987,12 @@ Winchester Way",
 			        Fax = "(514) 555-2921",
 			        HomePage = null
 		        }
-	        };
+	        ];
 
         public static Category[] CreateCategories()
-	        => new[]
-	        {
-		        new Category
+	        =>
+			[
+				new Category
 		        {
 			        CategoryId = 1,
 			        CategoryName = "Beverages",
@@ -2040,12 +2040,12 @@ Winchester Way",
 			        CategoryName = "Seafood",
 					Description = "Seaweed and fish"
 		        }, 
-	        };
+	        ];
 
         public static Product[] CreateProducts()
-            => new[]
-            {
-                new Product
+            =>
+			[
+				new Product
                 {
                     ProductId = 1,
                     ProductName = "Chai",
@@ -3047,16 +3047,16 @@ Winchester Way",
                     ReorderLevel = 15,
                     Discontinued = false
                 }
-            };
+            ];
 
         #endregion
 
         #region Orders
 
         public static Order[] CreateOrders()
-            => new[]
-            {
-                new Order
+            =>
+			[
+				new Order
                 {
                     OrderId = 10248,
                     CustomerId = "VINET",
@@ -17166,16 +17166,16 @@ Winchester Way",
                     ShipPostalCode = "87110",
                     ShipCountry = "USA"
                 }
-            };
+            ];
 
         #endregion
 
         #region OrderDetails
 
         public static OrderDetail[] CreateOrderDetails()
-            => new[]
-            {
-                new OrderDetail
+            =>
+			[
+				new OrderDetail
                 {
                     OrderId = 10248,
                     ProductId = 11,
@@ -34415,7 +34415,7 @@ Winchester Way",
                     Quantity = 2,
                     Discount = 0f
                 }
-            };
+            ];
 
         #endregion
     }

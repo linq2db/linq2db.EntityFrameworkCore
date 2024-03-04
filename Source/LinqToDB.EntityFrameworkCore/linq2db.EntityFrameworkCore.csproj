@@ -27,6 +27,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Meziantou.Analyzer" />
 		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Aliases = "bcl_async"/>
 		<PackageReference Include="System.Interactive.Async" Aliases = "interactive_async"/>
 	</ItemGroup>

@@ -12,7 +12,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 {
 	public abstract class ForMappingTestsBase : TestsBase
 	{
-		public abstract ForMappingContextBase CreateContext(Func<DataOptions, DataOptions>? optionsSetter = null);
+		protected abstract ForMappingContextBase CreateContext(Func<DataOptions, DataOptions>? optionsSetter = null);
 
 		[Test]
 		public virtual void TestIdentityMapping()
@@ -126,10 +126,10 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			using var connection1 = context1.CreateLinqToDBConnection();
 			using var connection2 = context2.CreateLinqToDBConnection();
 
-			Assert.AreEqual(connection1.MappingSchema, connection2.MappingSchema);
+			Assert.That(connection2.MappingSchema, Is.EqualTo(connection1.MappingSchema));
 		}
 
-		sealed class TestEntity
+		protected sealed class TestEntity
 		{
 			public int Field { get; set; }
 		}
@@ -148,7 +148,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			using var connection1 = context1.CreateLinqToDBConnection();
 			using var connection2 = context2.CreateLinqToDBConnection();
 
-			Assert.AreEqual(connection1.MappingSchema, connection2.MappingSchema);
+			Assert.That(connection2.MappingSchema, Is.EqualTo(connection1.MappingSchema));
 
 			// check EF mapping is in place
 			var ed = connection1.MappingSchema.GetEntityDescriptor(typeof(WithIdentity));
@@ -159,7 +159,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests
 			ed = connection1.MappingSchema.GetEntityDescriptor(typeof(TestEntity));
 			pk = ed.Columns.Single(c => c.IsPrimaryKey);
 			pk.IsIdentity.Should().BeFalse();
-			Assert.AreEqual("Field", pk.ColumnName);
+			Assert.That(pk.ColumnName, Is.EqualTo("Field"));
 		}
 
 		[Test]

@@ -121,9 +121,6 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (source  == null) throw new ArgumentNullException(nameof(source));
 
-			if (context == null) throw new ArgumentNullException(nameof(context));
-			if (source  == null) throw new ArgumentNullException(nameof(source));
-
 			using (var dc = context.CreateLinqToDBConnection())
 			{
 				return await dc.BulkCopyAsync(maxBatchSize, source, cancellationToken).ConfigureAwait(Common.Configuration.ContinueOnCapturedContext);
@@ -170,7 +167,9 @@ namespace LinqToDB.EntityFrameworkCore
 			if (context == null) throw new ArgumentNullException(nameof(context));
 			if (target == null)  throw new ArgumentNullException(nameof(target));
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
 			return context.CreateLinqToDBConnection().Into(target);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 		}
 
 		#endregion
@@ -187,7 +186,9 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (context == null) throw new ArgumentNullException(nameof(context));
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
 			return context.CreateLinqToDBContext().GetTable<T>();
+#pragma warning restore CA2000 // Dispose objects before losing scope
 		}
 
 		#endregion
@@ -217,7 +218,7 @@ namespace LinqToDB.EntityFrameworkCore
 		{
 			if (contextOptions == null) throw new ArgumentNullException(nameof(contextOptions));
 
-			return contextOptions?.FindExtension<LinqToDBOptionsExtension>()?.Options;
+			return contextOptions.FindExtension<LinqToDBOptionsExtension>()?.Options;
 		}
 
 		#endregion
