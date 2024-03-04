@@ -26,18 +26,17 @@ namespace LinqToDB.EntityFrameworkCore
 
 		static Sql.DateParts? GetDatePart(string name)
 		{
-			switch (name)
+			return name switch
 			{
-				case "Year"       : return Sql.DateParts.Year;
-				case "Day"        : return Sql.DateParts.Day;
-				case "Month"      : return Sql.DateParts.Month;
-				case "Hour"       : return Sql.DateParts.Hour;
-				case "Minute"     : return Sql.DateParts.Minute;
-				case "Second"     : return Sql.DateParts.Second;
-				case "Millisecond": return Sql.DateParts.Millisecond;
-			}
-
-			return null;
+				"Year"        => (Sql.DateParts?)Sql.DateParts.Year,
+				"Day"         => (Sql.DateParts?)Sql.DateParts.Day,
+				"Month"       => (Sql.DateParts?)Sql.DateParts.Month,
+				"Hour"        => (Sql.DateParts?)Sql.DateParts.Hour,
+				"Minute"      => (Sql.DateParts?)Sql.DateParts.Minute,
+				"Second"      => (Sql.DateParts?)Sql.DateParts.Second,
+				"Millisecond" => (Sql.DateParts?)Sql.DateParts.Millisecond,
+				_             => null,
+			};
 		}
 
 		/// <summary>
