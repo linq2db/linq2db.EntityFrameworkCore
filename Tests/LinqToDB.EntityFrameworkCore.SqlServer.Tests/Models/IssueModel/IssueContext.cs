@@ -23,8 +23,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel
 					.HasForeignKey(x => new { x.ParentId })
 					.HasPrincipalKey(x => new { x.Id });
 
-				b.HasData(new[]
-				{
+				b.HasData(
+				[
 					new Issue73Entity
 					{
 						Id = 2,
@@ -36,7 +36,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.IssueModel
 						Name = "Name1_3",
 						ParentId = 2
 					},
-				});
+				]);
 			});
 
 			modelBuilder

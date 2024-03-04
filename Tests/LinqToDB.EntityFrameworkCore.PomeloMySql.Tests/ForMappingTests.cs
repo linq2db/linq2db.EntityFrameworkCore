@@ -10,7 +10,7 @@ namespace LinqToDB.EntityFrameworkCore.PomeloMySql.Tests
 	{
 		private bool _isDbCreated;
 
-		public override ForMappingContextBase CreateContext(Func<DataOptions, DataOptions>? optionsSetter = null)
+		protected override ForMappingContextBase CreateContext(Func<DataOptions, DataOptions>? optionsSetter = null)
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
 			//var connectionString = "Server=DBHost;Port=3306;Database=TestData;Uid=TestUser;Pwd=TestPassword;charset=utf8;";
