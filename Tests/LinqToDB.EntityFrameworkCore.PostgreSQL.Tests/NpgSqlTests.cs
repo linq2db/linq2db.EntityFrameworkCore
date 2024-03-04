@@ -95,7 +95,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests
 			using var db = CreateNpgSqlEntitiesContext();
 
 			var toInsert = Enumerable.Range(1, 10)
-				.Select(i => new EntityWithXmin { Value = "Str" + i })
+				.Select(i => new EntityWithXmin { Value = FormattableString.Invariant($"Str{i}") })
 				.ToArray();
 
 			db.BulkCopy(toInsert);

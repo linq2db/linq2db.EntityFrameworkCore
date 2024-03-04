@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using FluentAssertions;
@@ -38,27 +38,27 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 
 		[Test]
 		[Ignore("Incomplete.")]
-		public void TestInsertWithoutTracker([Values("test insert")] string name) 
+		public void TestInsertWithoutTracker([Values("test insert")] string name)
 			=> _efContext
 				.Arrange(CreateLinqToDBContext)
 				.Act(c => c.Insert(new Entity { Name = name }))
-				.Assert(id => _efContext.Entitites.Single(e => e.Id == id).Name.Should().Be(name));
+				.Assert(id => _efContext.Entities.Single(e => e.Id == id).Name.Should().Be(name));
 
 		[Test]
 		[Ignore("Incomplete.")]
-		public void TestInsertWithoutNew([Values("test insert")] string name) 
-			=> _efContext.Entitites
+		public void TestInsertWithoutNew([Values("test insert")] string name)
+			=> _efContext.Entities
 				.Arrange(e => e.ToLinqToDBTable())
-				.Act(e => e.InsertWithInt64Identity(() => new Entity {Name = name}))
-				.Assert(id => _efContext.Entitites.Single(e => e.Id == id).Name.Should().Be(name));
+				.Act(e => e.InsertWithInt64Identity(() => new Entity { Name = name }))
+				.Assert(id => _efContext.Entities.Single(e => e.Id == id).Name.Should().Be(name));
 
 		[Test]
 		[Ignore("Incomplete.")]
-		public void TestInsertEfCore([Values("test insert ef")] string name) 
+		public void TestInsertEfCore([Values("test insert ef")] string name)
 			=> _efContext
-				.Arrange(c => c.Entitites.Add(new Entity {Name = "test insert ef"}))
+				.Arrange(c => c.Entities.Add(new Entity { Name = "test insert ef" }))
 				.Act(_ => _efContext.SaveChanges())
-				.Assert(_ => _efContext.Entitites.Single().Name.Should().Be(name));
+				.Assert(_ => _efContext.Entities.Single().Name.Should().Be(name));
 
 		[Test]
 		[Ignore("Incomplete.")]
@@ -66,7 +66,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 			=> _efContext
 				.Arrange(c => InsertDefaults(CreateLinqToDBContext(c)))
 				.Act(c => c
-					.Entitites
+					.Entities
 					.Where(e => e.Name == "Alpha")
 					.Include(e => e.Details)
 					.ThenInclude(d => d.Details)
@@ -82,7 +82,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 				.Arrange(c => InsertDefaults(CreateLinqToDBContext(c)))
 				.Act(c =>
 				{
-					var q = c.Entitites
+					var q = c.Entities
 						.Include(e => e.Items)
 						.ThenInclude(x => x.Item);
 					var f = q.AsLinqToDB(l2db).AsTracking().ToArray();
@@ -90,14 +90,14 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 					return (First: f, Second: s);
 				})
 				.Assert(r => r.First[0].Items.Count().Should().Be(r.Second[0].Items.Count()));
-		
-		
+
+
 		[Test]
 		[Ignore("Incomplete.")]
 		public void TestManyToManyInclude([Values] bool l2db, [Values] bool tracking)
 			=> _efContext
 				.Arrange(c => InsertDefaults(CreateLinqToDBContext(c)))
-				.Act(c => c.Entitites
+				.Act(c => c.Entities
 					.Include(e => e.Items)
 					.ThenInclude(x => x.Item)
 					.AsLinqToDB(l2db)
@@ -140,25 +140,25 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 			var g = dataContext.Insert(new Item {Name = "Green"});
 			var w = dataContext.Insert(new Item {Name = "White"});
 
-			dataContext.Insert(new Detail {Name = "Second", MasterId = a});
-			dataContext.Insert(new SubDetail {Name = "Plus", MasterId = d});
-			dataContext.Insert(new SubDetail {Name = "Minus", MasterId = d});
-			dataContext.Insert(new Child {Name = "One", ParentId = a});
-			dataContext.Insert(new Child {Name = "Two", ParentId = a});
-			dataContext.Insert(new Child {Name = "Three", ParentId = a});
-			dataContext.Insert(new Entity2Item {EntityId = a, ItemId = r});
-			dataContext.Insert(new Entity2Item {EntityId = a, ItemId = g});
-			dataContext.Insert(new Entity2Item {EntityId = b, ItemId = r});
-			dataContext.Insert(new Entity2Item {EntityId = b, ItemId = w});
+			dataContext.Insert(new Detail { Name = "Second", MasterId = a });
+			dataContext.Insert(new SubDetail { Name = "Plus", MasterId = d });
+			dataContext.Insert(new SubDetail { Name = "Minus", MasterId = d });
+			dataContext.Insert(new Child { Name = "One", ParentId = a });
+			dataContext.Insert(new Child { Name = "Two", ParentId = a });
+			dataContext.Insert(new Child { Name = "Three", ParentId = a });
+			dataContext.Insert(new Entity2Item { EntityId = a, ItemId = r });
+			dataContext.Insert(new Entity2Item { EntityId = a, ItemId = g });
+			dataContext.Insert(new Entity2Item { EntityId = b, ItemId = r });
+			dataContext.Insert(new Entity2Item { EntityId = b, ItemId = w });
 		}
 
-		public class TestContext : DbContext
+		private sealed class TestContext : DbContext
 		{
 			public TestContext(DbContextOptions options) : base(options) { }
 			protected override void OnModelCreating(ModelBuilder modelBuilder)
 			{
 				base.OnModelCreating(modelBuilder);
-				modelBuilder.Entity<Entity2Item>().HasKey(x => new { x.EntityId, x.ItemId});
+				modelBuilder.Entity<Entity2Item>().HasKey(x => new { x.EntityId, x.ItemId });
 				modelBuilder
 					.UseSnakeCase()
 					.UseIdAsKey()
@@ -166,7 +166,7 @@ namespace LinqToDB.EntityFrameworkCore.PostgreSQL.Tests.SampleTests
 			}
 
 
-			public DbSet<Entity> Entitites { get; set; } = null!;
+			public DbSet<Entity> Entities { get; set; } = null!;
 			public DbSet<Detail> Details { get; set; } = null!;
 			public DbSet<SubDetail> SubDetails { get; set; } = null!;
 			public DbSet<Item> Items { get; set; } = null!;
