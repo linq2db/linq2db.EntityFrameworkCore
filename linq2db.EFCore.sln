@@ -41,6 +41,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToDB.EntityFrameworkCor
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{3727B214-909A-4A19-8BF5-E281C0D7A6E5}"
 	ProjectSection(SolutionItems) = preProject
+		Tests\.editorconfig = Tests\.editorconfig
 		Tests\Directory.Build.props = Tests\Directory.Build.props
 	EndProjectSection
 EndProject

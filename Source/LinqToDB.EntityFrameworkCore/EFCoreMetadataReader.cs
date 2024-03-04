@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LinqToDB.EntityFrameworkCore
 {
+	using System.Globalization;
 	using Common;
 	using Expressions;
 	using Extensions;
@@ -50,7 +51,7 @@ namespace LinqToDB.EntityFrameworkCore
 				_annotationProvider = accessor.GetService<IMigrationsAnnotationProvider>();
 			}
 
-			_objectId = $".{_model?.GetHashCode() ?? 0}.{_dependencies?.GetHashCode() ?? 0}.{_mappingSource?.GetHashCode() ?? 0}.{_annotationProvider?.GetHashCode() ?? 0}.";
+			_objectId = FormattableString.Invariant($".{_model?.GetHashCode() ?? 0}.{_dependencies?.GetHashCode() ?? 0}.{_mappingSource?.GetHashCode() ?? 0}.{_annotationProvider?.GetHashCode() ?? 0}.");
 		}
 
 		public MappingAttribute[] GetAttributes(Type type)
@@ -121,10 +122,10 @@ namespace LinqToDB.EntityFrameworkCore
 				// TableAttribute
 				var tableAttribute = type.GetAttribute<System.ComponentModel.DataAnnotations.Schema.TableAttribute>();
 				if (tableAttribute != null)
-					(result ??= new()).Add(new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema });
+					(result = new()).Add(new TableAttribute(tableAttribute.Name) { Schema = tableAttribute.Schema });
 			}
 
-			return result == null ? Array.Empty<MappingAttribute>() : result.ToArray();
+			return result == null ? [] : result.ToArray();
 		}
 
 		static IEntityType GetBaseTypeRecursive(IEntityType entityType)
@@ -218,7 +219,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public MappingAttribute[] GetAttributes(Type type, MemberInfo memberInfo)
 		{
 			if (typeof(Expression).IsSameOrParentOf(type))
-				return Array.Empty<MappingAttribute>();
+				return [];
 
 			List<MappingAttribute>? result = null;
 			var hasColumn = false;
@@ -263,7 +264,7 @@ namespace LinqToDB.EntityFrameworkCore
 						.Any(static a =>
 						{
 							if (a.Name.EndsWith(":ValueGenerationStrategy"))
-								return a.Value?.ToString()?.Contains("Identity") == true;
+								return a.Value != null && string.Format(CultureInfo.InvariantCulture, "{0}", a.Value).Contains("Identity");
 
 							if (a.Name.EndsWith(":Autoincrement"))
 								return a.Value is bool b && b;
@@ -273,7 +274,9 @@ namespace LinqToDB.EntityFrameworkCore
 							{
 								if (a.Value is string str)
 								{
-									return str.ToLowerInvariant().Contains("nextval");
+#pragma warning disable CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
+									return str.ToUpperInvariant().Contains("NEXTVAL");
+#pragma warning restore CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
 								}
 							}
 
@@ -429,7 +432,7 @@ namespace LinqToDB.EntityFrameworkCore
 					});
 			}
 
-			return result == null ? Array.Empty<MappingAttribute>() : result.ToArray();
+			return result == null ? [] : result.ToArray();
 		}
 
 		sealed class ValueConverter : IValueConverter
@@ -586,7 +589,7 @@ namespace LinqToDB.EntityFrameworkCore
 				}
 
 				if (idx >= 0)
-					return $"{{{idx}}}";
+					return FormattableString.Invariant($"{{{idx}}}");
 
 				if (expr is SqlFragmentExpression fragment)
 					return fragment.Sql;
@@ -599,16 +602,16 @@ namespace LinqToDB.EntityFrameworkCore
 
 					if (!sqlFunction.IsNiladic)
 					{
-						text = text + "(";
+						text += "(";
 						for (var i = 0; i < sqlFunction.Arguments.Count; i++)
 						{
 							var paramText = PrepareExpressionText(sqlFunction.Arguments[i]);
 							if (i > 0)
-								text = text + ", ";
-							text = text + paramText;
+								text += ", ";
+							text += paramText;
 						}
 
-						text = text + ")";
+						text += ")";
 					}
 
 					return text;
@@ -658,7 +661,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 		public MemberInfo[] GetDynamicColumns(Type type)
 		{
-			return Array.Empty<MemberInfo>();
+			return [];
 		}
 
 		string IMetadataReader.GetObjectID() => _objectId;
