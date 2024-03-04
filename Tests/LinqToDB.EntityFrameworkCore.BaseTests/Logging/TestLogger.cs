@@ -141,7 +141,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 			return new LogMessageEntry(
 				Message: logBuilder.ToString(),
-				TimeStamp: timestampFormat != null ? DateTime.Now.ToString(timestampFormat) : null,
+				TimeStamp: timestampFormat != null ? FormattableString.Invariant($"{DateTime.Now:timestampFormat}") : null,
 				LevelString: logLevelString,
 				LevelBackground: logLevelColors.Background,
 				LevelForeground: logLevelColors.Foreground,
@@ -168,7 +168,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 #pragma warning restore CS0618 // Type or member is obsolete
 			if (timestampFormat != null)
 			{
-				logBuilder.Append(DateTime.Now.ToString(timestampFormat));
+				logBuilder.Append(FormattableString.Invariant($"{DateTime.Now:timestampFormat}"));
 			}
 
 			// category and event id
@@ -223,44 +223,30 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 		private static string GetLogLevelString(LogLevel logLevel)
 		{
-			switch (logLevel)
+			return logLevel switch
 			{
-				case LogLevel.Trace:
-					return "trace";
-				case LogLevel.Debug:
-					return "debug";
-				case LogLevel.Information:
-					return "info";
-				case LogLevel.Warning:
-					return "warn";
-				case LogLevel.Error:
-					return "fail";
-				case LogLevel.Critical:
-					return "critical";
-				default:
-					throw new ArgumentOutOfRangeException(nameof(logLevel));
-			}
+				LogLevel.Trace       => "trace",
+				LogLevel.Debug       => "debug",
+				LogLevel.Information => "info",
+				LogLevel.Warning     => "warn",
+				LogLevel.Error       => "fail",
+				LogLevel.Critical    => "critical",
+				_                    => throw new ArgumentOutOfRangeException(nameof(logLevel)),
+			};
 		}
 
 		private static string GetSyslogSeverityString(LogLevel logLevel)
 		{
 			// 'Syslog Message Severities' from https://tools.ietf.org/html/rfc5424.
-			switch (logLevel)
+			return logLevel switch
 			{
-				case LogLevel.Trace:
-				case LogLevel.Debug:
-					return "<7>"; // debug-level messages
-				case LogLevel.Information:
-					return "<6>"; // informational messages
-				case LogLevel.Warning:
-					return "<4>"; // warning conditions
-				case LogLevel.Error:
-					return "<3>"; // error conditions
-				case LogLevel.Critical:
-					return "<2>"; // critical conditions
-				default:
-					throw new ArgumentOutOfRangeException(nameof(logLevel));
-			}
+				LogLevel.Trace or LogLevel.Debug => "<7>",// debug-level messages
+				LogLevel.Information             => "<6>",// informational messages
+				LogLevel.Warning                 => "<4>",// warning conditions
+				LogLevel.Error                   => "<3>",// error conditions
+				LogLevel.Critical                => "<2>",// critical conditions
+				_                                => throw new ArgumentOutOfRangeException(nameof(logLevel)),
+			};
 		}
 
 		private ConsoleColors GetLogLevelConsoleColors(LogLevel logLevel)
@@ -274,23 +260,16 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Logging
 
 			// We must explicitly set the background color if we are setting the foreground color,
 			// since just setting one can look bad on the users console.
-			switch (logLevel)
+			return logLevel switch
 			{
-				case LogLevel.Critical:
-					return new ConsoleColors(ConsoleColor.White, ConsoleColor.Red);
-				case LogLevel.Error:
-					return new ConsoleColors(ConsoleColor.Black, ConsoleColor.Red);
-				case LogLevel.Warning:
-					return new ConsoleColors(ConsoleColor.Yellow, ConsoleColor.Black);
-				case LogLevel.Information:
-					return new ConsoleColors(ConsoleColor.DarkGreen, ConsoleColor.Black);
-				case LogLevel.Debug:
-					return new ConsoleColors(ConsoleColor.Gray, ConsoleColor.Black);
-				case LogLevel.Trace:
-					return new ConsoleColors(ConsoleColor.Gray, ConsoleColor.Black);
-				default:
-					return new ConsoleColors(DefaultConsoleColor, DefaultConsoleColor);
-			}
+				LogLevel.Critical    => new ConsoleColors(ConsoleColor.White, ConsoleColor.Red),
+				LogLevel.Error       => new ConsoleColors(ConsoleColor.Black, ConsoleColor.Red),
+				LogLevel.Warning     => new ConsoleColors(ConsoleColor.Yellow, ConsoleColor.Black),
+				LogLevel.Information => new ConsoleColors(ConsoleColor.DarkGreen, ConsoleColor.Black),
+				LogLevel.Debug       => new ConsoleColors(ConsoleColor.Gray, ConsoleColor.Black),
+				LogLevel.Trace       => new ConsoleColors(ConsoleColor.Gray, ConsoleColor.Black),
+				_                    => new ConsoleColors(DefaultConsoleColor, DefaultConsoleColor),
+			};
 		}
 
 		private void GetScopeInformation(StringBuilder stringBuilder, bool multiLine)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using LinqToDB.Mapping;
@@ -47,7 +48,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 			_ = ResolveExpressionValues((context, @params, knownExpressions, converter), Expression!,
 				static (ctx, v, d) =>
 				{
-					var idx = int.Parse(v);
+					var idx = int.Parse(v, CultureInfo.InvariantCulture);
 
 					if (ctx.@params[idx] == null)
 						ctx.@params[idx] = ctx.converter(ctx.context, ctx.knownExpressions[idx], null);

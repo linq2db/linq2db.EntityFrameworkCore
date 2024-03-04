@@ -225,7 +225,7 @@ namespace LinqToDB.EntityFrameworkCore
 				body = Expression.Condition(checkExpression, invalidResult, body);
 			}
 
-			body = Expression.Block(new[] { variable }, assignExpr, body);
+			body = Expression.Block([variable], assignExpr, body);
 
 			var lambda =
 				Expression.Lambda<Func<IStateManager, object, Tuple<InternalEntityEntry?, bool>>>(body, stateManagerParam, objParam);

@@ -64,7 +64,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.Models.Northwind
 				if (typeof(ISoftDelete).IsSameOrParentOf(entityType.ClrType))
 				{
 					var method = ConfigureEntityFilterMethodInfo.MakeGenericMethod(entityType.ClrType);
-					method.Invoke(this, new object[] { builder });
+					method.Invoke(this, [builder]);
 				}
 			}
 		}
