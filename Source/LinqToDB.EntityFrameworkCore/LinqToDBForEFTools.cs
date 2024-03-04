@@ -64,7 +64,7 @@ namespace LinqToDB.EntityFrameworkCore
 				var newExpression = queryable.Expression;
 
 				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
-					.Invoke(null, new object[] { dc, newExpression })!;
+					.Invoke(null, [dc, newExpression])!;
 
 				if (prev != null)
 					result = prev(result);
@@ -260,7 +260,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public static DataConnection CreateLinqToDBConnection(this DbContext context,
 			IDbContextTransaction? transaction = null)
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
+			ArgumentNullException.ThrowIfNull(context);
 
 			var info    = GetEFProviderInfo(context);
 			var options = context.GetLinqToDBOptions() ?? new DataOptions();
@@ -268,7 +268,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			DataConnection? dc = null;
 
-			transaction = transaction ?? context.Database.CurrentTransaction;
+			transaction ??= context.Database.CurrentTransaction;
 
 			var connectionInfo = GetConnectionInfo(info);
 			var provider       = GetDataProvider(options, info, connectionInfo);
@@ -341,7 +341,7 @@ namespace LinqToDB.EntityFrameworkCore
 		public static IDataContext CreateLinqToDBContext(this DbContext context,
 			IDbContextTransaction? transaction = null)
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
+			ArgumentNullException.ThrowIfNull(context);
 
 			var info    = GetEFProviderInfo(context);
 			var options = context.GetLinqToDBOptions() ?? new DataOptions();
@@ -349,7 +349,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			DataConnection? dc = null;
 
-			transaction = transaction ?? context.Database.CurrentTransaction;
+			transaction ??= context.Database.CurrentTransaction;
 
 			var connectionInfo = GetConnectionInfo(info);
 			var provider       = GetDataProvider(options, info, connectionInfo);
@@ -413,7 +413,7 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>LINQ To DB <see cref="DataConnection"/> instance.</returns>
 		public static DataConnection CreateLinqToDBConnectionDetached(this DbContext context)
 		{
-			if (context == null) throw new ArgumentNullException(nameof(context));
+			ArgumentNullException.ThrowIfNull(context);
 
 			var info           = GetEFProviderInfo(context);
 			var connectionInfo = GetConnectionInfo(info);
@@ -551,8 +551,8 @@ namespace LinqToDB.EntityFrameworkCore
 		/// <returns>LINQ To DB query, attached to provided <see cref="IDataContext"/>.</returns>
 		public static IQueryable<T> ToLinqToDB<T>(this IQueryable<T> query, IDataContext dc)
 		{
-			if (query == null) throw new ArgumentNullException(nameof(query));
-			if (dc    == null) throw new ArgumentNullException(nameof(dc));
+			ArgumentNullException.ThrowIfNull(query);
+			ArgumentNullException.ThrowIfNull(dc);
 
 			var context = Implementation.GetCurrentContext(query)
 				?? throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
@@ -588,7 +588,9 @@ namespace LinqToDB.EntityFrameworkCore
 			var context = Implementation.GetCurrentContext(query)
 				?? throw new LinqToDBForEFToolsException("Can not evaluate current context from query");
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
 			var dc = CreateLinqToDBContext(context);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
 			return new LinqToDBForEFQueryProvider<T>(dc, query.Expression);
 		}

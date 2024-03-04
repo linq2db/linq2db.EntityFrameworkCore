@@ -10,37 +10,39 @@ using NUnit.Framework;
 namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 {
 	[TestFixture]
-	public class JsonConverTests : TestsBase
+	public class JsonConvertTests : TestsBase
 	{
 		private DbContextOptions<JsonConvertContext> _options;
 
-		public class LocalizedString
+		private sealed class LocalizedString
 		{
 			public string English { get; set; } = null!;
 			public string German { get; set; } = null!;
 			public string Slovak { get; set; } = null!;
 		}
 
-		public class EventScheduleItemBase
+		private class EventScheduleItemBase
 		{
 			public int Id { get; set; }
 			public virtual LocalizedString NameLocalized { get; set; } = null!;
 			public virtual string? JsonColumn { get; set; }
 		}
-		
-		public enum CrashEnum : byte
+
+#pragma warning disable CA1028 // Enum Storage should be Int32
+		private enum CrashEnum : byte
+#pragma warning restore CA1028 // Enum Storage should be Int32
 		{
 			OneValue = 0,
 			OtherValue = 1
 		}
 
-		public class EventScheduleItem : EventScheduleItemBase
+		private sealed class EventScheduleItem : EventScheduleItemBase
 		{
 			public CrashEnum CrashEnum { get; set; }
 			public Guid GuidColumn { get; set; }
 		}
 
-		public class JsonConvertContext : DbContext
+		private sealed class JsonConvertContext : DbContext
 		{
 			public JsonConvertContext()
 			{
@@ -51,9 +53,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			{
 			}
 
-
-			public virtual DbSet<EventScheduleItem> EventScheduleItems { get; set; } = null!;
-
+			public DbSet<EventScheduleItem> EventScheduleItems { get; set; } = null!;
 
 			protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 			{
@@ -73,13 +73,13 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					entity.Property(e => e.GuidColumn).HasColumnType("uniqueidentifier");
 				});
 
-				modelBuilder.HasDbFunction(typeof(JsonConverTests).GetMethod(nameof(JsonConverTests.JsonValue))!)
+				modelBuilder.HasDbFunction(typeof(JsonConvertTests).GetMethod(nameof(JsonValue))!)
 					.HasTranslation(e => new SqlFunctionExpression(
 						"JSON_VALUE", e, true, e.Select(_ => false), typeof(string), null));
 			}
 		}
 
-		public JsonConverTests()
+		public JsonConvertTests()
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<JsonConvertContext>();
 			//new SqlServerDbContextOptionsBuilder(optionsBuilder);
@@ -90,7 +90,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			_options = optionsBuilder.Options;
 		}
 
+#pragma warning disable NUnit1028 // The non-test method is public
 		public static string JsonValue(string? column, [NotParameterized] string path)
+#pragma warning restore NUnit1028 // The non-test method is public
 		{
 			throw new NotSupportedException();
 		}
@@ -137,10 +139,13 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 				var item = items.FirstOrDefault();
 
-				Assert.IsNotNull(item);
-				Assert.That(item!.NameLocalized.English, Is.EqualTo("English"));
-				Assert.That(item.NameLocalized.German,   Is.EqualTo("German"));
-				Assert.That(item.NameLocalized.Slovak,   Is.EqualTo("Slovak"));
+				Assert.That(item, Is.Not.Null);
+				Assert.Multiple(() =>
+				{
+					Assert.That(item!.NameLocalized.English, Is.EqualTo("English"));
+					Assert.That(item.NameLocalized.German, Is.EqualTo("German"));
+					Assert.That(item.NameLocalized.Slovak, Is.EqualTo("Slovak"));
+				});
 
 				//TODO: make it work
 				// var concrete = queryable.Select(p => new
