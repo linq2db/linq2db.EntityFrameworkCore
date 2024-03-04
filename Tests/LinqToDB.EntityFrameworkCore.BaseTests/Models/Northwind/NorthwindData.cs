@@ -103,7 +103,7 @@ namespace LinqToDB.EntityFrameworkCore.BaseTests.Models.Northwind
 				return new AsyncEnumerable<TEntity>(_customerViews.Cast<TEntity>());
 			}
 
-			throw new InvalidOperationException("Invalid entity type: " + typeof(TEntity));
+			throw new InvalidOperationException(FormattableString.Invariant($"Invalid entity type: {typeof(TEntity)}"));
 		}
 
 		public static void Seed(DbContext context)

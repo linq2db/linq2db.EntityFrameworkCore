@@ -128,13 +128,17 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 					select pd;
 				var items = query.Take(2).ToLinqToDB().ToArray();
 			}
-			Assert.IsTrue(_testCommandInterceptor.HasInterceptorBeenInvoked);
-			Assert.IsTrue(_testConnectionInterceptor.HasInterceptorBeenInvoked);
-			Assert.IsTrue(_testEntityServiceInterceptor.HasInterceptorBeenInvoked);
 
-			//the following check is false because linq2db context is never closed together
-			//with the EF core context
-			Assert.IsFalse(_testDataContextInterceptor.HasInterceptorBeenInvoked);
+			Assert.Multiple(() =>
+			{
+				Assert.That(_testCommandInterceptor.HasInterceptorBeenInvoked, Is.True);
+				Assert.That(_testConnectionInterceptor.HasInterceptorBeenInvoked, Is.True);
+				Assert.That(_testEntityServiceInterceptor.HasInterceptorBeenInvoked, Is.True);
+
+				//the following check is false because linq2db context is never closed together
+				//with the EF core context
+				Assert.That(_testDataContextInterceptor.HasInterceptorBeenInvoked, Is.False);
+			});
 		}
 
 		[Test]
@@ -151,10 +155,14 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 				var items = query.Take(2).ToLinqToDB(linqToDBContext).ToArray();
 				var items2 = query.Take(2).ToLinqToDB(linqToDBContext).ToArray();
 			}
-			Assert.IsTrue(_testCommandInterceptor.HasInterceptorBeenInvoked);
-			Assert.IsTrue(_testDataContextInterceptor.HasInterceptorBeenInvoked);
-			Assert.IsTrue(_testConnectionInterceptor.HasInterceptorBeenInvoked);
-			Assert.IsTrue(_testEntityServiceInterceptor.HasInterceptorBeenInvoked);
+
+			Assert.Multiple(() =>
+			{
+				Assert.That(_testCommandInterceptor.HasInterceptorBeenInvoked, Is.True);
+				Assert.That(_testDataContextInterceptor.HasInterceptorBeenInvoked, Is.True);
+				Assert.That(_testConnectionInterceptor.HasInterceptorBeenInvoked, Is.True);
+				Assert.That(_testEntityServiceInterceptor.HasInterceptorBeenInvoked, Is.True);
+			});
 		}
 
 		[Test]
@@ -169,7 +177,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 					select pd;
 				var items = query.Take(2).ToArray();
 			}
-			Assert.IsTrue(_testEfCoreAndLinqToDBInterceptor.HasInterceptorBeenInvoked);
+			Assert.That(_testEfCoreAndLinqToDBInterceptor.HasInterceptorBeenInvoked, Is.True);
 		}
 
 		[Test]
@@ -184,7 +192,7 @@ namespace LinqToDB.EntityFrameworkCore.SQLite.Tests
 					select pd;
 				var items = query.Take(2).ToLinqToDB().ToArray();
 			}
-			Assert.IsTrue(_testEfCoreAndLinqToDBInterceptor.HasInterceptorBeenInvoked);
+			Assert.That(_testEfCoreAndLinqToDBInterceptor.HasInterceptorBeenInvoked, Is.True);
 		}
 	}
 }

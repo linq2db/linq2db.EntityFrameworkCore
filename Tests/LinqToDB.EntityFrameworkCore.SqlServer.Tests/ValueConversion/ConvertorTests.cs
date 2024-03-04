@@ -65,12 +65,15 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests.ValueConversion
 				_ = ctx.Subdivisions.ToLinqToDB().Where(s => ids.Contains(s.Id)).ToArray();
 				
 				_ = ctx.Subdivisions.ToLinqToDB().ToArray();
-				
-				Assert.AreEqual(ef[0].Code, result1[0].Code);
-				Assert.AreEqual(ef[0].Id, result1[0].Id);
-				
-				Assert.AreEqual(ef[0].Code, result2[0].Code);
-				Assert.AreEqual(ef[0].Id, result2[0].Id);
+
+				Assert.Multiple(() =>
+				{
+					Assert.That(result1[0].Code, Is.EqualTo(ef[0].Code));
+					Assert.That(result1[0].Id, Is.EqualTo(ef[0].Id));
+
+					Assert.That(result2[0].Code, Is.EqualTo(ef[0].Code));
+					Assert.That(result2[0].Id, Is.EqualTo(ef[0].Id));
+				});
 			}
 		}
 	}
