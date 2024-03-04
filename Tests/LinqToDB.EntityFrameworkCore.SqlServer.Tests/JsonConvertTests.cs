@@ -90,7 +90,9 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 			_options = optionsBuilder.Options;
 		}
 
+#pragma warning disable NUnit1028 // The non-test method is public
 		public static string JsonValue(string? column, [NotParameterized] string path)
+#pragma warning restore NUnit1028 // The non-test method is public
 		{
 			throw new NotSupportedException();
 		}
@@ -137,10 +139,13 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 
 				var item = items.FirstOrDefault();
 
-				Assert.IsNotNull(item);
-				Assert.That(item!.NameLocalized.English, Is.EqualTo("English"));
-				Assert.That(item.NameLocalized.German,   Is.EqualTo("German"));
-				Assert.That(item.NameLocalized.Slovak,   Is.EqualTo("Slovak"));
+				Assert.That(item, Is.Not.Null);
+				Assert.Multiple(() =>
+				{
+					Assert.That(item!.NameLocalized.English, Is.EqualTo("English"));
+					Assert.That(item.NameLocalized.German, Is.EqualTo("German"));
+					Assert.That(item.NameLocalized.Slovak, Is.EqualTo("Slovak"));
+				});
 
 				//TODO: make it work
 				// var concrete = queryable.Select(p => new

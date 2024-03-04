@@ -108,7 +108,7 @@ namespace LinqToDB.EntityFrameworkCore.Internal
 		{
 			var item = typeof(TResult).GetGenericArguments()[0];
 			var method = _executeAsyncMethodInfo.MakeGenericMethod(item);
-			return (TResult)method.Invoke(QueryProvider, new object[] { expression, cancellationToken })!;
+			return (TResult)method.Invoke(QueryProvider, [expression, cancellationToken])!;
 		}
 
 		/// <summary>

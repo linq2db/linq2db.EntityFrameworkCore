@@ -15,7 +15,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 	{
 		private bool _isDbCreated;
 
-		public override ForMappingContextBase CreateContext(Func<DataOptions, DataOptions>? optionsSetter = null)
+		protected override ForMappingContextBase CreateContext(Func<DataOptions, DataOptions>? optionsSetter = null)
 		{
 			var optionsBuilder = new DbContextOptionsBuilder<ForMappingContext>();
 			optionsBuilder.UseSqlServer(Settings.ForMappingConnectionString);
@@ -72,7 +72,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 		{
 			using var db = CreateContext(o => o.UseSqlServer("TODO:remove after fix from linq2db (not used)", SqlServerVersion.v2005));
 			using var dc = db.CreateLinqToDBConnectionDetached();
-			Assert.True(dc.MappingSchema.DisplayID.Contains("2005"));
+			Assert.That(dc.MappingSchema.DisplayID, Does.Contain("2005"));
 		}
 	}
 }

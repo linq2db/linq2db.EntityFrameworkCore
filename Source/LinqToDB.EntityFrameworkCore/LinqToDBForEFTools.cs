@@ -65,7 +65,7 @@ namespace LinqToDB.EntityFrameworkCore
 				var newExpression = queryable.Expression;
 
 				var result = (IQueryable)instantiator.MakeGenericMethod(queryable.ElementType)
-					.Invoke(null, new object[] { dc, newExpression })!;
+					.Invoke(null, [dc, newExpression])!;
 
 				if (prev != null)
 					result = prev(result);
@@ -270,7 +270,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			DataConnection? dc = null;
 
-			transaction = transaction ?? context.Database.CurrentTransaction;
+			transaction ??= context.Database.CurrentTransaction;
 
 			var connectionInfo = GetConnectionInfo(info);
 			var provider       = GetDataProvider(options, info, connectionInfo);
@@ -351,7 +351,7 @@ namespace LinqToDB.EntityFrameworkCore
 
 			DataConnection? dc = null;
 
-			transaction = transaction ?? context.Database.CurrentTransaction;
+			transaction ??= context.Database.CurrentTransaction;
 
 			var connectionInfo = GetConnectionInfo(info);
 			var provider       = GetDataProvider(options, info, connectionInfo);

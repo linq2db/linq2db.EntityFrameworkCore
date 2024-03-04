@@ -224,7 +224,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					var test2 = await ctx.Products.Where(p => p.ProductName.StartsWith("U")).MaxAsyncLinqToDB(p => p.QuantityPerUnit);
 #pragma warning restore CA1866 // Use char overload
 
-					Assert.AreEqual(test1, test2);
+					Assert.That(test2, Is.EqualTo(test1));
 
 					ctx.Products.Where(p => p.ProductName == "a")
 						.ToLinqToDB(db)
@@ -317,9 +317,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var customerPk = ms.GetAttribute<ColumnAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.CustomerId));
 
-				Assert.NotNull(customerPk);
-				Assert.AreEqual(true, customerPk!.IsPrimaryKey);
-				Assert.AreEqual(0, customerPk.PrimaryKeyOrder);
+				Assert.That(customerPk, Is.Not.Null);
+				Assert.Multiple(() =>
+				{
+					Assert.That(customerPk!.IsPrimaryKey, Is.EqualTo(true));
+					Assert.That(customerPk.PrimaryKeyOrder, Is.EqualTo(0));
+				});
 			}
 		}
 
@@ -333,9 +336,12 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var associationOrder = ms.GetAttribute<AssociationAttribute>(typeof(Customer),
 					MemberHelper.MemberOf<Customer>(c => c.Orders));
 
-				Assert.NotNull(associationOrder);
-				Assert.That(associationOrder!.ThisKey, Is.EqualTo("CustomerId"));
-				Assert.That(associationOrder.OtherKey, Is.EqualTo("CustomerId"));
+				Assert.That(associationOrder, Is.Not.Null);
+				Assert.Multiple(() =>
+				{
+					Assert.That(associationOrder!.ThisKey, Is.EqualTo("CustomerId"));
+					Assert.That(associationOrder.OtherKey, Is.EqualTo("CustomerId"));
+				});
 			}
 		}
 
@@ -352,8 +358,8 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				
 				var efResult      = withoutFilterQuery.ToArray();
 				var linq2dbResult = withoutFilterQuery.ToLinqToDB().ToArray();
-				
-				Assert.AreEqual(efResult.Length, linq2dbResult.Length);
+
+				Assert.That(linq2dbResult, Has.Length.EqualTo(efResult.Length));
 
 				var withFilterQuery =
 					from p in ctx.Products
@@ -363,7 +369,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var efResult2  = withFilterQuery.ToArray();
 				var linq2dbResult2 = withFilterQuery.ToLinqToDB().ToArray();
 
-				Assert.AreEqual(efResult2.Length, linq2dbResult2.Length);
+				Assert.That(linq2dbResult2, Has.Length.EqualTo(efResult2.Length));
 			}
 		}
 
@@ -470,7 +476,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var expected = await query.ToArrayAsync();
 				var filtered = await query.ToLinqToDB().ToArrayAsync();
 
-				Assert.That(filtered.Length, Is.EqualTo(expected.Length));
+				Assert.That(filtered, Has.Length.EqualTo(expected.Length));
 			}
 		}
 
@@ -534,7 +540,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var result = await query.ToLinqToDB().ToArrayAsync();
 
 				var orderDetail = result[0].OrderDetails.First();
-				orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
+				orderDetail.UnitPrice *= 1.1m;
 
 				ctx.ChangeTracker.DetectChanges();
 				var changedEntry = ctx.ChangeTracker.Entries().Single(e => e.State == EntityState.Modified);
@@ -557,11 +563,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				var result = await query.ToLinqToDB().ToArrayAsync();
 
 				var orderDetail = result[0].OrderDetails.First();
-				orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
+				orderDetail.UnitPrice *= 1.1m;
 
 				ctx.ChangeTracker.DetectChanges();
 				var changedEntry = ctx.ChangeTracker.Entries().SingleOrDefault(e => e.State == EntityState.Modified);
-				Assert.AreEqual(changedEntry, null);
+				Assert.That(changedEntry, Is.Null);
 				await ctx.SaveChangesAsync();
 			}
 		}
@@ -583,11 +589,11 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					var result = await query.ToLinqToDB().ToArrayAsync();
 
 					var orderDetail = result[0].OrderDetails.First();
-					orderDetail.UnitPrice = orderDetail.UnitPrice * 1.1m;
+					orderDetail.UnitPrice *= 1.1m;
 
 					ctx.ChangeTracker.DetectChanges();
 					var changedEntry = ctx.ChangeTracker.Entries().SingleOrDefault(e => e.State == EntityState.Modified);
-					Assert.AreEqual(changedEntry, null);
+					Assert.That(changedEntry, Is.Null);
 					await ctx.SaveChangesAsync();
 				}
 			}
@@ -759,7 +765,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 				using var db = ctx.CreateLinqToDBContext();
 				using var temp = db.CreateTempTable(ctx.Employees, "#TestEmployees");
 
-				Assert.AreEqual(ctx.Employees.Count(), temp.Count());
+				Assert.That(temp.Count(), Is.EqualTo(ctx.Employees.Count()));
 			}
 		}
 
@@ -814,7 +820,7 @@ namespace LinqToDB.EntityFrameworkCore.SqlServer.Tests
 					{
 						var result = query.ToLinqToDB().First();
 					})!;
-					Assert.AreEqual(exception.Number, timeoutErrorCode);
+					Assert.That(timeoutErrorCode, Is.EqualTo(exception.Number));
 				}
 				finally
 				{
