@@ -473,6 +473,9 @@ namespace LinqToDB.EntityFrameworkCore
 
 		sealed class SqlTransparentExpression : SqlExpression
 		{
+			//private static readonly ConstructorInfo _ctor = typeof(SqlTransparentExpression).GetConstructor([typeof(ExceptExpression), typeof(RelationalTypeMapping)])
+			//	?? throw new InvalidOperationException();
+
 			public Expression Expression { get; }
 
 			public SqlTransparentExpression(Expression expression, RelationalTypeMapping? typeMapping) : base(expression.Type, typeMapping)
@@ -483,6 +486,22 @@ namespace LinqToDB.EntityFrameworkCore
 			protected override void Print(ExpressionPrinter expressionPrinter)
 			{
 				expressionPrinter.PrintExpression(Expression);
+			}
+
+			public override Expression Quote()
+			{
+				// don't implement till first request or when we figure out how to quote Expression
+				throw new NotImplementedException("Quote is not implemented yet");
+
+//#pragma warning disable EF9100 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+//				return New(
+//					_ctor,
+//					// TODO: implement quoting
+//					// we pass only ConstantExpression here and
+//					// FromSqlExpression has example of ConstantExpression quotation
+//					Expression,
+//					RelationalExpressionQuotingUtilities.QuoteTypeMapping(TypeMapping));
+//#pragma warning restore EF9100 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 			}
 
 			private bool Equals(SqlTransparentExpression other)
