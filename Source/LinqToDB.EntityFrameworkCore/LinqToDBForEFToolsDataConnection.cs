@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace LinqToDB.EntityFrameworkCore
@@ -177,7 +176,7 @@ namespace LinqToDB.EntityFrameworkCore
 			if (!valid)
 				return entity;
 
-			entry = retrieved ?? _stateManager.StartTrackingFromQuery(_lastEntityType, entity, ValueBuffer.Empty);
+			entry = retrieved ?? _stateManager.StartTrackingFromQuery(_lastEntityType, entity, Snapshot.Empty);
 
 			return entry.Entity;
 		}
