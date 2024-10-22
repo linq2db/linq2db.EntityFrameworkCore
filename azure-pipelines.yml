@@ -1,8 +1,8 @@
 variables:
   solution: 'linq2db.EFCore.sln'
   build_configuration: 'Release'
-  assemblyVersion: 8.1.0
-  nugetVersion: 8.1.0
+  assemblyVersion: 9.0.0
+  nugetVersion: 9.0.0-rc.2
   artifact_nugets: 'nugets'
 
 # build on commits to important branches (master + release branches):
@@ -34,10 +34,10 @@ stages:
 
     
     - task: UseDotNet@2
-      displayName: 'Install .NET 8'
+      displayName: 'Install .NET 9'
       inputs:
         includePreviewVersions: true
-        version: 8.x
+        version: 9.x
 
     - task: PowerShell@2
       inputs:
