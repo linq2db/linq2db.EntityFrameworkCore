@@ -579,3 +579,5 @@ dotnet_diagnostic.MA0152.severity = none
 dotnet_diagnostic.MA0153.severity = none
 # MA0154: Use langword in XML comment
 dotnet_diagnostic.MA0154.severity = none
+# MA0165: Use langword in XML comment
+dotnet_diagnostic.MA0165.severity = none

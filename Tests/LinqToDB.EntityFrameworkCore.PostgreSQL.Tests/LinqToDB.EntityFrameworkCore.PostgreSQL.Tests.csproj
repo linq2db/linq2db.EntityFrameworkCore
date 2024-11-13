@@ -2,6 +2,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" />
+
+		<!--deps overrides-->
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" NoWarn="NU1608" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" NoWarn="NU1608" />
 	</ItemGroup>
 
 	<ItemGroup>
