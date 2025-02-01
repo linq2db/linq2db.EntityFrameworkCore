@@ -1,4 +1,4 @@
-
+# Repository was merged with [main repository](https://github.com/linq2db/linq2db)
 
 # linq2db.EntityFrameworkCore
 
